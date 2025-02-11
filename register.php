@@ -40,101 +40,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <style>
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            font-family: sans-serif;
-            background-color: #f4f4f4;
-        }
-
-        .container {
-            background-color: #fff;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            text-align: center;
-            width: 300px;
-        }
-
-        .container h2 {
-            margin-bottom: 20px;
-        }
-
-        .container input[type="text"],
-        .container input[type="password"],
-        .container input[type="number"],
-        .container input[type="email"] {
-            width: calc(100% - 20px);
-            padding: 10px;
-            margin-bottom: 15px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            box-sizing: border-box;
-        }
-
-        .container input[type="submit"] {
-            background-color: #4CAF50;
-            color: white;
-            padding: 10px 15px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            width: calc(100% - 20px);
-            box-sizing: border-box;
-        }
-
-        .container input[type="submit"]:hover {
-            background-color: #45a049;
-        }
-
-        .error {
-            color: red;
-            margin-top: 5px;
-            text-align: left;
-            padding-left: 10px;
-            width: calc(100% - 20px);
-            box-sizing: border-box;
-        }
-
-        .success {
-            color: green;
-            margin-top: 5px;
-            text-align: left;
-            padding-left: 10px;
-            width: calc(100% - 20px);
-            box-sizing: border-box;
-        }
-
-        .back-to-login {
-            margin-top: 20px;
-        }
-
-        .back-to-login button {
-            background-color: #007bff;
-            color: white;
-            padding: 10px 15px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-
-        .back-to-login button:hover {
-            background-color: #0056b3;
-        }
-
-        .connection-error {
-            position: absolute;
-            top: 0;
-            left: 0;
-            background-color: red;
-            color: white;
-            padding: 10px;
-            z-index: 1000;
-        }
-    </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="container">
@@ -169,6 +78,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             <input type="submit" name="submit" value="Register">
         </form>
+
+        <div class="register-link">
+            Already have an account? <a href="index.php">Back to Login</a>
+        </div>
 
         <?php
         if (isset($error_message)) {
