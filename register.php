@@ -79,10 +79,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <input type="submit" name="submit" value="Register">
         </form>
 
-        <div class="register-link">
-            Already have an account? <a href="index.php">Back to Login</a>
-        </div>
-
         <?php
         if (isset($error_message)) {
             echo "<div class='error'>" . $error_message . "</div>";
@@ -92,6 +88,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             echo "<div class='back-to-login'>";
             echo "<button onclick=\"window.location.href='index.php'\">Back to Login</button>";
             echo "</div>";
+        } else {
+        ?>
+            <div class="register-link">
+                Already have an account? <a href="index.php">Back to Login</a>
+            </div>
+        <?php
         }
         ?>
     </div>
