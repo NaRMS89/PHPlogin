@@ -121,13 +121,20 @@ body {
 }
 
 .modal-content {
-    background-color: #1e1e1e;
-    margin: 5% auto;
+    background-color: #1e1e1e; /* Dark background */
+    margin: auto;
     padding: 20px;
     border: 1px solid #888;
-    width: 80%; /* Adjusted width */
-    max-width: 400px; /* Maximum width */
+    width: 400px; /* Fixed width */
+    height: 400px; /* Fixed height */
     color: #e0e0e0;
+    overflow-y: auto; /* Enable vertical scrolling */
+}
+
+.modal-content table td {
+    word-wrap: break-word;
+    white-space: normal;
+    width: 250px; /* Increased width for table cells */
 }
 
 .close {
@@ -139,14 +146,31 @@ body {
 
 .close:hover,
 .close:focus {
-    color: #000;
+    color: black;
     text-decoration: none;
     cursor: pointer;
 }
 
 .readonly-input {
-    pointer-events: none;
-    background-color: transparent;
+    background-color: #e9ecef;
     border: none;
     color: #e0e0e0;
+    pointer-events: none;
+}
+
+table {
+    width: 100%;
+}
+
+th, td {
+    padding: 8px;
+    text-align: left;
+}
+
+th {
+    width: 30%;
+}
+
+td {
+    width: 70%;
 }
