@@ -15,114 +15,39 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if (empty($idno) || empty($lastname) || empty($firstname) || empty($username) || empty($password) || empty($email) || empty($course) || empty($yearlvl) || empty($midname)) {
         $error_message = "All fields are required.";
     } else {
-        $check_idno_user_email_sql = "SELECT * FROM registration WHERE idno = '$idno' OR username = '$username' OR email = '$email'";
-        $result = mysqli_query($conn, $check_idno_user_email_sql);
+        $check_idno_user_email_sql = "SELECT * FROM info WHERE id_number = ? OR username = ? OR email = ?";
+        $stmt = $conn->prepare($check_idno_user_email_sql);
+        $stmt->bind_param("sss", $idno, $username, $email);
+        $stmt->execute();
+        $result = $stmt->get_result();
 
-        if (mysqli_num_rows($result) > 0) {
+        if ($result->num_rows > 0) {
             $error_message = "ID Number, Username, or email already exists. Please choose different ones.";
         } else {
-            // Removed password hashing
-            $sql = "INSERT INTO registration (idno, lastname, firstname, midname, course, yearlvl, email, username, password) 
-                    VALUES ('$idno', '$lastname', '$firstname', '$midname', '$course', '$yearlvl', '$email', '$username', '$password')"; // Password stored in plain text
+            $sql = "INSERT INTO info (id_number, last_name, first_name, middle_name, course, year_level, email, username, password) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param("sssssssss", $idno, $lastname, $firstname, $midname, $course, $yearlvl, $email, $username, $password);
 
-            if (mysqli_query($conn, $sql)) {
+            if ($stmt->execute()) {
                 $success_message = "Registration successful. You can now log in.";
             } else {
-                $error_message = "Error during registration: " . mysqli_error($conn);
+                $error_message = "Error during registration: " . $stmt->error;
             }
         }
     }
-    mysqli_close($conn);
+    if ($conn instanceof mysqli) {
+        $conn->close();
+    }
 }
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <style>
-        /* ... (your CSS styles) ... */
-        body { /* Ensure body takes full viewport */
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            font-family: sans-serif;
-            background-color: #f4f4f4;
-        }
-
-        .container { /* Container for the form */
-            background-color: #fff;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            text-align: center;
-            width: 300px;
-        }
-
-        .container h2 {
-            margin-bottom: 20px;
-        }
-
-        .container input[type="text"],
-        .container input[type="password"],
-        .container input[type="number"],
-        .container input[type="email"] {
-            width: calc(100% - 20px);
-            padding: 10px;
-            margin-bottom: 15px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            box-sizing: border-box;
-        }
-
-        .container input[type="submit"] {
-            background-color: #4CAF50;
-            color: white;
-            padding: 10px 15px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            width: calc(100% - 20px);
-            box-sizing: border-box;
-        }
-
-        .container input[type="submit"]:hover {
-            background-color: #45a049;
-        }
-
-        .error {
-            color: red;
-            margin-top: 5px;
-            text-align: left;
-            padding-left: 10px;
-            width: calc(100% - 20px);
-            box-sizing: border-box;
-        }
-
-        .success {
-            color: green;
-            margin-top: 5px;
-            text-align: left;
-            padding-left: 10px;
-            width: calc(100% - 20px);
-            box-sizing: border-box;
-        }
-        .back-to-login {
-            margin-top: 20px; /* Add some space above the button */
-        }
-
-        .back-to-login button {
-            background-color: #007bff; /* Blue color */
-            color: white;
-            padding: 10px 15px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-
-        .back-to-login button:hover {
-            background-color: #0056b3; /* Darker blue on hover */
-        }
-        </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="container">
@@ -141,10 +66,26 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <input type="text" id="midname" name="midname" required><br>
 
             Course: <br>
-            <input type="text" id="course" name="course" required><br>
+            <select id="course" name="course" required>
+                <option value="BSIT">BSIT</option>
+                <option value="BSCS">BSCS</option>
+                <option value="BSECE">BSECE</option>
+                <option value="BSME">BSME</option>
+                <option value="BSCE">BSCE</option>
+                <option value="BSN">BSN</option>
+                <option value="BSA">BSA</option>
+                <option value="BSBA">BSBA</option>
+                <option value="BSED">BSED</option>
+                <option value="BSHRM">BSHRM</option>
+            </select><br>
 
             Year Level: <br>
-            <input type="number" id="yearlvl" name="yearlvl" required><br>
+            <select id="yearlvl" name="yearlvl" required>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+            </select><br>
 
             Email: <br>
             <input type="email" id="email" name="email" required><br>
