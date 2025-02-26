@@ -5,27 +5,21 @@ body {
     margin: 0;
 }
 
+/* Dashboard specific styles */
 .dashboard-container {
-    display: grid;
-    grid-template-columns: 250px 1fr;
-    height: 100vh;
+    display: flex;
 }
 
 .sidebar {
-    background-color: #1e1e1e;
+    width: 250px;
     padding: 20px;
-    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.5);
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
+    background-color: #f4f4f4;
+    border-right: 1px solid #ccc;
 }
 
-.sidebar h2 {
-    margin-top: 0;
-}
-
-.sidebar p {
-    margin: 10px 0;
+.main-content {
+    padding: 20px;
+    margin-left: 270px; /* Adjust based on sidebar width */
 }
 
 .sidebar-button {
@@ -42,13 +36,6 @@ body {
 
 .sidebar-button:hover {
     background-color: #45a049;
-}
-
-.main-content {
-    padding: 20px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
 }
 
 .modal {
@@ -120,13 +107,16 @@ td {
     width: 70%;
 }
 
+/* Centering the login and registration forms */
 .login-container, .register-container {
-    background-color: #1e1e1e;
+    margin: 0 auto; /* Center horizontally */
+    width: 300px; /* Adjust the width as needed */
     padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-    width: 300px;
-    text-align: center;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background-color: #fff;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    margin-top: 100px; /* Center vertically */
 }
 
 .login-container h2, .register-container h2 {
@@ -169,6 +159,11 @@ td {
     padding-left: 10px;
     width: calc(100% - 20px);
     box-sizing: border-box;
+}
+
+.success {
+    color: #4CAF50;
+    margin-top: 5px;
 }
 
 .register-link {

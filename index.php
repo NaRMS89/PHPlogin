@@ -10,28 +10,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     } elseif (empty($password)) {
         $error_message = "Please enter your password";
     } else {
-        $check_user_sql = "SELECT * FROM info WHERE id_number = '$idno'";
-        $result = mysqli_query($conn, $check_user_sql);
+        $check_user_sql = "SELECT * FROM info WHERE id_number = ?";
+        $stmt = $conn->prepare($check_user_sql);
+        $stmt->bind_param("s", $idno);
+        $stmt->execute();
+        $result = $stmt->get_result();
 
         if ($result && mysqli_num_rows($result) > 0) {
             $row = mysqli_fetch_assoc($result);
-            $stored_password = $row['password']; // Get stored password (plain text for now)
+            $stored_password = $row['password'];
 
-            if ($password == $stored_password) { // Direct comparison (INSECURE - for testing only)
-                // Check if sessions are available
-                if ($row['sessions'] <= 0) {
-                    $error_message = "No more sessions available.";
-                } else {
-                    // Start a session (important for logged-in users)
-                    session_start();
-                    $_SESSION['user_id'] = $row['id_number']; // Store user ID in session
-                    $_SESSION['user_name'] = $row['first_name']; // Store user name in session (optional)
-                    $_SESSION['user_data'] = $row; // Store all user data in session
+            if ($password == $stored_password) {
+                session_start();
+                $_SESSION['user_id'] = $row['id_number'];
+                $_SESSION['user_name'] = $row['first_name'];
+                $_SESSION['user_data'] = $row;
 
-                    // Redirect to dashboard
-                    header("Location: dashboard.php");
-                    exit();
-                }
+                header("Location: dashboard.php");
+                exit();
             } else {
                 $error_message = "Invalid password";
             }

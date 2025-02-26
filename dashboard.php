@@ -1,43 +1,12 @@
 <?php
 session_start();
 
-if (!isset($_SESSION['user_id'])) {
-    header("Location: index.php");
-    exit();
-}
-
-if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['logout'])) {
-    session_unset();
-    session_destroy();
+if (!isset($_SESSION['user_data'])) {
     header("Location: index.php");
     exit();
 }
 
 $user_data = $_SESSION['user_data'];
-
-// Decrement session count on login
-if (!isset($_SESSION['session_decremented'])) {
-    $_SESSION['session_decremented'] = true;
-    $user_data['sessions'] -= 1;
-    // Update the database with the new session count
-    // Assuming you have a function updateSessions($userId, $sessions) to update the database
-    updateSessions($_SESSION['user_id'], $user_data['sessions']);
-    $_SESSION['user_data']['sessions'] = $user_data['sessions'];
-}
-
-function updateSessions($userId, $sessions) {
-    // Database connection
-    $conn = new mysqli('localhost', 'root', '', 'logindb');
-    if ($conn->connect_error) {
-        die("Connection failed: " . $conn->connect_error);
-    }
-
-    $stmt = $conn->prepare("UPDATE info SET sessions = ? WHERE id_number = ?");
-    $stmt->bind_param("ii", $sessions, $userId);
-    $stmt->execute();
-    $stmt->close();
-    $conn->close();
-}
 ?>
 <!DOCTYPE html>
 <html lang="en">
