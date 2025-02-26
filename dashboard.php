@@ -1,7 +1,7 @@
 <?php
 session_start();
 
-if (!isset($_SESSION['user_data'])) {
+if (!isset($_SESSION['user_id'])) {
     header("Location: index.php");
     exit();
 }
@@ -14,6 +14,30 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['logout'])) {
 }
 
 $user_data = $_SESSION['user_data'];
+
+// Decrement session count on login
+if (!isset($_SESSION['session_decremented'])) {
+    $_SESSION['session_decremented'] = true;
+    $user_data['sessions'] -= 1;
+    // Update the database with the new session count
+    // Assuming you have a function updateSessions($userId, $sessions) to update the database
+    updateSessions($_SESSION['user_id'], $user_data['sessions']);
+    $_SESSION['user_data']['sessions'] = $user_data['sessions'];
+}
+
+function updateSessions($userId, $sessions) {
+    // Database connection
+    $conn = new mysqli('localhost', 'root', '', 'logindb');
+    if ($conn->connect_error) {
+        die("Connection failed: " . $conn->connect_error);
+    }
+
+    $stmt = $conn->prepare("UPDATE info SET sessions = ? WHERE id_number = ?");
+    $stmt->bind_param("ii", $sessions, $userId);
+    $stmt->execute();
+    $stmt->close();
+    $conn->close();
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -24,79 +48,122 @@ $user_data = $_SESSION['user_data'];
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="container">
-        <h2>Welcome, <?php echo htmlspecialchars($user_data['last_name'] . ' ' . $user_data['first_name'] . ' ' . $user_data['middle_name']); ?>!</h2>
-        <button id="userInfoBtn" class="logout-button">User Info</button>
-        <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
-            <button type="submit" name="logout" class="logout-button">Logout</button>
-        </form>
-    </div>
-
-    <!-- The Modal -->
-    <div id="userInfoModal" class="modal">
-        <div class="modal-content">
-            <span class="close">&times;</span>
-            <h2>User Information</h2>
-            <form id="userInfoForm" action="update_user.php" method="post">
-                <table>
-
-                    <!-- dili poidi ma edit ID NUMBER
-                    <tr>
-                        <th>ID Number</th>
-                        <td><input type="text" name="id_number" value="<?php echo htmlspecialchars($user_data['id_number']); ?>" class="readonly-input" readonly></td>
-                    <tr>-->
-
-                        <th>Last Name</th>
-                        <td><input type="text" name="last_name" value="<?php echo htmlspecialchars($user_data['last_name']); ?>" class="readonly-input" readonly></td>
-                    </tr>
-                    <tr>
-                        <th>First Name</th>
-                        <td><input type="text" name="first_name" value="<?php echo htmlspecialchars($user_data['first_name']); ?>" class="readonly-input" readonly></td>
-                    </tr>
-                    <tr>
-                        <th>Middle Name</th>
-                        <td><input type="text" name="middle_name" value="<?php echo htmlspecialchars($user_data['middle_name']); ?>" class="readonly-input" readonly></td>
-                    </tr>
-                    <tr>
-                        <th>Course</th>
-                        <td><input type="text" name="course" value="<?php echo htmlspecialchars($user_data['course']); ?>" class="readonly-input" readonly></td>
-                    </tr>
-                    <tr>
-                        <th>Year Level</th>
-                        <td><input type="text" name="year_level" value="<?php echo htmlspecialchars($user_data['year_level']); ?>" class="readonly-input" readonly></td>
-                    </tr>
-                    <tr>
-                        <th>Email</th>
-                        <td><input type="text" name="email" value="<?php echo htmlspecialchars($user_data['email']); ?>" class="readonly-input" readonly></td>
-                    </tr>
-                </table>
-                <button type="button" id="editBtn" class="logout-button">Edit</button>
-                <button type="submit" id="saveBtn" class="logout-button" style="display:none;">Save Changes</button>
+    <div class="dashboard-container">
+        <div class="sidebar">
+            <h2>Welcome, <?php echo $user_data['last_name'] . ' ' . $user_data['first_name'] . ' ' . $user_data['middle_name']; ?>!</h2>
+            <p>Sessions Remaining: <?php echo $user_data['sessions']; ?></p>
+            <button id="userInfoBtn" class="sidebar-button">User Info</button>
+            <button type="button" id="announcementBtn" class="sidebar-button">Announcement</button>
+            <button type="button" id="remainingSessionsBtn" class="sidebar-button">Remaining Sessions</button>
+            <button type="button" id="sitInRulesBtn" class="sidebar-button">Sit-in Rules</button>
+            <button type="button" id="labRulesBtn" class="sidebar-button">Lab Rules & Regulations</button>
+            <button type="button" id="sitInHistoryBtn" class="sidebar-button">Sit-in History</button>
+            <button type="button" id="reservationBtn" class="sidebar-button">Reservation</button>
+            <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
+                <button type="submit" name="logout" class="sidebar-button">Logout</button>
             </form>
+        </div>
+        <div class="main-content">
+            <!-- The Modal -->
+            <div id="userInfoModal" class="modal">
+                <div class="modal-content">
+                    <span class="close">&times;</span>
+                    <h2>User Information</h2>
+                    <form id="userInfoForm" action="update_user.php" method="post" enctype="multipart/form-data">
+                        <table>
+                            <tr>
+                                <th>ID Number</th>
+                                <td><input type="text" name="id_number" value="<?php echo $user_data['id_number']; ?>" class="readonly-input" readonly></td>
+                            </tr>
+                            <tr>
+                                <th>Last Name</th>
+                                <td><input type="text" name="last_name" value="<?php echo $user_data['last_name']; ?>" class="readonly-input" readonly></td>
+                            </tr>
+                            <tr>
+                                <th>First Name</th>
+                                <td><input type="text" name="first_name" value="<?php echo $user_data['first_name']; ?>" class="readonly-input" readonly></td>
+                            </tr>
+                            <tr>
+                                <th>Middle Name</th>
+                                <td><input type="text" name="middle_name" value="<?php echo $user_data['middle_name']; ?>" class="readonly-input" readonly></td>
+                            </tr>
+                            <tr>
+                                <th>Course</th>
+                                <td><input type="text" name="course" value="<?php echo $user_data['course']; ?>" class="readonly-input" readonly></td>
+                            </tr>
+                            <tr>
+                                <th>Year Level</th>
+                                <td><input type="text" name="year_level" value="<?php echo $user_data['year_level']; ?>" class="readonly-input" readonly></td>
+                            </tr>
+                            <tr>
+                                <th>Email</th>
+                                <td><input type="text" name="email" value="<?php echo $user_data['email']; ?>" class="readonly-input" readonly></td>
+                            </tr>
+                            <tr>
+                                <th>Profile Picture</th>
+                                <td>
+                                    <img src="uploads/<?php echo $user_data['profile_picture'] ?? 'default.png'; ?>" alt="Profile Picture" class="profile-picture">
+                                    <input type="file" name="profile_picture" accept="image/*">
+                                </td>
+                            </tr>
+                        </table>
+                        <div class="button-wrapper">
+                            <button type="button" id="editBtn" class="logout-button">Edit</button>
+                            <button type="submit" id="saveBtn" class="logout-button" style="display:none;">Save Changes</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Modals for other buttons -->
+            <div id="announcementModal" class="modal">
+                <div class="modal-content">
+                    <span class="close">&times;</span>
+                    <p>Announcement content goes here...</p>
+                </div>
+            </div>
+
+            <div id="remainingSessionsModal" class="modal">
+                <div class="modal-content">
+                    <span class="close">&times;</span>
+                    <p>Remaining sessions content goes here...</p>
+                </div>
+            </div>
+
+            <div id="sitInRulesModal" class="modal">
+                <div class="modal-content">
+                    <span class="close">&times;</span>
+                    <p>Sit-in rules content goes here...</p>
+                </div>
+            </div>
+
+            <div id="labRulesModal" class="modal">
+                <div class="modal-content">
+                    <span class="close">&times;</span>
+                    <p>Lab rules and regulations content goes here...</p>
+                </div>
+            </div>
+
+            <div id="sitInHistoryModal" class="modal">
+                <div class="modal-content">
+                    <span class="close">&times;</span>
+                    <p>Sit-in history content goes here...</p>
+                </div>
+            </div>
+
+            <div id="reservationModal" class="modal">
+                <div class="modal-content">
+                    <span class="close">&times;</span>
+                    <p>Reservation content goes here...</p>
+                </div>
+            </div>
         </div>
     </div>
 
     <script>
-        var modal = document.getElementById("userInfoModal");
-        var btn = document.getElementById("userInfoBtn");
-        var span = document.getElementsByClassName("close")[0];
         var editBtn = document.getElementById("editBtn");
         var saveBtn = document.getElementById("saveBtn");
-        var inputs = document.querySelectorAll("#userInfoForm input[type='text']");
-
-        btn.onclick = function() {
-            modal.style.display = "block";
-        }
-
-        span.onclick = function() {
-            modal.style.display = "none";
-        }
-
-        window.onclick = function(event) {
-            if (event.target == modal) {
-                modal.style.display = "none";
-            }
-        }
+        var inputs = document.querySelectorAll("#userInfoForm input[type='text'], #userInfoForm input[type='file']");
 
         editBtn.onclick = function() {
             inputs.forEach(function(input) {
@@ -105,6 +172,51 @@ $user_data = $_SESSION['user_data'];
             });
             editBtn.style.display = "none";
             saveBtn.style.display = "inline-block";
+        }
+
+        var modals = document.querySelectorAll('.modal');
+        var closeButtons = document.querySelectorAll('.close');
+
+        closeButtons.forEach(function(closeButton) {
+            closeButton.onclick = function() {
+                closeButton.parentElement.parentElement.style.display = 'none';
+            }
+        });
+
+        window.onclick = function(event) {
+            modals.forEach(function(modal) {
+                if (event.target == modal) {
+                    modal.style.display = "none";
+                }
+            });
+        }
+
+        document.getElementById("userInfoBtn").onclick = function() {
+            document.getElementById("userInfoModal").style.display = "block";
+        }
+
+        document.getElementById("announcementBtn").onclick = function() {
+            document.getElementById("announcementModal").style.display = "block";
+        }
+
+        document.getElementById("remainingSessionsBtn").onclick = function() {
+            document.getElementById("remainingSessionsModal").style.display = "block";
+        }
+
+        document.getElementById("sitInRulesBtn").onclick = function() {
+            document.getElementById("sitInRulesModal").style.display = "block";
+        }
+
+        document.getElementById("labRulesBtn").onclick = function() {
+            document.getElementById("labRulesModal").style.display = "block";
+        }
+
+        document.getElementById("sitInHistoryBtn").onclick = function() {
+            document.getElementById("sitInHistoryModal").style.display = "block";
+        }
+
+        document.getElementById("reservationBtn").onclick = function() {
+            document.getElementById("reservationModal").style.display = "block";
         }
     </script>
 </body>
