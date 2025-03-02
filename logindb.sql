@@ -36,18 +36,19 @@ CREATE TABLE `info` (
   `year_level` varchar(50) DEFAULT NULL,
   `email` varchar(255) DEFAULT NULL,
   `username` varchar(255) DEFAULT NULL,
-  `password` varchar(255) DEFAULT NULL
+  `password` varchar(255) DEFAULT NULL,
+  `sessions` int(11) NOT NULL DEFAULT 15
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `info`
 --
 
-INSERT INTO `info` (`id_number`, `last_name`, `first_name`, `middle_name`, `course`, `year_level`, `email`, `username`, `password`) VALUES
-(123, '213', '123', '123', '123', '123', '123@gmail.com', '123', '123'),
-(696969, 'tintin', 'not', 'too big', 'yeah', '2', 'be@gmail.com', 'crazy like', '123'),
-(20948048, 'SINGCO', 'Nathaniel Ron', 'M.', 'Bachelor of Science in Technology', '3', 'nathanielron09655524395@gmail.com', 'naromasi2', '123'),
-(20948049, 'Singco', 'Nathaniel Ron', 'M.', 'Bachelor of Science in Technology', '4', 'singconathanielron@gmail.com', 'naromasi', '123');
+INSERT INTO `info` (`id_number`, `last_name`, `first_name`, `middle_name`, `course`, `year_level`, `email`, `username`, `password`, `sessions`) VALUES
+(123, '213', '123', '123', '123', '123', '123@gmail.com', '123', '123', 15),
+(696969, 'tintin', 'not', 'too big', 'yeah', '2', 'be@gmail.com', 'crazy like', '123', 15),
+(20948048, 'SINGCO', 'Nathaniel Ron', 'M.', 'Bachelor of Science in Technology', '3', 'nathanielron09655524395@gmail.com', 'naromasi2', '123', 30),
+(20948049, 'Singco', 'Nathaniel Ron', 'M.', 'Bachelor of Science in Technology', '4', 'singconathanielron@gmail.com', 'naromasi', '123', 30);
 
 --
 -- Indexes for dumped tables
@@ -69,6 +70,11 @@ ALTER TABLE `info`
 --
 ALTER TABLE `info`
   MODIFY `id_number` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20948050;
+
+UPDATE `info` 
+SET `sessions` = 30 
+WHERE `course` LIKE '%Computer Studies%' OR `course` LIKE '%BSCS%';
+
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

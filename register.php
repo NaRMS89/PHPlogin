@@ -15,25 +15,32 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if (empty($idno) || empty($lastname) || empty($firstname) || empty($username) || empty($password) || empty($email) || empty($course) || empty($yearlvl) || empty($midname)) {
         $error_message = "All fields are required.";
     } else {
-        $check_idno_user_email_sql = "SELECT * FROM info WHERE id_number = '$idno' OR username = '$username' OR email = '$email'";
-        $result = mysqli_query($conn, $check_idno_user_email_sql);
+        $check_idno_user_email_sql = "SELECT * FROM info WHERE id_number = ? OR username = ? OR email = ?";
+        $stmt = $conn->prepare($check_idno_user_email_sql);
+        $stmt->bind_param("sss", $idno, $username, $email);
+        $stmt->execute();
+        $result = $stmt->get_result();
 
-        if (mysqli_num_rows($result) > 0) {
+        if ($result->num_rows > 0) {
             $error_message = "ID Number, Username, or email already exists. Please choose different ones.";
         } else {
-            // Removed password hashing
-            $sql = "INSERT INTO info (id_number, last_name, first_name, middle_name, course, year_level, email, username, password) 
-                    VALUES ('$idno', '$lastname', '$firstname', '$midname', '$course', '$yearlvl', '$email', '$username', '$password')"; // Password stored in plain text
+            // Set default profile picture
+            $profile_picture = 'default.png';
 
-            if (mysqli_query($conn, $sql)) {
+            $sql = "INSERT INTO info (id_number, last_name, first_name, middle_name, course, year_level, email, username, password, profile_picture) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param("ssssssssss", $idno, $lastname, $firstname, $midname, $course, $yearlvl, $email, $username, $password, $profile_picture);
+
+            if ($stmt->execute()) {
                 $success_message = "Registration successful. You can now log in.";
             } else {
-                $error_message = "Error during registration: " . mysqli_error($conn);
+                $error_message = "Error during registration: " . $stmt->error;
             }
         }
     }
     if ($conn instanceof mysqli) {
-        mysqli_close($conn);
+        $conn->close();
     }
 }
 ?>
@@ -46,7 +53,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="container">
+    <div class="register-container" style="max-width: 600px; margin: auto;">
         <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
             <h2>Register</h2>
 
@@ -62,10 +69,28 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <input type="text" id="midname" name="midname" required><br>
 
             Course: <br>
-            <input type="text" id="course" name="course" required><br>
+            <select id="course" name="course" required>
+                <option value="BSIT">BSIT</option>
+                <option value="BSCS">BSCS</option>
+                <option value="BSECE">BSECE</option>
+                <option value="BSME">BSME</option>
+                <option value="BSCE">BSCE</option>
+                <option value="BSBA">BSBA</option>
+                <option value="BSHRM">BSHRM</option>
+                <option value="BSN">BSN</option>
+                <option value="BSA">BSA</option>
+                <option value="BSPSY">BSPSY</option>
+                <option value="BSBIO">BSBIO</option>
+                <option value="BSMATH">BSMATH</option>
+            </select><br>
 
             Year Level: <br>
-            <input type="number" id="yearlvl" name="yearlvl" required><br>
+            <select id="yearlvl" name="yearlvl" required>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+            </select><br>
 
             Email: <br>
             <input type="email" id="email" name="email" required><br>
@@ -89,11 +114,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             echo "<button onclick=\"window.location.href='index.php'\">Back to Login</button>";
             echo "</div>";
         } else {
-        ?>
-            <div class="register-link">
-                Already have an account? <a href="index.php">Back to Login</a>
-            </div>
-        <?php
+            echo "<div class='register-link'>";
+            echo "Already have an account? <a href='index.php'>Back to Login</a>";
+            echo "</div>";
         }
         ?>
     </div>
