@@ -30,7 +30,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $_SESSION['user_name'] = $row['first_name'];
                 $_SESSION['user_data'] = $row;
 
-                header("Location: dashboard.php");
+                header("Location: dashboard.php"); // Redirect to dashboard
                 exit();
             } else {
                 $error_message = "Invalid password";
@@ -57,6 +57,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             text-align: center;
         }
     </style>
+    <script src="scripts.js" defer></script>
 </head>
 <body>
     <div style="max-width: 600px; margin: auto;">
