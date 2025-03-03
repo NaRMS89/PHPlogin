@@ -24,10 +24,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         if ($result->num_rows > 0) {
             $error_message = "ID Number, Username, or email already exists. Please choose different ones.";
         } else {
-            $sql = "INSERT INTO info (id_number, last_name, first_name, middle_name, course, year_level, email, username, password) 
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            // Set default profile picture
+            $profile_picture = 'default.png';
+
+            $sql = "INSERT INTO info (id_number, last_name, first_name, middle_name, course, year_level, email, username, password, profile_picture) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
             $stmt = $conn->prepare($sql);
-            $stmt->bind_param("sssssssss", $idno, $lastname, $firstname, $midname, $course, $yearlvl, $email, $username, $password);
+            $stmt->bind_param("ssssssssss", $idno, $lastname, $firstname, $midname, $course, $yearlvl, $email, $username, $password, $profile_picture);
 
             if ($stmt->execute()) {
                 $success_message = "Registration successful. You can now log in.";
@@ -50,7 +53,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="register-container">
+    <div class="register-container" style="max-width: 600px; margin: auto;">
         <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
             <h2>Register</h2>
 
