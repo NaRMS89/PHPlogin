@@ -27,8 +27,7 @@ try {
     if (!mysqli_query($conn, $alter_table_sql)) {
         die("Error altering table: " . mysqli_error($conn));
     }
-} 
-catch(Exception $e) {
+} catch (Exception $e) {
     echo '<div class="connection-error">could not connect! <br>' . $e->getMessage() . '</div>';
 }
 ?>

@@ -5,15 +5,15 @@ include("database.php");
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $idno = filter_input(INPUT_POST, "idno", FILTER_SANITIZE_SPECIAL_CHARS);
     $password = filter_input(INPUT_POST, "password", FILTER_SANITIZE_SPECIAL_CHARS);
+    $remember_me = isset($_POST['remember_me']);
 
     if ($idno === "99999999" && $password === "123") {
         $_SESSION['admin_logged_in'] = true;
+        if ($remember_me) {
+            setcookie("admin_logged_in", true, time() + (86400 * 30), "/");
+        }
         header("Location: admin_dashboard.php");
         exit();
-    } elseif (empty($idno)) {
-        $error_message = "Please enter your ID number";
-    } elseif (empty($password)) {
-        $error_message = "Please enter your password";
     } else {
         $check_user_sql = "SELECT * FROM info WHERE id_number = ?";
         $stmt = $conn->prepare($check_user_sql);

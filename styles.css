@@ -3,40 +3,53 @@ body {
     background-color: #121212;
     color: #e0e0e0;
     margin: 0;
+    display: flex;
 }
 
 /* Dashboard specific styles */
 .dashboard-container {
     display: flex;
+    width: 100%;
 }
 
 .sidebar {
-    width: 250px;
+    width: 200px;
     padding: 20px;
     background-color: #f4f4f4;
     border-right: 1px solid #ccc;
+    height: 100vh;
+    box-sizing: border-box;
+}
+
+.sidebar h2 {
+    text-align: center;
+    margin-bottom: 20px;
 }
 
 .main-content {
+    flex-grow: 1;
     padding: 20px;
-    margin-left: 270px; /* Adjust based on sidebar width */
+    margin-left: 200px;
 }
 
 .sidebar-button {
+    display: block;
     width: 100%;
     padding: 10px;
-    margin-bottom: 10px;
-    background-color: #4CAF50;
+    margin: 10px 0;
+    background-color: #007bff; /* Blue button color */
     color: white;
     border: none;
     border-radius: 4px;
     cursor: pointer;
-    text-align: left;
+    text-align: left; /* Aligns text to the left */
 }
 
 .sidebar-button:hover {
-    background-color: #45a049;
+    background-color: #0056b3;
 }
+
+/* Rest of the CSS remains the same */
 
 .modal {
     display: none;
@@ -109,23 +122,23 @@ td {
 
 /* Centering the login and registration forms */
 .login-container, .register-container {
-    margin: 0 auto; /* Center horizontally */
-    width: 300px; /* Adjust the width as needed */
-    max-width: 100%; /* Limit the container width */
+    margin: 0 auto;
+    width: 300px;
+    max-width: 100%;
     padding: 20px;
     border: 1px solid #ccc;
     border-radius: 4px;
     background-color: #fff;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    margin-top: 150px; /* Increase margin-top to add space above */
-    box-sizing: border-box; /* Ensure padding is included in the width */
-    text-align: center; /* Center the text */
-    margin-bottom: 20px; /* Add gap below the container */
+    margin-top: 150px;
+    box-sizing: border-box;
+    text-align: center;
+    margin-bottom: 20px;
 }
 
 .login-container h2, .register-container h2 {
     margin-top: 0;
-    text-align: center; /* Center the text */
+    text-align: center;
 }
 
 .login-container input[type="text"],
@@ -137,7 +150,7 @@ td {
 .register-container input[type="file"],
 .register-container select,
 .register-container input[type="submit"] {
-    width: 237px; /* Set a fixed width */
+    width: 237px;
     padding: 10px;
     margin-bottom: 15px;
     border: 1px solid #333;
@@ -145,38 +158,35 @@ td {
     background-color: #2c2c2c;
     color: #e0e0e0;
     display: block;
-    margin: 0 auto; /* Center the input fields */
+    margin: 0 auto;
 }
 
-/* Ensure the course and year level fields have the same width */
 .register-container select {
-    width: 260px; /* Set a fixed width */
+    width: 260px;
 }
 
-/* Ensure the login button has the same style and is centered */
 .login-container input[type="submit"] {
-    width: 260px; /* Set a fixed width */
-    padding: 15px; /* Increase the padding */
+    width: 260px;
+    padding: 15px;
     background-color: #4CAF50;
     color: white;
     cursor: pointer;
     display: block;
-    margin: 0 auto; /* Center the button */
+    margin: 0 auto;
 }
 
 .login-container input[type="submit"]:hover {
     background-color: #45a049;
 }
 
-/* Ensure the register button has the same style and is centered */
 .register-container input[type="submit"] {
-    width: 260px; /* Set a fixed width to match login button */
-    padding: 15px; /* Increase the padding */
+    width: 260px;
+    padding: 15px;
     background-color: #4CAF50;
     color: white;
     cursor: pointer;
     display: block;
-    margin: 0 auto; /* Center the button */
+    margin: 0 auto;
 }
 
 .register-container input[type="submit"]:hover {
@@ -188,19 +198,19 @@ td {
     margin-top: 5px;
     text-align: left;
     padding-left: 10px;
-    width: 260px; /* Set a fixed width */
+    width: 260px;
     box-sizing: border-box;
 }
 
 .success {
     color: #4CAF50;
     margin-top: 5px;
-    text-align: center; /* Center the text */
+    text-align: center;
 }
 
 .register-link {
     margin-top: 20px;
-    text-align: center; /* Center the text */
+    text-align: center;
 }
 
 .register-link a {
@@ -210,4 +220,70 @@ td {
 
 .register-link a:hover {
     text-decoration: underline;
+}
+
+.home-left, .home-right {
+    display: inline-block;
+    vertical-align: top;
+    width: 48%;
+    padding: 10px;
+}
+
+.home-left {
+    border-right: 1px solid #ccc;
+}
+
+.announcement-list {
+    max-height: 200px;
+    overflow-y: auto;
+    border: 1px solid #ccc;
+    padding: 10px;
+}
+
+.announcement-item {
+    margin-bottom: 10px;
+    padding: 10px;
+    border-bottom: 1px solid #ccc;
+}
+.search-form {
+    text-align: center;
+}
+
+.search-form input[type="text"] {
+    width: 300px;
+    padding: 10px;
+    margin: 20px auto;
+    display: block;
+}
+
+.search-form button {
+    display: block;
+    margin-left: auto;
+    margin-right: 20px;
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.search-form button:hover {
+    background-color: #0056b3;
+}
+
+#searchResults table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+#searchResults th, #searchResults td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+#searchResults th {
+    background-color: #f2f2f2;
 }
