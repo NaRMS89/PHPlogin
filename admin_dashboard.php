@@ -24,88 +24,180 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['logout'])) {
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="dashboard-container">
-        <div class="sidebar">
+<div class="dashboard-container">
+    <div class="sidebar">
+        <div class="profile-header">
             <h2>Admin Dashboard</h2>
-            <button id="searchBtn" class="sidebar-button">Search</button>
-            <button id="listStudentsBtn" class="sidebar-button">List of Students</button>
-            <button id="viewCurrentSitInBtn" class="sidebar-button">View Current Sit-in</button>
-            <button id="viewSitInRecordsBtn" class="sidebar-button">View Sit-in Records</button>
-            <button id="sitInReportsBtn" class="sidebar-button">Sit-in Reports</button>
-            <button id="createAnnouncementBtn" class="sidebar-button">Create Announcement</button>
-            <button id="viewStatisticsBtn" class="sidebar-button">View Statistics</button>
-            <button id="dailyStatusBtn" class="sidebar-button">Daily Status</button>
-            <button id="viewFeedbackReportsBtn" class="sidebar-button">View Feedback/Reports</button>
-            <button id="viewReservationApprovalBtn" class="sidebar-button">View Reservation/Approval</button>
-            <button id="resetSessionBtn" class="sidebar-button">Reset Session</button>
-            <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
-                <button type="submit" name="logout" class="sidebar-button">Logout</button>
-            </form>
         </div>
-        <div class="main-content">
-            <div id="dynamicContent">
-                <!-- Dynamic content will be loaded here -->
-            </div>
+        <button id="homeBtn" class="sidebar-button">Home</button>
+        <button id="searchBtn" class="sidebar-button">Search</button>
+        <button id="studentsBtn" class="sidebar-button">Students</button>
+        <button id="viewSitInBtn" class="sidebar-button">View Sit-in</button>
+        <button id="sitInReportBtn" class="sidebar-button">Sit-in Report</button>
+        <button id="feedbackReportBtn" class="sidebar-button">Feedback Report</button>
+        <button id="reservationBtn" class="sidebar-button">Reservation</button>
+        <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
+            <button type="submit" name="logout" class="sidebar-button">Logout</button>
+        </form>
+    </div>
+    <div class="main-content">
+        <div id="dynamicContent">
         </div>
     </div>
+</div>
 
-    <script>
-        var buttons = document.querySelectorAll('.sidebar-button');
+<div id="searchModal" class="modal">
+    <div class="modal-content">
+        <span class="close" id="closeSearchModal">&times;</span>
+        <h2>Search Student</h2>
+        <input type="text" id="searchId" placeholder="Enter Student ID">
+        <button id="performSearch" class="search-button">Search</button>
+    </div>
+</div>
 
-        buttons.forEach(function(button) {
-            button.onclick = function() {
-                var contentId = button.id.replace('Btn', 'Content');
+<div id="sitInModal" class="modal">
+    <div class="modal-content">
+        <span class="close" id="closeSitInModal">&times;</span>
+        <h2>Sit-in Form</h2>
+        <div id="sitInDetails">
+            <p><strong>Student ID:</strong> <span id="sitInStudentId"></span></p>
+            <p><strong>Student Name:</strong> <span id="sitInStudentName"></span></p>
+        </div>
+        <label for="purpose">Purpose:</label>
+        <select id="purpose">
+            <option value="c">C Programming</option>
+            <option value="java">Java Programming</option>
+            <option value="csharp">C# Programming</option>
+            <option value="php">PHP Programming</option>
+            <option value="aspnet">ASP.NET Programming</option>
+        </select>
+        <label for="lab">Lab:</label>
+        <select id="lab">
+            <option value="524">524</option>
+            <option value="526">526</option>
+            <option value="528">528</option>
+            <option value="530">530</option>
+            <option value="542">542</option>
+            <option value="maclab">Mac Lab</option>
+        </select>
+        <p><strong>Remaining Sessions:</strong> <span id="remainingSessions"></span></p>
+        <button id="performSitIn" class="sit-in-button">Sit-in</button>
+    </div>
+</div>
+
+<style>
+    #sitInModal .modal-content {
+        max-width: 240px;
+    }
+</style>
+
+<script>
+    var buttons = document.querySelectorAll('.sidebar-button');
+    var modal = document.getElementById("searchModal");
+    var span = document.getElementById("closeSearchModal");
+    var searchButton = document.getElementById("performSearch");
+    var sitInModal = document.getElementById("sitInModal");
+    var closeSitInModal = document.getElementById("closeSitInModal");
+    var performSitIn = document.getElementById("performSitIn");
+
+    buttons.forEach(function(button) {
+        button.onclick = function() {
+            var contentId = button.id.replace('Btn', 'Content');
+            if (button.id === 'searchBtn') {
+                modal.style.display = "block";
+            } else {
                 loadContent(contentId);
             }
-        });
-
-        function loadContent(contentId) {
-            var content = '';
-            switch(contentId) {
-                case 'searchContent':
-                    content = '<p>Search functionality goes here...</p>';
-                    break;
-                case 'listStudentsContent':
-                    content = '<p>List of students goes here...</p>';
-                    break;
-                case 'viewCurrentSitInContent':
-                    content = '<p>View current sit-in goes here...</p>';
-                    break;
-                case 'viewSitInRecordsContent':
-                    content = '<p>View sit-in records goes here...</p>';
-                    break;
-                case 'sitInReportsContent':
-                    content = '<p>Sit-in reports go here...</p>';
-                    break;
-                case 'createAnnouncementContent':
-                    content = `
-                        <h2>Create Announcement</h2>
-                        <form id="announcementForm" action="update_announcement.php" method="post">
-                            <textarea name="announcement" rows="4" cols="50" required></textarea>
-                            <button type="submit">Save Announcement</button>
-                        </form>
-                    `;
-                    break;
-                case 'viewStatisticsContent':
-                    content = '<p>View statistics goes here...</p>';
-                    break;
-                case 'dailyStatusContent':
-                    content = '<p>Daily status goes here...</p>';
-                    break;
-                case 'viewFeedbackReportsContent':
-                    content = '<p>View feedback/reports goes here...</p>';
-                    break;
-                case 'viewReservationApprovalContent':
-                    content = '<p>View reservation/approval goes here...</p>';
-                    break;
-                case 'resetSessionContent':
-                    content = '<p>Reset session functionality goes here...</p>';
-                    break;
-                default:
-                    content = '<p>Content not found.</p>';
-            }
-            document.getElementById('dynamicContent').innerHTML = content;
         }
-    </script>
+    });
+
+    span.onclick = function() {
+        modal.style.display = "none";
+    }
+
+    closeSitInModal.onclick = function() {
+        sitInModal.style.display = "none";
+    }
+
+    window.onclick = function(event) {
+        if (event.target == modal) {
+            modal.style.display = "none";
+        }
+        if (event.target == sitInModal) {
+            sitInModal.style.display = "none";
+        }
+    }
+
+    searchButton.onclick = function() {
+        var studentId = document.getElementById("searchId").value;
+        performSearchAndOpenModal(studentId);
+    }
+
+    function performSearchAndOpenModal(studentId) {
+        fetch('search_student.php?id=' + encodeURIComponent(studentId))
+            .then(response => response.json())
+            .then(data => {
+                if (data) {
+                    modal.style.display = "none"; // Close search modal
+                    sitInModal.style.display = "block"; // Open sit-in modal
+                    document.getElementById('sitInStudentId').textContent = data.id_number;
+                    document.getElementById('sitInStudentName').textContent = data.name;
+                    document.getElementById('remainingSessions').textContent = data.sessions;
+                } else {
+                    alert("Student not found.");
+                    modal.style.display = "none";
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert("An error occurred.");
+                modal.style.display = "none";
+            });
+    }
+
+    function loadContent(contentId) {
+        var content = '';
+        switch (contentId) {
+            case 'homeContent':
+                content = '<p>Welcome to the Admin Dashboard Home Page.</p>';
+                break;
+            case 'studentsContent':
+                content = `
+                    <h2>Student List</h2>
+                    <p>List of students goes here...</p>
+                `;
+                break;
+            case 'viewSitInContent':
+                content = `
+                    <h2>View Current Sit-ins</h2>
+                    <p>View current sit-in details here...</p>
+                `;
+                break;
+            case 'sitInReportContent':
+                content = `
+                    <h2>Sit-in Reports</h2>
+                    <p>Sit-in reports and analytics go here...</p>
+                `;
+                break;
+            case 'feedbackReportContent':
+                content = `
+                    <h2>Feedback Reports</h2>
+                    <p>User feedback and reports go here...</p>
+                `;
+                break;
+            case 'reservationContent':
+                content = `
+                    <h2>Reservations</h2>
+                    <p>View and manage reservations here...</p>
+                `;
+                break;
+            default:
+                content = '<p>Content not found.</p>';
+        }
+        document.getElementById('dynamicContent').innerHTML = content;
+    }
+
+    loadContent('homeContent');
+</script>
 </body>
 </html>
