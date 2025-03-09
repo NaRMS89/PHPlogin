@@ -13,15 +13,7 @@ $result = mysqli_query($conn, $sql);
 $user_data = mysqli_fetch_assoc($result);
 $_SESSION['user_data'] = $user_data;
 
-// Decrement sessions remaining on login
-if (!isset($_SESSION['session_decremented'])) {
-    $user_data['sessions']--;
-    $_SESSION['user_data']['sessions'] = $user_data['sessions'];
-    $_SESSION['session_decremented'] = true;
 
-    $sql = "UPDATE info SET sessions = sessions - 1 WHERE id_number = '$user_id'";
-    mysqli_query($conn, $sql);
-}
 
 // Check if sessions remaining is 0
 if ($user_data['sessions'] <= 0) {
@@ -95,45 +87,39 @@ $profile_picture = !empty($user_data['profile_picture']) ? $user_data['profile_p
     <title>Dashboard</title>
     <link rel="stylesheet" href="styles.css">
 </head>
-<body>
-    <!-- Display profile picture at the top -->
-
-    <div class="dashboard-container">
-        <div class="sidebar">
-            <div class="profile-header">
-                <img src="uploads/<?php echo $profile_picture; ?>" alt="Profile Picture" class="profile-picture">
-                <h2>Welcome, <?php echo $user_data['last_name'] . ' ' . $user_data['first_name'] . ' ' . $user_data['middle_name']; ?>!</h2>
-            </div>
-            <button id="userInfoBtn" class="sidebar-button">User Info</button>
-            <button type="button" id="announcementBtn" class="sidebar-button">Announcement</button>
-            <button type="button" id="remainingSessionsBtn" class="sidebar-button">Remaining Sessions</button>
-            <button type="button" id="sitInRulesBtn" class="sidebar-button">Sit-in Rules</button>
-            <button type="button" id="labRulesBtn" class="sidebar-button">Lab Rules & Regulations</button>
-            <button type="button" id="sitInHistoryBtn" class="sidebar-button">Sit-in History</button>
-            <button type="button" id="reservationBtn" class="sidebar-button">Reservation</button>
-            <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
-                <button type="submit" name="logout" class="sidebar-button">Logout</button>
-            </form>
+<body style="display: flex;">
+    <div class="sidebar" style="position: fixed;">
+        <div class="profile-header" style="text-align: center;">
+            <img src="uploads/<?php echo $profile_picture; ?>" alt="Profile Picture" class="profile-picture" style="display: block; margin: 0 auto;">
+            <h2>Welcome, <?php echo $user_data['first_name'] . ' ' . $user_data['last_name']; ?></h2>
         </div>
-        <div class="main-content">
-            <div id="dynamicContent">
-                <!-- Dynamic content will be loaded here -->
-            </div>
-        </div>
+        <button id="userInfoBtn" class="sidebar-button">User Info</button>
+        <button id="announcementBtn" class="sidebar-button">Announcement</button>
+        <button id="remainingSessionsBtn" class="sidebar-button">Remaining Sessions</button>
+        <button id="sitInRulesBtn" class="sidebar-button">Sit-in Rules</button>
+        <button id="labRulesBtn" class="sidebar-button">Lab Rules & Regulations</button>
+        <button id="sitInHistoryBtn" class="sidebar-button">Sit-in History</button>
+        <button id="reservationBtn" class="sidebar-button">Reservation</button>
+        <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
+            <button type="submit" name="logout" class="sidebar-button">Logout</button>
+        </form>
     </div>
 
-    <script>
-        var buttons = document.querySelectorAll('.sidebar-button');
+    <main style="margin-left: 220px;">
+        <div id="dynamicContent">
+            <!-- Dynamic content will be loaded here -->
+        </div>
+    </main>
 
-        buttons.forEach(function(button) {
+    <script>
+        document.querySelectorAll('.sidebar button').forEach(button => {
             button.onclick = function() {
-                var contentId = button.id.replace('Btn', 'Content');
-                loadContent(contentId);
+                loadContent(this.id.replace('Btn', 'Content'));
             }
         });
 
         function loadContent(contentId) {
-            var content = '';
+            let content = '';
             switch(contentId) {
                 case 'userInfoContent':
                     content = `
@@ -152,27 +138,27 @@ $profile_picture = !empty($user_data['profile_picture']) ? $user_data['profile_p
                                 </tr>
                                 <tr>
                                     <th>Last Name</th>
-                                    <td><input type="text" name="last_name" value="<?php echo $user_data['last_name']; ?>" class="readonly-input" readonly></td>
+                                    <td><input type="text" name="last_name" value="<?php echo $user_data['last_name']; ?>" class="editable-input" ></td>
                                 </tr>
                                 <tr>
                                     <th>First Name</th>
-                                    <td><input type="text" name="first_name" value="<?php echo $user_data['first_name']; ?>" class="readonly-input" readonly></td>
+                                    <td><input type="text" name="first_name" value="<?php echo $user_data['first_name']; ?>" class="editable-input"></td>
                                 </tr>
                                 <tr>
                                     <th>Middle Name</th>
-                                    <td><input type="text" name="middle_name" value="<?php echo $user_data['middle_name']; ?>" class="readonly-input" readonly></td>
+                                    <td><input type="text" name="middle_name" value="<?php echo $user_data['middle_name']; ?>" class="editable-input"></td>
                                 </tr>
                                 <tr>
                                     <th>Course</th>
-                                    <td><input type="text" name="course" value="<?php echo $user_data['course']; ?>" class="readonly-input" readonly></td>
+                                    <td><input type="text" name="course" value="<?php echo $user_data['course']; ?>" class="editable-input"></td>
                                 </tr>
                                 <tr>
                                     <th>Year Level</th>
-                                    <td><input type="text" name="year_level" value="<?php echo $user_data['year_level']; ?>" class="readonly-input" readonly></td>
+                                    <td><input type="text" name="year_level" value="<?php echo $user_data['year_level']; ?>" class="editable-input"></td>
                                 </tr>
                                 <tr>
                                     <th>Email</th>
-                                    <td><input type="text" name="email" value="<?php echo $user_data['email']; ?>" class="readonly-input" readonly></td>
+                                    <td><input type="text" name="email" value="<?php echo $user_data['email']; ?>" class="editable-input"></td>
                                 </tr>
                                 <tr>
                                     <th>Sessions Remaining</th>
@@ -180,8 +166,7 @@ $profile_picture = !empty($user_data['profile_picture']) ? $user_data['profile_p
                                 </tr>
                             </table>
                             <div class="button-wrapper">
-                                <button type="button" id="editBtn" class="logout-button">Edit</button>
-                                <button type="submit" name="save_changes" id="saveBtn" class="logout-button" style="display:none;">Save Changes</button>
+                                <button type="submit" name="save_changes" class="save-button">Save Changes</button>
                             </div>
                         </form>
                     `;
@@ -190,7 +175,7 @@ $profile_picture = !empty($user_data['profile_picture']) ? $user_data['profile_p
                     content = '<p>Announcement content goes here...</p>';
                     break;
                 case 'remainingSessionsContent':
-                    content = '<p>Remaining sessions content goes here...</p>';
+                    content = `<p>You have <strong>${user_data['sessions']}</strong> sessions remaining.</p>`;
                     break;
                 case 'sitInRulesContent':
                     content = `
@@ -238,31 +223,11 @@ $profile_picture = !empty($user_data['profile_picture']) ? $user_data['profile_p
                     content = '<p>Content not found.</p>';
             }
             document.getElementById('dynamicContent').innerHTML = content;
-
-            // Re-attach event listener for edit button
-            var editBtn = document.getElementById("editBtn");
-            var saveBtn = document.getElementById("saveBtn");
-            var inputs = document.querySelectorAll("#userInfoForm input[type='text'], #userInfoForm input[type='file']");
-
-            editBtn.onclick = function() {
-                inputs.forEach(function(input) {
-                    if (input.name !== 'sessions') {
-                        input.classList.remove("readonly-input");
-                        input.removeAttribute("readonly");
-                        input.removeAttribute("disabled");
-                        if (input.type === 'file') {
-                            input.style.display = "block";
-                        }
-                    }
-                });
-                editBtn.style.display = "none";
-                saveBtn.style.display = "inline-block";
-            }
         }
+        loadContent('userInfoContent');
     </script>
 </body>
 </html>
-
 <?php
 if ($conn instanceof mysqli) {
     mysqli_close($conn);

@@ -3,14 +3,13 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Feb 11, 2025 at 05:18 PM
+-- Generation Time: Mar 09, 2025 at 06:09 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
 SET time_zone = "+00:00";
-
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -37,18 +36,20 @@ CREATE TABLE `info` (
   `email` varchar(255) DEFAULT NULL,
   `username` varchar(255) DEFAULT NULL,
   `password` varchar(255) DEFAULT NULL,
-  `sessions` int(11) NOT NULL DEFAULT 15
+  `sessions` int(11) NOT NULL DEFAULT 15,
+  `profile_picture` varchar(255) DEFAULT 'default.png'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `info`
 --
 
-INSERT INTO `info` (`id_number`, `last_name`, `first_name`, `middle_name`, `course`, `year_level`, `email`, `username`, `password`, `sessions`) VALUES
-(123, '213', '123', '123', '123', '123', '123@gmail.com', '123', '123', 15),
-(696969, 'tintin', 'not', 'too big', 'yeah', '2', 'be@gmail.com', 'crazy like', '123', 15),
-(20948048, 'SINGCO', 'Nathaniel Ron', 'M.', 'Bachelor of Science in Technology', '3', 'nathanielron09655524395@gmail.com', 'naromasi2', '123', 30),
-(20948049, 'Singco', 'Nathaniel Ron', 'M.', 'Bachelor of Science in Technology', '4', 'singconathanielron@gmail.com', 'naromasi', '123', 30);
+INSERT INTO `info` (`id_number`, `last_name`, `first_name`, `middle_name`, `course`, `year_level`, `email`, `username`, `password`, `sessions`, `profile_picture`) VALUES
+(1000, 'Santos', 'Maria', 'Cruz', 'BSBA', '2', '1000@gmail.com', 'msantos1001', '123', 12, 'default.png'),
+(2000, 'Reyes', 'Maria', 'Dela', 'BSCS', '1', '2000@gmail.com', 'jreyes1002', '123', 15, 'default.png'),
+(3000, 'Lim', 'Anna', 'Tan', 'BSIT', '3', '3000@gmail.com', 'alim1003', '123', 15, 'default.png'),
+(4000, 'Cruz', 'Pedro', 'Reyes', 'BSME', '2', '4000@gmail.com', 'pcruz1004', '123', 15, 'default.png'),
+(20948048, 'Singco', 'Nathaniel Ron', 'M.', 'BSIT', '3', 'nathanielron09655524395@gmail.com', 'nrms', '123', 14, 'default.png');
 
 --
 -- Indexes for dumped tables
@@ -71,9 +72,35 @@ ALTER TABLE `info`
 ALTER TABLE `info`
   MODIFY `id_number` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20948050;
 
-UPDATE `info` 
-SET `sessions` = 30 
-WHERE `course` LIKE '%Computer Studies%' OR `course` LIKE '%BSCS%';
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `sitin`
+--
+
+CREATE TABLE `sitin` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `id_number` VARCHAR(255) NOT NULL,
+    `purpose` VARCHAR(255) NOT NULL,
+    `lab` VARCHAR(255) NOT NULL,
+    `status` ENUM('active', 'inactive') NOT NULL DEFAULT 'active',
+    `login_time` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `sitin_report`
+--
+
+CREATE TABLE `sitin_report` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `id_number` VARCHAR(255) NOT NULL,
+    `purpose` VARCHAR(255) NOT NULL,
+    `lab` VARCHAR(255) NOT NULL,
+    `login_time` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    `logout_time` TIMESTAMP NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 COMMIT;
 
