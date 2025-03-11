@@ -1,5 +1,5 @@
 <?php
-include("database.php");
+include("../includes/database.php");
 
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['id_number'])) {
     $idNo = $_POST['id_number'];

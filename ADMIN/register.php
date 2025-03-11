@@ -1,5 +1,5 @@
 <?php
-include("database.php");
+include("../includes/database.php");
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $idno = filter_input(INPUT_POST, "idno", FILTER_SANITIZE_SPECIAL_CHARS);
@@ -111,11 +111,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         if (isset($success_message)) {
             echo "<div class='success'>" . $success_message . "</div>";
             echo "<div class='back-to-login'>";
-            echo "<button onclick=\"window.location.href='index.php'\">Back to Login</button>";
+            echo "<button onclick=\"window.location.href='../index.php'\">Back to Login</button>";
             echo "</div>";
         } else {
             echo "<div class='register-link'>";
-            echo "Already have an account? <a href='index.php'>Back to Login</a>";
+            echo "Already have an account? <a href='../index.php'>Back to Login</a>";
             echo "</div>";
         }
         ?>

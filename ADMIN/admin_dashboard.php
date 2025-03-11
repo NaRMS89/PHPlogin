@@ -1,16 +1,16 @@
 <?php
 session_start();
-include("database.php");
+include("../includes/database.php");
 
 if (!isset($_SESSION['admin_logged_in'])) {
-    header("Location: index.php");
+    header("Location: ../user/index.php");
     exit();
 }
 
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['logout'])) {
     session_unset();
     session_destroy();
-    header("Location: index.php");
+    header("Location: ../user/index.php");
     exit();
 }
 
@@ -80,7 +80,7 @@ $allStudents = getAllStudents($conn);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard</title>
 
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="../styles.css">
 
 </head>
 <body>

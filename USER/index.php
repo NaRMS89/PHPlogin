@@ -1,6 +1,6 @@
 <?php
 session_start();
-include("database.php");
+include("../includes/database.php");
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $idno = filter_input(INPUT_POST, "idno", FILTER_SANITIZE_SPECIAL_CHARS);
@@ -12,7 +12,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         if ($remember_me) {
             setcookie("admin_logged_in", true, time() + (86400 * 30), "/");
         }
-        header("Location: admin_dashboard.php");
+        header("Location: ../ADMIN/admin_dashboard.php");
         exit();
     } else {
         $check_user_sql = "SELECT * FROM info WHERE id_number = ?";
@@ -50,7 +50,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="../styles.css">
     <style>
         .register-link {
             padding-top: 10px;
@@ -74,7 +74,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <input type="password" id="password" name="password" required><br>
                 <input type="submit" value="Login">
                 <div class="register-link">
-                    Need an account? <a href="register.php">Register here</a>
+                    Need an account? <a href="../admin/register.php">Register here</a>
                 </div>
             </form>
         </div>

@@ -1,5 +1,5 @@
 <?php
-include('includes/database.php'); // Include your database connection
+include("../includes/database.php"); // Include your database connection
 
 if (isset($_POST['id'])) {
     $id = $_POST['id'];

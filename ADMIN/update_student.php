@@ -1,5 +1,5 @@
 <?php
-include("database.php");
+include("../includes/database.php");
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $idNo = mysqli_real_escape_string($conn, $_POST['id_number']);

@@ -128,7 +128,7 @@
 
             var formData = new FormData(this);
 
-            fetch('add_student.php', {
+            fetch('../includes/add_student.php', {
                 method: 'POST',
                 body: formData
             })
@@ -149,7 +149,7 @@
         });
 
         function resetSessions() {
-            fetch('reset_sessions.php')
+            fetch('../includes/reset_sessions.php')
             .then(response => response.json())
             .then(data => {
                 alert(data.message);

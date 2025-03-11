@@ -1,9 +1,9 @@
 <?php
 session_start();
-include("database.php");
+include("../includes/database.php");
 
 if (!isset($_SESSION['user_data'])) {
-    header("Location: index.php");
+    header("Location: ../index.php");
     exit();
 }
 
@@ -44,7 +44,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['save_changes'])) {
 
     // Handle profile picture upload
     if (isset($_FILES['profile_picture']) && $_FILES['profile_picture']['error'] == UPLOAD_ERR_OK) {
-        $upload_dir = 'uploads/';
+        $upload_dir = '../uploads/';
         if (!is_dir($upload_dir)) {
             mkdir($upload_dir, 0777, true);
         }
@@ -85,12 +85,12 @@ $profile_picture = !empty($user_data['profile_picture']) ? $user_data['profile_p
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="../styles.css">
 </head>
 <body style="display: flex;">
     <div class="sidebar" style="position: fixed;">
         <div class="profile-header" style="text-align: center;">
-            <img src="uploads/<?php echo $profile_picture; ?>" alt="Profile Picture" class="profile-picture" style="display: block; margin: 0 auto;">
+            <img src="../uploads/<?php echo $profile_picture; ?>" alt="Profile Picture" class="profile-picture" style="display: block; margin: 0 auto;">
             <h2>Welcome, <?php echo $user_data['first_name'] . ' ' . $user_data['last_name']; ?></h2>
         </div>
         <button id="userInfoBtn" class="sidebar-button">User Info</button>
@@ -128,7 +128,7 @@ $profile_picture = !empty($user_data['profile_picture']) ? $user_data['profile_p
                             <table>
                                 <tr>
                                     <td colspan="2">
-                                        <img src="uploads/<?php echo $profile_picture; ?>" alt="Profile Picture" class="profile-picture">
+                                        <img src="../uploads/<?php echo $profile_picture; ?>" alt="Profile Picture" class="profile-picture">
                                         <input type="file" name="profile_picture" accept="image/*" class="readonly-input" style="display:none;">
                                     </td>
                                 </tr>
@@ -172,7 +172,12 @@ $profile_picture = !empty($user_data['profile_picture']) ? $user_data['profile_p
                     `;
                     break;
                 case 'announcementContent':
-                    content = '<p>Announcement content goes here...</p>';
+                    content = `
+                        <h2>Announcements</h2>
+                        <div class="announcement-list" id="announcementList">
+                            <!-- Announcements will be loaded here -->
+                        </div>
+                    `;
                     break;
                 case 'remainingSessionsContent':
                     content = `<p>You have <strong>${user_data['sessions']}</strong> sessions remaining.</p>`;
@@ -223,6 +228,31 @@ $profile_picture = !empty($user_data['profile_picture']) ? $user_data['profile_p
                     content = '<p>Content not found.</p>';
             }
             document.getElementById('dynamicContent').innerHTML = content;
+            if (contentId === 'announcementContent') {
+                loadAnnouncements();
+            }
+        }
+
+        function loadAnnouncements() {
+            var announcementList = document.getElementById('announcementList');
+            announcementList.innerHTML = ''; // Clear existing announcements
+
+            fetch('../ADMIN/get_announcements.php')
+            .then(response => response.json())
+            .then(data => {
+                data.forEach(announcement => {
+                    announcementList.innerHTML += `
+                        <div class="announcement-item">
+                            <p>${announcement.admin_name} / ${announcement.date_posted}</p>
+                            <p>${announcement.announcement_text}</p>
+                        </div>
+                    `;
+                });
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                announcementList.innerHTML = '<p>Error loading announcements.</p>';
+            });
         }
         loadContent('userInfoContent');
     </script>

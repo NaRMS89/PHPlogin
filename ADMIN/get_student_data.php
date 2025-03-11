@@ -1,6 +1,6 @@
 <?php
 // filepath: c:\xampp\htdocs\WEBSITE\get_student_data.php
-include("database.php");
+include("../includes/database.php");
 
 if (isset($_GET['id'])) {
     $id = $_GET['id'];

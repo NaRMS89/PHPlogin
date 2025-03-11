@@ -1,5 +1,5 @@
 <?php
-include("database.php");
+include("../includes/database.php");
 
 $sql = "SELECT s.*, i.first_name, i.last_name, i.sessions, s.id AS sitin_id FROM sitin s JOIN info i ON s.id_number = i.id_number WHERE s.status = 'active'";
 $result = mysqli_query($conn, $sql);
