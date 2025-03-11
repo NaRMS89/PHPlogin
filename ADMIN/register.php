@@ -50,7 +50,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Register</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="../styles.css">
 </head>
 <body>
     <div class="register-container" style="max-width: 600px; margin: auto;">
@@ -111,11 +111,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         if (isset($success_message)) {
             echo "<div class='success'>" . $success_message . "</div>";
             echo "<div class='back-to-login'>";
-            echo "<button onclick=\"window.location.href='../index.php'\">Back to Login</button>";
+            echo "<button onclick=\"window.location.href='../USER/index.php'\">Back to Login</button>";
             echo "</div>";
         } else {
             echo "<div class='register-link'>";
-            echo "Already have an account? <a href='../index.php'>Back to Login</a>";
+            echo "Already have an account? <a href='../USER/index.php'>Back to Login</a>";
             echo "</div>";
         }
         ?>
