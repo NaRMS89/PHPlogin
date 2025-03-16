@@ -1,7 +1,5 @@
 <?php
-// filepath: c:\xampp\htdocs\WEBSITE\get_announcements.php
-<?php
-include("database.php");
+include("../includes/database.php"); // Adjust the path if necessary
 
 $announcements = array();
 
@@ -13,7 +11,9 @@ if ($result) {
         $announcements[] = $row;
     }
 } else {
-    echo "Error fetching announcements: " . mysqli_error($conn);
+    error_log("Error fetching announcements: " . mysqli_error($conn));
+    echo json_encode(array("error" => "Error fetching announcements from the database."));
+    exit;
 }
 
 header('Content-Type: application/json');
