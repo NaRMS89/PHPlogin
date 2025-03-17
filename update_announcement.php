@@ -1,28 +1,22 @@
 <?php
 session_start();
-include("database.php");
+include("includes/database.php");
 
-if (!isset($_SESSION['admin_logged_in'])) {
-    header("Location: index.php");
-    exit();
-}
-
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $announcement = filter_input(INPUT_POST, "announcement", FILTER_SANITIZE_SPECIAL_CHARS);
-
-    $sql = "UPDATE announcements SET content = ? WHERE id = 1";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("s", $announcement);
-
-    if ($stmt->execute()) {
-        header("Location: admin_dashboard.php");
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['announcement'])) {
+    $announcement = mysqli_real_escape_string($conn, $_POST['announcement']);
+    $sql = "INSERT INTO announcements (content) VALUES ('$announcement')";
+    if (mysqli_query($conn, $sql)) {
+        $announcement_success = "Announcement posted successfully!";
+        header("Location: ADMIN/admin_dashboard.php?announcement_success=" . urlencode($announcement_success));
         exit();
     } else {
-        echo "Error updating announcement: " . $stmt->error;
+        $announcement_error = "Error posting announcement: " . mysqli_error($conn);
+        header("Location: ADMIN/admin_dashboard.php?announcement_error=" . urlencode($announcement_error));
+        exit();
     }
-
-    if ($conn instanceof mysqli) {
-        $conn->close();
-    }
+} else {
+    // Redirect back to the admin dashboard if accessed directly without posting
+    header("Location: ADMIN/admin_dashboard.php");
+    exit();
 }
 ?>

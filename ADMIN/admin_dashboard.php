@@ -99,19 +99,7 @@ $allStudents = getAllStudents($conn);
     <!-- Added main container with left margin to offset the sidebar -->
     <main style="margin-left: 220px;">
         <div id="dynamicContent"></div>
-        <div id="postedAnnouncement">
-            <h2>Posted Announcements</h2>
-            <?php if (!empty($announcements)): ?>
-                <?php foreach ($announcements as $announcement): ?>
-                    <div class="announcement-item">
-                        <p><?php echo htmlspecialchars($announcement['announcement_text']); ?></p>
-                        <p><?php echo htmlspecialchars($announcement['date_posted']); ?></p>
-                    </div>
-                <?php endforeach; ?>
-            <?php else: ?>
-                <p>No announcements posted.</p>
-            <?php endif; ?>
-        </div>
+
     </main>
 
     <div id="searchModal" class="modal">
@@ -237,142 +225,191 @@ $allStudents = getAllStudents($conn);
                 }
             }
         });
-
         function loadContent(contentId) {
-            let content = '';
-            switch(contentId) {
-                case 'homeContent': content = `
-                        <div class="home-left">
-                            <h3>Student Registered: <span id="totalUsers"></span></h3>
-                            <h3>Current Sit-in: <span id="currentSitIn"></span></h3>
-                            <h3>Total Sit-in: <span id="totalSitIn"></span></h3>
-                        </div>
-                        <div class="home-right">
-                            <h3>Announcement</h3>
-                            <form id="announcementForm">
-                                <textarea name="announcement" rows="4" cols="50" required></textarea>
-                                <button type="submit">Submit</button>
-                            </form>
-                            <h3>Posted Announcements</h3>
-                            <div class="announcement-list" id="announcementList">
-                                </div>
-                        </div>
-                    `; break;
-                case 'studentContent': content = `
-                <div class="student-header">
-                    <h2>Student List</h2>
-                    <input type="text" id="studentSearch" placeholder="Search Students">
-                    <button onclick="openModal('addStudentModal')">Add Student</button>
-                    <button onclick="resetSessions()">Reset Sessions</button>
+    let content = '';
+    switch(contentId) {
+        case 'homeContent': content = `
+            <div class="home-left">
+                <h3>Student Registered: <span id="totalUsers"></span></h3>
+                <h3>Current Sit-in: <span id="currentSitIn"></span></h3>
+                <h3>Total Sit-in: <span id="totalSitIn"></span></h3>
+            </div>
+            <div class="home-right">
+                <h3>Announcement</h3>
+                <form id="announcementForm">
+                    <textarea name="announcement" rows="4" cols="50" required></textarea>
+                    <button type="submit">Submit</button>
+                </form>
+                <h3>Posted Announcements</h3>
+                <div class="announcement-list" id="announcementList">
                 </div>
-                <div class="student-list">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Name</th>
-                                <th>Course</th>
-                                <th>Year Level</th>
-                                <th>Sessions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="studentTableBody">
-                        </tbody>
-                    </table>
+            </div>
+        `; break;
+        case 'studentContent': content = `
+            <div class="student-header">
+                <h2>Student List</h2>
+                <input type="text" id="studentSearch" placeholder="Search Students">
+                <button onclick="openModal('addStudentModal')">Add Student</button>
+                <button onclick="resetSessions()">Reset Sessions</button>
+            </div>
+            <div class="student-list">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Course</th>
+                            <th>Year Level</th>
+                            <th>Sessions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="studentTableBody">
+                    </tbody>
+                </table>
+            </div>
+        `; break;
+        case 'sitinContent': content = `
+            <h2>CURRENT SIT IN</h2>
+            <div class="sitin-header">
+                <div class="sitin-options">
+                    <label for="entriesPerPage">Show 
+                        <select id="entriesPerPage" onchange="loadSitInData()">
+                            <option value="5">5</option>
+                            <option value="10">10</option>
+                            <option value="15">15</option>
+                        </select>
+                    entries</label>
                 </div>
-                    `; break;
-                case 'sitinContent': content = `
-                    <h2>CURRENT SIT IN</h2>
-                    <div class="sitin-header">
-                        <div class="sitin-options">
-                            <label for="entriesPerPage">Show 
-                                <select id="entriesPerPage" onchange="loadSitInData()">
-                                    <option value="5">5</option>
-                                    <option value="10">10</option>
-                                    <option value="15">15</option>
-                                </select>
-                            entries</label>
-                        </div>
-                        <div class="sitin-search">
-                            <input type="text" id="sitinSearch" placeholder="Search...">
-                            <button onclick="loadSitInData()">Search</button>
-                        </div>
-                    </div>
-                    <div class="sitin-list">
-                        <table id="sitinTable">
-                            <thead>
-                                <tr>
-                                    <th>Sit-in ID</th>
-                                    <th>ID Number</th>
-                                    <th>Name</th>
-                                    <th>Purpose</th>
-                                    <th>Sit-in Lab</th>
-                                    <th>Session</th>
-                                    <th>Status</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody id="sitinTableBody">
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="sitin-pagination">
-                        <button onclick="goToFirstPage()">&lt;&lt;</button>
-                        <button onclick="goToPreviousPage()">&lt;</button>
-                        <span id="currentPage">1</span>
-                        <button onclick="goToNextPage()">&gt;</button>
-                        <button onclick="goToLastPage()">&gt;&gt;</button>
-                    </div>
-                    `; break;
-                case 'viewSitInContent': content = '<p>View current sit-in goes here...</p>'; break;
-                case 'sitInReportContent': content = '<p>Sit-in reports go here...</p>'; break;
-                case 'feedbackReservationContent': content = '<p>View feedback/reports and reservations goes here...</p>'; break;
-                default: content = '<p>Content not found.</p>';
-            }
-            document.getElementById('dynamicContent').innerHTML = content;
-            if (contentId === 'homeContent') { loadHomeData(); }
-            if (contentId === 'studentContent') { loadStudentData(); }
+                <div class="sitin-search">
+                    <input type="text" id="sitinSearch" placeholder="Search...">
+                    <button onclick="loadSitInData()">Search</button>
+                </div>
+            </div>
+            <div class="sitin-list">
+                <table id="sitinTable">
+                    <thead>
+                        <tr>
+                            <th>Sit-in ID</th>
+                            <th>ID Number</th>
+                            <th>Name</th>
+                            <th>Purpose</th>
+                            <th>Sit-in Lab</th>
+                            <th>Session</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="sitinTableBody">
+                    </tbody>
+                </table>
+            </div>
+            <div class="sitin-pagination">
+                <button onclick="goToFirstPage()">&lt;&lt;</button>
+                <button onclick="goToPreviousPage()">&lt;</button>
+                <span id="currentPage">1</span>
+                <button onclick="goToNextPage()">&gt;</button>
+                <button onclick="goToLastPage()">&gt;&gt;</button>
+            </div>
+        `; break;
+        case 'viewSitInContent': content = '<p>View current sit-in goes here...</p>'; break;
+        case 'sitInReportContent': content = '<p>Sit-in reports go here...</p>'; break;
+        case 'feedbackReservationContent': content = '<p>View feedback/reports and reservations goes here...</p>'; break;
+        default: content = '<p>Content not found.</p>';
+    }
+    document.getElementById('dynamicContent').innerHTML = content;
 
-            if (contentId === 'homeContent') {
-                document.getElementById('announcementForm').addEventListener('submit', function(e) {
-                    e.preventDefault(); // Prevent the default form submission
+    if (contentId === 'homeContent') { 
+        loadHomeData(); 
+    }
+    if (contentId === 'studentContent') { loadStudentData(); }
 
-                    var formData = new FormData(this);
+    if (contentId === 'homeContent') {
+        document.getElementById('announcementForm').addEventListener('submit', function(e) {
+            e.preventDefault(); // Prevent the default form submission
 
-                    fetch('update_announcement.php', {
-                        method: 'POST',
-                        body: formData
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            alert('Announcement posted successfully.');
-                            loadHomeData(); // Reload announcements
-                        } else {
-                            alert('Error posting announcement: ' + data.message);
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        alert('An error occurred: ' + error);
-                    });
+            var formData = new FormData(this);
+
+            fetch('update_announcement.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Announcement posted successfully.');
+                    loadHomeData(); // Reload announcements
+                } else {
+                    alert('Error posting announcement: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred: ' + error);
+            });
+        });
+    }
+}
+
+function loadHomeData() {
+    document.getElementById('totalUsers').innerText = '<?php echo count($allStudents); ?>';
+    document.getElementById('currentSitIn').innerText = '<?php echo count($currentSitInStudents); ?>';
+    document.getElementById('totalSitIn').innerText = '50'; // Replace with actual data
+
+    var announcementList = document.getElementById('announcementList');
+    announcementList.innerHTML = ''; // Clear existing content
+
+    fetch('get_announcements.php')
+        .then(response => response.json())
+        .then(data => {
+            if (data && data.length > 0) {
+                data.forEach(announcement => {
+                    let announcementItem = document.createElement('div');
+                    announcementItem.className = 'announcement-item';
+                    announcementItem.innerHTML = `<p>${announcement.announcement_text}</p><p>${announcement.date_posted}</p>`;
+                    announcementList.appendChild(announcementItem);
                 });
+            } else {
+                announcementList.innerHTML = '<p>No announcements found.</p>';
             }
-        }
+        })
+        .catch(error => {
+            console.error('Error fetching announcements:', error);
+            announcementList.innerHTML = '<p>Error loading announcements.</p>';
+        });
+}
 
-        function loadHomeData() {
-            document.getElementById('totalUsers').innerText = '<?php echo count($allStudents); ?>';
-            document.getElementById('currentSitIn').innerText = '<?php echo count($currentSitInStudents); ?>';
-            document.getElementById('totalSitIn').innerText = '50'; // Replace with actual data
+// Assume loadStudentData(), openModal(), resetSessions(), loadSitInData(), goToFirstPage(),
+// goToPreviousPage(), goToNextPage(), goToLastPage() are defined elsewhere in your code.
+function loadHomeData() {
+    document.getElementById('totalUsers').innerText = '<?php echo count($allStudents); ?>';
+    document.getElementById('currentSitIn').innerText = '<?php echo count($currentSitInStudents); ?>';
+    document.getElementById('totalSitIn').innerText = '50'; // Replace with actual data
 
-            var announcementList = document.getElementById('announcementList');
-            announcementList.innerHTML = `
-                <div class="announcement-item">
-                    <p>CCS Admin / 2025 Feb 25</p>
-                    <p>Sample announcement text...</p>
-                </div>
-                `;
-        }
+    var announcementList = document.getElementById('announcementList');
+    announcementList.innerHTML = ''; // Clear existing content
+
+    fetch('get_announcements.php')
+        .then(response => response.json())
+        .then(data => {
+            if (data && data.length > 0) {
+                data.forEach(announcement => {
+                    let announcementItem = document.createElement('div');
+                    announcementItem.className = 'announcement-item';
+                    announcementItem.innerHTML = `<p>${announcement.announcement_text}</p><p>${announcement.date_posted}</p>`;
+                    announcementList.appendChild(announcementItem);
+                });
+            } else {
+                announcementList.innerHTML = '<p>No announcements found.</p>';
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching announcements:', error);
+            announcementList.innerHTML = '<p>Error loading announcements.</p>';
+        });
+}
+
+// Assume loadStudentData(), openModal(), resetSessions(), loadSitInData(), goToFirstPage(),
+// goToPreviousPage(), goToNextPage(), goToLastPage() are defined elsewhere in your code.
 
         function openModal(modalId) { document.getElementById(modalId).style.display = "block"; }
         function closeModal(modalId) { document.getElementById(modalId).style.display = "none"; }

@@ -3,12 +3,17 @@
 $db_server = "localhost";
 $db_user = "root";
 $db_pass = "";
-$db_name = "logindb"; // Updated database name
+$db_name = "logindb";
+$conn = null;
 
-$conn = mysqli_connect($db_server, $db_user, $db_pass, $db_name);
-
-if (!$conn) {
-    die("Connection failed: " . mysqli_connect_error());
+try {
+    $conn = mysqli_connect($db_server, $db_user, $db_pass, $db_name);
+    if (!$conn) {
+        throw new Exception("Connection failed: " . mysqli_connect_error());
+    }
+} catch (mysqli_sql_exception $e) {
+    echo "Could not connect: " . $e->getMessage();
+    exit();
 }
 
 // Ensure the profile_picture column exists
