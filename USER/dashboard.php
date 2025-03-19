@@ -153,6 +153,7 @@ $profile_picture = !empty($user_data['profile_picture']) ? $user_data['profile_p
 </div>
 
 <main>
+
     <div id="announcementSection">
         <h3>Announcements</h3>
         <div class="announcement-list" id="announcementList">
@@ -270,6 +271,38 @@ $profile_picture = !empty($user_data['profile_picture']) ? $user_data['profile_p
         });
     }
 
+    function loadCurrentSitInStudents() {
+        fetch('../ADMIN/get_current_sitin_data.php')
+        .then(response => {
+            console.log('Response Status:', response.status); // Log response status
+            return response.json();
+        })
+        .then(data => {
+            console.log('Fetched Data:', data); // Log fetched data
+            const sitInList = document.getElementById('currentSitInList');
+            sitInList.innerHTML = ''; // Clear existing data
+
+            data.forEach(student => {
+                sitInList.innerHTML += `
+                    <tr>
+                        <td>${student.id_number}</td>
+                        <td>${student.first_name}</td>
+                        <td>${student.last_name}</td>
+                        <td>
+                            <form action="../ADMIN/logout_sitin.php" method="post" style="display:inline;">
+                                <input type="hidden" name="id_number" value="${student.id_number}">
+                                <button type="submit" name="logout" class="logout-button">Logout</button>
+                            </form>
+                        </td>
+                    </tr>
+                `;
+            });
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            document.getElementById('currentSitInList').innerHTML = '<tr><td colspan="4">Error loading sit-in students.</td></tr>';
+        });
+    }
 
     function openModal() {
         document.getElementById('editProfileModal').style.display = "block";
@@ -296,9 +329,8 @@ $profile_picture = !empty($user_data['profile_picture']) ? $user_data['profile_p
         editButton.innerText = isEditing ? "Save" : "Edit"; // Toggle button text
     }
 
-
-
-    // Load announcements on page load
+    // Load current sit-in students on page load
+    loadCurrentSitInStudents();
     loadAnnouncements();
 </script>
 </body>

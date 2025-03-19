@@ -1,100 +1,62 @@
 body {
-    font-family: sans-serif;
     background-color: #121212;
     color: #e0e0e0;
-    margin: 0;
     display: flex;
+    font-family: sans-serif;
+    margin: 0;
 }
 
-/* Dashboard specific styles */
 .dashboard-container {
     display: flex;
-    flex-direction: column; /* Stack topnav and main content */
+    flex-direction: column;
 }
 
 .sidebar {
-    width: 200px; /* Increased width */
-    padding: 20px;
     background-color: #0c0c0c !important;
     border-right: 1px solid #ccc;
-    height: 100vh;
     box-sizing: border-box;
-    position: fixed; /* Fixed position */
-    top: 0; /* Align to top */
-    left: 0; /* Align to left */
-}
-
-.sidebar h2 {
-    /* Remove sidebar styles */
+    height: 100vh;
+    left: 0;
+    padding: 20px;
+    position: fixed;
+    top: 0;
+    width: 250px;
 }
 
 .main-content {
     flex-grow: 1;
+    margin-left: 270px;
+    margin-top: 60px;
     padding: 20px;
-    margin-top: 60px; /* Add padding to avoid overlap with fixed topnav */
-    margin-left: 220px; /* Adjust margin to accommodate sidebar */
 }
 
-.sidebar-button {
-    display: block;
-    width: 100%;
-    padding: 12px; /* Increased padding */
-    margin: 10px 0;
-    background-color: #2c2c2c; /* Dark button color */
-    color: #e0e0e0;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    text-align: left; /* Aligns text to the left */
-    transition: background-color 0.3s ease; /* Smooth transition */
-}
-
-.sidebar-button:hover {
-    background-color: #333;
-}
-
-/* Modal Styles */
 .modal {
-    display: none; /* Hidden by default */
-    position: fixed; /* Stay in place */
-    z-index: 1000; /* Sit on top */
+    background-color: rgba(0, 0, 0, 0.8);
+    border: 1px solid #888;
+    display: none;
+    height: 100%;
     left: 0;
+    overflow: hidden;
+    position: fixed;
     top: 0;
-    width: 100%; /* Full width */
-    height: 100%; /* Full height */
-    overflow: hidden; /* Disable scroll */
-    background-color: rgba(0,0,0,0.8); /* Darker background for modal */
+    width: 100%;
+    z-index: 1000;
 }
 
 .modal-content {
-    background-color: #1e1e1e; /* Dark modal background */
-    margin: 10% auto; /* 10% from the top and centered */
+    background-color: #1e1e1e;
+    margin: 10% auto;
+    max-width: 600px;
     padding: 20px;
-    border: 1px solid #888;
-    width: 20%; /* Make modal smaller */
-    max-width: 600px; /* Max width for larger screens */
-}
-
-.close {
-    color: #aaa;
-    float: right;
-    font-size: 28px;
-    font-weight: bold;
-}
-
-.close:hover,
-.close:focus {
-    color: white;
-    text-decoration: none;
-    cursor: pointer;
+    width: 20%;
 }
 
 .profile-picture {
-    width: 100px;
-    height: 100px;
     border-radius: 50%;
-    object-fit: cover;
+    height: 100px;
     margin-bottom: 10px;
+    object-fit: cover;
+    width: 100px;
 }
 
 .readonly-input {
@@ -105,45 +67,33 @@ body {
 }
 
 table {
-    width: 100%;
     color: #e0e0e0;
+    width: 100%;
 }
 
 th, td {
+    border-bottom: 1px solid #333;
     padding: 8px;
     text-align: left;
-    border-bottom: 1px solid #333;
 }
 
-th {
-    width: 30%;
-    color: #bbb;
-}
-
-td {
-    width: 70%;
-}
-
-/* Centering the login and registration forms */
-.login-container,.register-container {
-    margin: 0 auto;
-    width: 300px;
-    max-width: 100%;
-    padding: 20px;
+.login-container, .register-container {
+    background-color: #1e1e1e;
     border: 1px solid #333;
     border-radius: 4px;
-    background-color: #1e1e1e;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-    margin-top: 150px;
-    box-sizing: border-box;
-    text-align: center;
+    margin: 0 auto;
     margin-bottom: 20px;
+    margin-top: 150px;
+    max-width: 100%;
+    padding: 20px;
+    text-align: center;
+    width: 300px;
 }
 
 .login-container h2, .register-container h2 {
-    margin-top: 0;
-    text-align: center;
     color: #e0e0e0;
+    margin-top: 0;
 }
 
 .login-container input[type="text"],
@@ -155,47 +105,33 @@ td {
 .register-container input[type="file"],
 .register-container select,
 .register-container input[type="submit"] {
-    width: 237px;
-    padding: 10px;
-    margin-bottom: 15px;
+    background-color: #2c2c2c;
     border: 1px solid #555;
     border-radius: 4px;
-    background-color: #2c2c2c;
     color: #e0e0e0;
     display: block;
     margin: 0 auto;
+    margin-bottom: 15px;
+    padding: 10px;
+    width: 237px;
 }
 
 .register-container select {
     width: 260px;
-    background-color: #2c2c2c;
-    color: #e0e0e0;
 }
 
-.login-container input[type="submit"] {
-    width: 260px;
-    padding: 15px;
-    background-color: #4CAF50;
-    color: white;
-    cursor: pointer;
-    display: block;
-    margin: 0 auto;
-}
-
-.login-container input[type="submit"]:hover {
-    background-color: #45a049;
-}
-
+.login-container input[type="submit"],
 .register-container input[type="submit"] {
-    width: 260px;
-    padding: 15px;
     background-color: #4CAF50;
     color: white;
     cursor: pointer;
     display: block;
     margin: 0 auto;
+    padding: 15px;
+    width: 260px;
 }
 
+.login-container input[type="submit"]:hover,
 .register-container input[type="submit"]:hover {
     background-color: #45a049;
 }
@@ -203,10 +139,8 @@ td {
 .error {
     color: #ff5252;
     margin-top: 5px;
-    text-align: left;
     padding-left: 10px;
     width: 260px;
-    box-sizing: border-box;
 }
 
 .success {
@@ -230,11 +164,11 @@ td {
 }
 
 .home-left, .home-right {
-    display: inline-block;
-    vertical-align: top;
-    width: 48%;
-    padding: 10px;
     color: #e0e0e0;
+    display: inline-block;
+    padding: 10px;
+    vertical-align: top;
+    width: 50%;
 }
 
 .home-left {
@@ -242,42 +176,45 @@ td {
 }
 
 .announcement-list {
-    max-height: 200px;
-    overflow-y: auto;
-    border: 1px solid #555;
-    padding: 10px;
     background-color: #2c2c2c;
+    border: 1px solid #555;
+    max-height: 500px;
+    overflow-y: auto;
+    padding: 10px;
 }
 
 .announcement-item {
-    margin-bottom: 10px;
-    padding: 10px;
     border-bottom: 1px solid #333;
+    margin-bottom: 10px;
+    max-width: 300px;
+    padding: 10px;
+    word-wrap: break-word;
 }
+
 .search-form {
     text-align: center;
 }
 
 .search-form input[type="text"] {
-    width: 300px;
-    padding: 10px;
-    margin: 20px auto;
-    display: block;
     background-color: #2c2c2c;
-    color: #e0e0e0;
     border: 1px solid #555;
+    color: #e0e0e0;
+    display: block;
+    margin: 20px auto;
+    padding: 10px;
+    width: 300px;
 }
 
 .search-form button {
+    background-color: #007bff;
+    border: none;
+    border-radius: 4px;
+    color: white;
+    cursor: pointer;
     display: block;
     margin-left: auto;
     margin-right: 20px;
     padding: 10px 20px;
-    background-color: #007bff;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
 }
 
 .search-form button:hover {
@@ -285,9 +222,9 @@ td {
 }
 
 #searchResults table {
-    width: 100%;
     border-collapse: collapse;
     margin-top: 20px;
+    width: 100%;
 }
 
 #searchResults th, #searchResults td {
@@ -303,11 +240,11 @@ td {
 
 .modal-button {
     background-color: #007bff;
-    color: white;
-    padding: 10px 15px;
     border: none;
+    color: white;
     cursor: pointer;
     margin-top: 10px;
+    padding: 10px 15px;
 }
 
 .modal-button:hover {
@@ -315,25 +252,25 @@ td {
 }
 
 .student-header {
+    align-items: center;
     display: flex;
     justify-content: space-between;
-    align-items: center;
     margin-bottom: 20px;
     color: #e0e0e0;
 }
 
 .student-list {
+    background-color: #2c2c2c;
+    border: 1px solid #555;
     max-height: 400px;
     overflow-y: auto;
-    border: 1px solid #555;
     padding: 10px;
-    background-color: #2c2c2c;
     overflow-x: auto;
 }
 
 .student-list table {
-    width: 100%;
     border-collapse: collapse;
+    width: 100%;
 }
 
 .student-list th,
@@ -344,20 +281,20 @@ td {
 }
 
 .student-item {
+    border-bottom: 1px solid #333;
     margin-bottom: 10px;
     padding: 10px;
-    border-bottom: 1px solid #333;
 }
 
 .sitin-container {
-    padding: 20px;
     color: #e0e0e0;
+    padding: 20px;
 }
 
 #currentSitInTable {
-    width: 100%;
     border-collapse: collapse;
     margin-top: 20px;
+    width: 100%;
 }
 
 #currentSitInTable th, #currentSitInTable td {
@@ -372,73 +309,37 @@ td {
 }
 
 .content-wrapper {
-    padding: 20px;
     background-color: #1e1e1e;
     border-radius: 5px;
-    margin-bottom: 20px;
     color: #e0e0e0;
+    margin-bottom: 20px;
+    padding: 20px;
 }
 
 .topnav {
-    background-color: #1e1e1e;
+    display: flex;
+    justify-content: space-between;
     overflow: hidden;
     padding: 10px 20px;
-    width: 100%;
     position: fixed;
     top: 0;
-    display: flex;
-    justify-content: space-between; /* Distribute buttons evenly with space on the right */
-    align-items: center;
+    width: 100%;
     z-index: 100;
 }
 
 .topnav button {
-    background-color: #4CAF50; /* Green button color */
+    background-color: #4CAF50;
     border: none;
+    border-radius: 4px;
     color: white;
-    padding: 10px 15px; /* Reduced padding */
-    text-decoration: none;
-    font-size: 14px; /* Reduced font size */
     cursor: pointer;
-    width: auto; /* Adjust width to content */
-    min-width: 100px; /* Minimum width for all buttons */
-    max-width: 150px; /* Maximum width for all buttons */
+    min-width: 100px;
+    max-width: 150px;
+    padding: 10px 15px;
     text-align: center;
     transition: background-color 0.3s ease;
-    box-sizing: border-box; /* Include padding and border in the element's total width and height */
 }
 
 .topnav button:hover {
-    background-color: #45a049; /* Darker green on hover */
-
-    padding: 10px 15px; /* Reduced padding */
-    text-decoration: none;
-    font-size: 14px; /* Reduced font size */
-    cursor: pointer;
-    width: auto; /* Adjust width to content */
-    min-width: 100px; /* Minimum width for all buttons */
-    max-width: 150px; /* Maximum width for all buttons */
-    text-align: center;
-    transition: background-color 0.3s ease;
-    box-sizing: border-box; /* Include padding and border in the element's total width and height */
+    background-color: #45a049;
 }
-
-.topnav button:hover {
-    background-color: #45a049; /* Darker green on hover */
-
-    padding: 10px 15px; /* Reduced padding */
-    text-decoration: none;
-    font-size: 14px; /* Reduced font size */
-    cursor: pointer;
-    width: auto; /* Adjust width to content */
-    min-width: 100px; /* Minimum width for all buttons */
-    max-width: 150px; /* Maximum width for all buttons */
-    text-align: center;
-    transition: background-color 0.3s ease;
-    box-sizing: border-box; /* Include padding and border in the element's total width and height */
-}
-
-.topnav button:hover {
-    background-color: #45a049; /* Darker green on hover */
-}
-</environment_details>
