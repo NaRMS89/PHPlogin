@@ -259,8 +259,9 @@ $profile_picture = !empty($user_data['profile_picture']) ? $user_data['profile_p
             data.slice(0, 5).forEach(announcement => {
                 announcementList.innerHTML += `
                     <div class="announcement-item">
-                        <p>${announcement.admin_name} / ${announcement.date_posted}</p>
-                        <p>${announcement.announcement_text}</p>
+                        <p>CCS ADMIN</p>
+                        <p>${announcement.date_posted}</p>
+                        <p>${announcement.announcement_text ? announcement.announcement_text : "CCS ADMIN"}</p>
                     </div>
                 `;
             });
