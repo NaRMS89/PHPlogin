@@ -51,26 +51,23 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Register</title>
     <link rel="stylesheet" href="../styles.css">
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-cover bg-center" style="background-image: url('../uploads/background.jpg');">
+<body class="bg-cover bg-center bg-no-repeat bg-center" style="background-image: url('../uploads/background.jpg');">
     <div class="flex items-center justify-center min-h-screen">
-        <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post" class="bg-black bg-opacity-70 p-8 rounded-lg shadow-md" style="backdrop-filter: blur(10px);">
-            <h2 class="text-center text-2xl font-bold text-white">Register</h2>
+        <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post" class="bg-black bg-opacity-80 p-6 rounded-lg shadow-lg max-w-md mx-auto">
+            <h2 class="text-center text-3xl font-bold text-white mb-6">Register</h2>
 
-            <label class="text-white">ID Number:</label><br>
-            <input type="text" id="idno" name="idno" required class="border border-gray-300 p-2 rounded mb-4 w-full"><br>
+            <input type="text" id="idno" name="idno" required class="border border-gray-300 p-2 rounded w-full mb-4 transition duration-300 ease-in-out focus:border-blue-500" autocomplete="off" aria-label="ID Number" placeholder="Enter your ID number">
 
-            <label class="text-white">Last Name:</label><br>
-            <input type="text" id="lastname" name="lastname" required class="border border-gray-300 p-2 rounded mb-4 w-full"><br>
+            <input type="text" id="lastname" name="lastname" required class="border border-gray-300 p-2 rounded w-full mb-4 transition duration-300 ease-in-out focus:border-blue-500" autocomplete="family-name" aria-label="Last Name" placeholder="Enter your last name">
 
-            <label class="text-white">First Name:</label><br>
-            <input type="text" id="firstname" name="firstname" required class="border border-gray-300 p-2 rounded mb-4 w-full"><br>
+            <input type="text" id="firstname" name="firstname" required class="border border-gray-300 p-2 rounded w-full mb-4 transition duration-300 ease-in-out focus:border-blue-500" autocomplete="given-name" aria-label="First Name" placeholder="Enter your first name">
 
-            <label class="text-white">Middle Name:</label><br>
-            <input type="text" id="midname" name="midname" required class="border border-gray-300 p-2 rounded mb-4 w-full"><br>
+            <input type="text" id="midname" name="midname" required class="border border-gray-300 p-2 rounded w-full mb-4 transition duration-300 ease-in-out focus:border-blue-500" autocomplete="additional-name" aria-label="Middle Name" placeholder="Enter your middle name">
 
-            <label class="text-white">Course:</label><br>
-            <select id="course" name="course" required class="border border-gray-300 p-2 rounded mb-4 w-full">
+            <select id="course" name="course" required class="border border-gray-300 p-2 rounded w-full mb-4 transition duration-300 ease-in-out focus:border-blue-500" autocomplete="off" aria-label="Course">
+                <option value="" disabled selected>Select your course</option>
                 <option value="BSIT">BSIT</option>
                 <option value="BSCS">BSCS</option>
                 <option value="BSECE">BSECE</option>
@@ -85,41 +82,37 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <option value="BSMATH">BSMATH</option>
             </select><br>
 
-            <label class="text-white">Year Level:</label><br>
-            <select id="yearlvl" name="yearlvl" required class="border border-gray-300 p-2 rounded mb-4 w-full">
+            <select id="yearlvl" name="yearlvl" required class="border border-gray-300 p-2 rounded w-full mb-4 transition duration-300 ease-in-out focus:border-blue-500" autocomplete="off" aria-label="Year Level">
+                <option value="" disabled selected>Select your year level</option>
                 <option value="1">1</option>
                 <option value="2">2</option>
                 <option value="3">3</option>
                 <option value="4">4</option>
             </select><br>
 
-            <label class="text-white">Email:</label><br>
-            <input type="email" id="email" name="email" required class="border border-gray-300 p-2 rounded mb-4 w-full"><br>
+            <input type="email" id="email" name="email" required class="border border-gray-300 p-2 rounded w-full mb-4 transition duration-300 ease-in-out focus:border-blue-500" autocomplete="email" aria-label="Email" placeholder="Enter your email">
 
-            <label class="text-white">Username:</label><br>
-            <input type="text" id="username" name="username" required class="border border-gray-300 p-2 rounded mb-4 w-full"><br>
+            <input type="text" id="username" name="username" required class="border border-gray-300 p-2 rounded w-full mb-4 transition duration-300 ease-in-out focus:border-blue-500" autocomplete="username" aria-label="Username" placeholder="Enter your username">
 
-            <label class="text-white">Password:</label><br>
-            <input type="password" id="password" name="password" required class="border border-gray-300 p-2 rounded mb-4 w-full"><br>
+            <input type="password" id="password" name="password" required class="border border-gray-300 p-2 rounded w-full mb-4 transition duration-300 ease-in-out focus:border-blue-500" autocomplete="new-password" aria-label="Password" placeholder="Enter your password">
 
-            <input type="submit" name="submit" value="Register" class="bg-green-500 text-white p-2 rounded w-full hover:bg-green-600">
-        </form>
-
-        <?php
+            <input type="submit" name="submit" value="Register" class="bg-green-500 text-white p-2 rounded w-full hover:bg-green-600 transition duration-300"><br>
+            <div class="text-center mt-4">
+                <span class="text-white">Already have an account? </span> <a href='../USER/index.php' class='text-green-500'>Back to Login</a>
+            </div>
+            <?php
         if (isset($error_message)) {
-            echo "<div class='error'>" . $error_message . "</div>";
+            echo "<div class='error text-white'>" . $error_message . "</div>";
         }
         if (isset($success_message)) {
-            echo "<div class='success'>" . $success_message . "</div>";
-            echo "<div class='back-to-login'>";
-            echo "<button onclick=\"window.location.href='../USER/index.php'\">Back to Login</button>";
-            echo "</div>";
-        } else {
-            echo "<div class='text-center mt-4'>";
-            echo "Already have an account? <a href='../USER/index.php' class='text-green-500'>Back to Login</a>";
-            echo "</div>";
+            echo "<div class='success text-white'>" . $success_message . "</div>";
         }
         ?>
-    </div>
+        </form>
+
+
+
+</body>
+</html>
 </body>
 </html>

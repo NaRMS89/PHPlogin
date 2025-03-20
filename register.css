@@ -1,22 +1,11 @@
 body {
     background-image: url('../uploads/background.jpg');
     background-attachment: fixed; /* Make the background image fixed */
-
-    background-attachment: fixed; /* Make the background image fixed */
-
     background-size: cover; /* Ensure the background covers the entire page */
     background-position: center; /* Center the background image */
-    /* backdrop-filter: blur(10px); */ /* Apply blur effect to the background */
-    /* backdrop-filter: blur(15px); */ /* Apply blur effect to the background */
-
-    /* backdrop-filter: blur(15px); */ /* Apply blur effect to the background */
-    /* backdrop-filter: blur(15px); */ /* Apply blur effect to the background */
-
-
-
 }
 
-.login-container {
+.register-container {
     background-color: rgba(0, 0, 0, 0.9); /* Dark background with some transparency */
     backdrop-filter: blur(15px); /* Apply blur effect to the background */
     padding: 20px; /* Adjust padding for balanced spacing */
@@ -33,16 +22,4 @@ input[type="submit"] {
 
 input[type="submit"]:hover {
     background-color: #45a049; /* Darker green on hover */
-}
-
-/* Register variant styles */
-.register-container {
-    background-color: rgba(0, 0, 0, 0.9); /* Dark background with some transparency */
-    backdrop-filter: blur(15px); /* Apply blur effect to the background */
-    padding: 20px; /* Adjust padding for balanced spacing */
-    margin: 40px auto; /* Center the forms with more space above and below */
-    color: white; /* Ensure text color is white */
-    max-width: 400px; /* Center the forms */
-    border-radius: 8px; /* Rounded corners */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow */
 }
