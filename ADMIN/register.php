@@ -52,24 +52,25 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <title>Register</title>
     <link rel="stylesheet" href="../styles.css">
 </head>
-<body>
-    <div class="register-container" style="max-width: 600px; margin: auto;">
-        <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
-            <h2>Register</h2>
+<body class="bg-cover bg-center" style="background-image: url('../uploads/background.jpg');">
+    <div class="flex items-center justify-center min-h-screen">
+        <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post" class="bg-black bg-opacity-70 p-8 rounded-lg shadow-md" style="backdrop-filter: blur(10px);">
+            <h2 class="text-center text-2xl font-bold text-white">Register</h2>
 
-            ID Number: <br>  <input type="text" id="idno" name="idno" required><br>
+            <label class="text-white">ID Number:</label><br>
+            <input type="text" id="idno" name="idno" required class="border border-gray-300 p-2 rounded mb-4 w-full"><br>
 
-            Last Name: <br>
-            <input type="text" id="lastname" name="lastname" required><br>
+            <label class="text-white">Last Name:</label><br>
+            <input type="text" id="lastname" name="lastname" required class="border border-gray-300 p-2 rounded mb-4 w-full"><br>
 
-            First Name: <br>
-            <input type="text" id="firstname" name="firstname" required><br>
+            <label class="text-white">First Name:</label><br>
+            <input type="text" id="firstname" name="firstname" required class="border border-gray-300 p-2 rounded mb-4 w-full"><br>
 
-            Middle Name: <br>
-            <input type="text" id="midname" name="midname" required><br>
+            <label class="text-white">Middle Name:</label><br>
+            <input type="text" id="midname" name="midname" required class="border border-gray-300 p-2 rounded mb-4 w-full"><br>
 
-            Course: <br>
-            <select id="course" name="course" required>
+            <label class="text-white">Course:</label><br>
+            <select id="course" name="course" required class="border border-gray-300 p-2 rounded mb-4 w-full">
                 <option value="BSIT">BSIT</option>
                 <option value="BSCS">BSCS</option>
                 <option value="BSECE">BSECE</option>
@@ -84,24 +85,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <option value="BSMATH">BSMATH</option>
             </select><br>
 
-            Year Level: <br>
-            <select id="yearlvl" name="yearlvl" required>
+            <label class="text-white">Year Level:</label><br>
+            <select id="yearlvl" name="yearlvl" required class="border border-gray-300 p-2 rounded mb-4 w-full">
                 <option value="1">1</option>
                 <option value="2">2</option>
                 <option value="3">3</option>
                 <option value="4">4</option>
             </select><br>
 
-            Email: <br>
-            <input type="email" id="email" name="email" required><br>
+            <label class="text-white">Email:</label><br>
+            <input type="email" id="email" name="email" required class="border border-gray-300 p-2 rounded mb-4 w-full"><br>
 
-            Username: <br>
-            <input type="text" id="username" name="username" required><br>
+            <label class="text-white">Username:</label><br>
+            <input type="text" id="username" name="username" required class="border border-gray-300 p-2 rounded mb-4 w-full"><br>
 
-            Password: <br>
-            <input type="password" id="password" name="password" required><br>
+            <label class="text-white">Password:</label><br>
+            <input type="password" id="password" name="password" required class="border border-gray-300 p-2 rounded mb-4 w-full"><br>
 
-            <input type="submit" name="submit" value="Register">
+            <input type="submit" name="submit" value="Register" class="bg-green-500 text-white p-2 rounded w-full hover:bg-green-600">
         </form>
 
         <?php
@@ -114,8 +115,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             echo "<button onclick=\"window.location.href='../USER/index.php'\">Back to Login</button>";
             echo "</div>";
         } else {
-            echo "<div class='register-link'>";
-            echo "Already have an account? <a href='../USER/index.php'>Back to Login</a>";
+            echo "<div class='text-center mt-4'>";
+            echo "Already have an account? <a href='../USER/index.php' class='text-green-500'>Back to Login</a>";
             echo "</div>";
         }
         ?>

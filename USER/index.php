@@ -2,6 +2,10 @@
 session_start();
 include("../includes/database.php");
 
+if (!$conn) {
+    die("Database connection failed: " . mysqli_connect_error());
+}
+
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $idno = filter_input(INPUT_POST, "idno", FILTER_SANITIZE_SPECIAL_CHARS);
     $password = filter_input(INPUT_POST, "password", FILTER_SANITIZE_SPECIAL_CHARS);
@@ -50,38 +54,22 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
-    <link rel="stylesheet" href="../styles.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
 </head>
-<body>
-    <div style="max-width: 500px; margin: auto; padding: 20px 20px; background-color: #1e1e1e; border-radius: 8px;">
-        <div class="login-container">
-            <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
-                <h2 style="text-align: center;">Login</h2>
-                <?php
-                if (isset($error_message)) {
-                    echo "<div class='error' style='color: red;'>" . $error_message . "</div>";
-                }
-                ?>
-                <?php
-                if (isset($error_message)) {
-                    echo "<div class='error' style='color: red;'>" . $error_message . "</div>";
-                }
-                ?>
-                <?php
-                if (isset($error_message)) {
-                    echo "<div class='error' style='color: red;'>" . $error_message . "</div>";
-                }
-                ?>
-                ID Number: <br>
-                <input type="text" id="idno" name="idno" required style="width: 96%; padding: 10px; margin: 5px 0; border-radius: 4px; border: 1px solid #ccc;"><br>
-                Password: <br>
-                <input type="password" id="password" name="password" required style="width: 96%; padding: 10px; margin: 5px 0; border-radius: 4px; border: 1px solid #ccc;"><br>
-                <input type="submit" value="Login" style="background-color: #4CAF50; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer;">
-                <div class="register-link" style="text-align: center;">
-                    Need an account? <a href="../admin/register.php" style="color: #4CAF50;">Register here</a>
-                </div>
-            </form>
-        </div>
+<body class="bg-cover bg-center" style="background-image: url('../uploads/background.jpg');">
+    <div class="flex items-center justify-center min-h-screen">
+            <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post" class="bg-black bg-opacity-70 p-8 rounded-lg shadow-md" style="backdrop-filter: blur(10px);">
+
+            <h2 class="text-center text-2xl font-bold text-white">Login</h2>
+            <?php if (isset($error_message)) { echo "<div class='error' style='color: red;'>" . $error_message . "</div>"; } ?>
+            
+            <input type="text" id="idno" name="idno" required placeholder="ID Number" autocomplete="username" class="border border-gray-300 p-2 rounded mb-4 w-full">
+            <input type="password" id="password" name="password" required placeholder="Password" autocomplete="current-password" class="border border-gray-300 p-2 rounded mb-4 w-full">
+            <input type="submit" value="Login" class="bg-green-500 text-white p-2 rounded w-full hover:bg-green-600">
+            <div class="text-center mt-4">
+                <span class="text-white">Need an account? </span><a href="../admin/register.php" class="text-green-500">Register here</a>
+            </div>
+        </form>
     </div>
 </body>
 </html>
