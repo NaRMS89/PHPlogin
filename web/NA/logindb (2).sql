@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Apr 01, 2025 at 02:27 PM
+-- Generation Time: Apr 05, 2025 at 03:51 PM
 -- Server version: 10.4.32-MariaDB
--- PHP Version: 8.2.12
+-- PHP Version: 8.0.30
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -83,11 +83,11 @@ CREATE TABLE `info` (
 
 INSERT INTO `info` (`id_number`, `last_name`, `first_name`, `middle_name`, `course`, `year_level`, `email`, `username`, `password`, `sessions`, `points`, `profile_picture`) VALUES
 (123, '1231', '23', '123', 'BSPSY', '1', '213@gmail', '123', '123', 15, 0, 'default.png'),
-(1000, 'Santos', 'Maria', '123', 'BSBA', '2', '1000@gmail.com', 'msantos1001', '123', 13, 0, 'pngfind.com-weights-png-1091286.png'),
+(1000, 'Santos', 'Maria', '123', 'BSBA', '2', '1000@gmail.com', 'msantos1001', '123', 14, 0, 'pngfind.com-weights-png-1091286.png'),
 (2000, 'Reyes', 'Maria', 'Dela', 'BSCS', '1', '2000@gmail.com', 'jreyes1002', '123', 29, 0, 'default.png'),
 (3000, 'Lim', 'Anna', 'Tan', 'BSIT', '3', '3000@gmail.com', 'alim1003', '123', 29, 0, '4OTdtjem_F_thumb_1200x630.jpg'),
 (4000, 'Cruz', 'Pedro', 'Reyes', 'BSME', '2', '4000@gmail.com', 'pcruz1004', '123', 15, 0, 'default.png'),
-(5000, ' Dela Cruz', 'Juan', 'Santos', 'BSIT', '2', '5000@gmail.com', 'juandc', '123', 30, 0, 'default.png'),
+(5000, ' Dela Cruz', 'Juan', 'Santos', 'BSIT', '2', '5000@gmail.com', 'juandc', '123', 30, 1, 'default.png'),
 (6000, 'Reyes', 'Maria', 'Lourdes', 'BSECE', '3', '6000@example.com', 'mariareyes', '123', 15, 0, 'default.png'),
 (9000, 'test', 'test', 'test', 'BSBIO', '4', 'test@gmail.com', 'test', '123', 15, 0, 'default.png'),
 (10000, 'Doe', 'John', 'Michael', 'BSIT', '1', 'john.doe@example.com', 'johndoe', '123', 30, 0, 'default.png'),
@@ -108,6 +108,21 @@ CREATE TABLE `points_log` (
   `added_by` varchar(50) NOT NULL,
   `date_added` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `points_log`
+--
+
+INSERT INTO `points_log` (`id`, `id_number`, `points_added`, `reason`, `added_by`, `date_added`) VALUES
+(1, '1000', 1, 'Returned chairs', '1', '2025-04-05 10:01:15'),
+(2, '1000', 1, 'Returned chairs', '1', '2025-04-05 10:01:20'),
+(3, '5000', 1, 'points', '1', '2025-04-05 10:17:10'),
+(4, '1000', 1, 'points', '1', '2025-04-05 10:17:27'),
+(5, '1000', 1, 'Auto bonus: Reached 3 points', '1', '2025-04-05 10:17:27'),
+(6, '1000', 3, 'points', '1', '2025-04-05 10:17:56'),
+(7, '1000', 1, 'Auto bonus: Reached 3 points', '1', '2025-04-05 10:17:56'),
+(8, '1000', 3, 'point', '1', '2025-04-05 10:36:35'),
+(9, '1000', 1, 'Auto bonus: Reached 3 points (+1 session added)', '1', '2025-04-05 10:36:35');
 
 -- --------------------------------------------------------
 
@@ -279,7 +294,7 @@ ALTER TABLE `info`
 -- AUTO_INCREMENT for table `points_log`
 --
 ALTER TABLE `points_log`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT for table `reservations`
@@ -304,17 +319,6 @@ ALTER TABLE `sitin_report`
 --
 ALTER TABLE `sit_in_history`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-
---
--- Constraints for dumped tables
---
-
---
--- Constraints for table `points_log`
---
-ALTER TABLE `points_log`
-  ADD CONSTRAINT `points_log_ibfk_1` FOREIGN KEY (`id_number`) REFERENCES `info` (`id_number`);
-
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
