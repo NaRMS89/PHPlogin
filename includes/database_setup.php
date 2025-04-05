@@ -128,5 +128,26 @@ if ($schedules_count == 0) {
     echo "Lab schedules initialized with default values.<br>";
 }
 
+// Check if points_log table exists
+$check_points_log_table = "SHOW TABLES LIKE 'points_log'";
+$points_log_table_exists = mysqli_query($conn, $check_points_log_table);
+
+if (mysqli_num_rows($points_log_table_exists) == 0) {
+    $create_points_log_table = "CREATE TABLE points_log (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        id_number VARCHAR(20) NOT NULL,
+        points_added INT NOT NULL,
+        reason TEXT NOT NULL,
+        added_by VARCHAR(50) NOT NULL,
+        date_added TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (id_number) REFERENCES info(id_number)
+    )";
+    
+    if (!mysqli_query($conn, $create_points_log_table)) {
+        die("Error creating points_log table: " . mysqli_error($conn));
+    }
+    echo "Points log table created successfully.<br>";
+}
+
 echo "Database setup completed successfully.";
 ?> 
