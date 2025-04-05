@@ -1,0 +1,29 @@
+body {
+    background-image: url('../uploads/background.jpg');
+    background-attachment: fixed; /* Make the background image fixed */
+    background-size: cover; /* Ensure the background covers the entire page */
+    background-position: center; /* Center the background image */
+}
+
+.register-container {
+    background-color: rgba(0, 0, 0, 0.9); /* Dark background with some transparency */
+    backdrop-filter: blur(15px); /* Apply blur effect to the background */
+    padding: 20px; /* Adjust padding for balanced spacing */
+    margin: 40px auto; /* Center the forms with more space above and below */
+    color: white; /* Ensure text color is white */
+    max-width: 400px; /* Center the forms */
+    border-radius: 8px; /* Rounded corners */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+}
+
+input[type="submit"] {
+    transition: background-color 0.3s; /* Smooth transition for hover effect */
+}
+
+input[type="submit"]:active {
+    background-color: #3e8e41; /* Darker green when pressed */
+
+
+input[type="submit"]:hover {
+    background-color: #45a049; /* Darker green on hover */
+}
