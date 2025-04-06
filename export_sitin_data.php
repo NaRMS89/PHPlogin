@@ -80,78 +80,47 @@ if (!isset($_SESSION['admin_logged_in'])) {
     exit;
 }
 
-// Get filter parameters
-$type = $_GET['type'] ?? '';
+// Get export parameters
+$format = $_GET['format'] ?? '';
 $lab = $_GET['lab'] ?? '';
 $purpose = $_GET['purpose'] ?? '';
-$fromDate = $_GET['fromDate'] ?? '';
-$toDate = $_GET['toDate'] ?? '';
 
-// Build the query with filters
-$query = "SELECT 
-    s.id_number,
-    CONCAT(i.first_name, ' ', i.last_name) as student_name,
-    s.purpose,
-    s.lab,
-    s.login_time,
-    s.logout_time,
-    CASE 
-        WHEN s.logout_time IS NULL THEN 'active'
-        ELSE 'completed'
-    END as status
-FROM sitin_report s
-JOIN info i ON s.id_number = i.id_number
-WHERE 1=1";
+// Prepare the base query
+$query = "SELECT s.id_number, CONCAT(i.first_name, ' ', i.last_name) as student_name, 
+          s.purpose, s.lab, s.login_time, s.logout_time, 
+          TIMEDIFF(COALESCE(s.logout_time, NOW()), s.login_time) as duration,
+          s.status
+          FROM sitin_report s
+          JOIN info i ON s.id_number = i.id_number
+          WHERE 1=1";
 
-$params = [];
-$types = "";
-
+// Add filters if provided
 if ($lab) {
     $query .= " AND s.lab = ?";
-    $params[] = $lab;
-    $types .= "s";
 }
-
 if ($purpose) {
     $query .= " AND s.purpose = ?";
-    $params[] = $purpose;
-    $types .= "s";
-}
-
-if ($fromDate) {
-    $query .= " AND DATE(s.login_time) >= ?";
-    $params[] = $fromDate;
-    $types .= "s";
-}
-
-if ($toDate) {
-    $query .= " AND DATE(s.login_time) <= ?";
-    $params[] = $toDate;
-    $types .= "s";
 }
 
 $query .= " ORDER BY s.login_time DESC";
 
 // Prepare and execute the query
 $stmt = mysqli_prepare($conn, $query);
-if (!empty($params)) {
-    mysqli_stmt_bind_param($stmt, $types, ...$params);
+
+if ($lab && $purpose) {
+    mysqli_stmt_bind_param($stmt, "ss", $lab, $purpose);
+} elseif ($lab) {
+    mysqli_stmt_bind_param($stmt, "s", $lab);
+} elseif ($purpose) {
+    mysqli_stmt_bind_param($stmt, "s", $purpose);
 }
+
 mysqli_stmt_execute($stmt);
 $result = mysqli_stmt_get_result($stmt);
 
 // Fetch all data
 $data = [];
 while ($row = mysqli_fetch_assoc($result)) {
-    // Calculate duration
-    if ($row['logout_time']) {
-        $login = new DateTime($row['login_time']);
-        $logout = new DateTime($row['logout_time']);
-        $interval = $login->diff($logout);
-        $row['duration'] = $interval->format('%H:%I');
-    } else {
-        $row['duration'] = 'Active';
-    }
     $data[] = $row;
 }
 
@@ -184,6 +153,11 @@ function generateCSV($data) {
 
 // Function to generate Excel
 function generateExcel($data) {
+    require_once '../vendor/autoload.php';
+    
+    use PhpOffice\PhpSpreadsheet\Spreadsheet;
+    use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+    
     $spreadsheet = new Spreadsheet();
     $sheet = $spreadsheet->getActiveSheet();
     
@@ -210,6 +184,13 @@ function generateExcel($data) {
         $sheet->getColumnDimension($col)->setAutoSize(true);
     }
     
+    // Style headers
+    $headerStyle = $sheet->getStyle('A1:H1');
+    $headerStyle->getFont()->setBold(true);
+    $headerStyle->getFill()
+        ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+        ->getStartColor()->setRGB('CCCCCC');
+    
     header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     header('Content-Disposition: attachment; filename="sitin_data.xlsx"');
     
@@ -219,65 +200,65 @@ function generateExcel($data) {
 
 // Function to generate PDF
 function generatePDF($data) {
-    $html = '
-    <html>
-    <head>
-        <style>
-            table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-            th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-            th { background-color: #f2f2f2; }
-            h1 { text-align: center; }
-        </style>
-    </head>
-    <body>
-        <h1>Sitin Data Report</h1>
-        <table>
-            <thead>
-                <tr>
-                    <th>ID Number</th>
-                    <th>Student Name</th>
-                    <th>Purpose</th>
-                    <th>Lab</th>
-                    <th>Login Time</th>
-                    <th>Logout Time</th>
-                    <th>Duration</th>
-                    <th>Status</th>
-                </tr>
-            </thead>
-            <tbody>';
+    require_once '../vendor/autoload.php';
+    
+    $pdf = new TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
+    
+    // Set document information
+    $pdf->SetCreator('Lab Management System');
+    $pdf->SetAuthor('Admin');
+    $pdf->SetTitle('Sit-in Data Report');
+    
+    // Set margins
+    $pdf->SetMargins(15, 15, 15);
+    
+    // Add a page
+    $pdf->AddPage();
+    
+    // Set font
+    $pdf->SetFont('helvetica', '', 10);
+    
+    // Create the table content
+    $html = '<h1>Sit-in Data Report</h1>';
+    $html .= '<table border="1" cellpadding="4">
+                <thead>
+                    <tr style="background-color: #CCCCCC;">
+                        <th>ID Number</th>
+                        <th>Student Name</th>
+                        <th>Purpose</th>
+                        <th>Lab</th>
+                        <th>Login Time</th>
+                        <th>Logout Time</th>
+                        <th>Duration</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>';
     
     foreach ($data as $row) {
         $html .= '<tr>
-            <td>' . htmlspecialchars($row['id_number']) . '</td>
-            <td>' . htmlspecialchars($row['student_name']) . '</td>
-            <td>' . htmlspecialchars($row['purpose']) . '</td>
-            <td>' . htmlspecialchars($row['lab']) . '</td>
-            <td>' . htmlspecialchars($row['login_time']) . '</td>
-            <td>' . ($row['logout_time'] ? htmlspecialchars($row['logout_time']) : '-') . '</td>
-            <td>' . htmlspecialchars($row['duration']) . '</td>
-            <td>' . htmlspecialchars($row['status']) . '</td>
-        </tr>';
+                    <td>' . htmlspecialchars($row['id_number']) . '</td>
+                    <td>' . htmlspecialchars($row['student_name']) . '</td>
+                    <td>' . htmlspecialchars($row['purpose']) . '</td>
+                    <td>' . htmlspecialchars($row['lab']) . '</td>
+                    <td>' . htmlspecialchars($row['login_time']) . '</td>
+                    <td>' . htmlspecialchars($row['logout_time'] ?: '-') . '</td>
+                    <td>' . htmlspecialchars($row['duration']) . '</td>
+                    <td>' . htmlspecialchars($row['status']) . '</td>
+                </tr>';
     }
     
-    $html .= '</tbody></table></body></html>';
+    $html .= '</tbody></table>';
     
-    $options = new Options();
-    $options->set('isHtml5ParserEnabled', true);
-    $options->set('isPhpEnabled', true);
+    // Output the HTML content
+    $pdf->writeHTML($html, true, false, true, false, '');
     
-    $dompdf = new Dompdf($options);
-    $dompdf->loadHtml($html);
-    $dompdf->setPaper('A4', 'landscape');
-    $dompdf->render();
-    
-    header('Content-Type: application/pdf');
-    header('Content-Disposition: attachment; filename="sitin_data.pdf"');
-    
-    echo $dompdf->output();
+    // Close and output PDF document
+    $pdf->Output('sitin_data.pdf', 'D');
 }
 
-// Generate the requested export type
-switch ($type) {
+// Handle the export based on format
+switch ($format) {
     case 'csv':
         generateCSV($data);
         break;
@@ -287,9 +268,14 @@ switch ($type) {
     case 'pdf':
         generatePDF($data);
         break;
+    case 'print':
+        // For print, we'll return JSON data that the frontend can use
+        header('Content-Type: application/json');
+        echo json_encode($data);
+        break;
     default:
         header("HTTP/1.1 400 Bad Request");
-        echo "Invalid export type";
+        echo "Invalid export format";
         break;
 }
 

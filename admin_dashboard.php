@@ -2680,43 +2680,37 @@ if ($conn instanceof mysqli) {
             const labFilter = document.getElementById('exportLabFilter').value;
             const purposeFilter = document.getElementById('exportPurposeFilter').value;
             
-            // Get the filtered data
-            let filteredData = getFilteredData();
-            
-            // Apply lab filter if selected
-            if (labFilter) {
-                filteredData = filteredData.filter(record => record.lab === labFilter);
-            }
-            
-            // Apply purpose filter if selected
-            if (purposeFilter) {
-                filteredData = filteredData.filter(record => record.purpose === purposeFilter);
-            }
-            
             // Close the modal
             closeModal('exportFilterModal');
             
-            // Export the data based on selected type
-            switch(exportType) {
-                case 'pdf':
-                    exportToPDF(filteredData);
-                    break;
-                case 'excel':
-                    exportToExcel(filteredData);
-                    break;
-                case 'csv':
-                    exportToCSV(filteredData);
-                    break;
-                case 'print':
-                    printData(filteredData);
-                    break;
+            // Build the export URL with filters
+            let exportUrl = `export_sitin_data.php?format=${exportType}`;
+            if (labFilter) {
+                exportUrl += `&lab=${encodeURIComponent(labFilter)}`;
+            }
+            if (purposeFilter) {
+                exportUrl += `&purpose=${encodeURIComponent(purposeFilter)}`;
+            }
+            
+            // Handle print separately
+            if (exportType === 'print') {
+                // Fetch the data and then print it
+                fetch(exportUrl)
+                    .then(response => response.json())
+                    .then(data => {
+                        printData(data);
+                    })
+                    .catch(error => {
+                        console.error('Error fetching data for printing:', error);
+                        alert('Error preparing data for printing. Please try again.');
+                    });
+            } else {
+                // For other formats, redirect to the export URL
+                window.location.href = exportUrl;
             }
         }
 
         function printData(data) {
-            // Apply any active filters
-            const filteredData = getFilteredData();
-            
             // Create a new window for printing
             const printWindow = window.open('', '_blank');
             
@@ -2733,6 +2727,12 @@ if ($conn instanceof mysqli) {
                         h1, h2 { text-align: center; }
                         .report-header { margin-bottom: 20px; }
                         .report-footer { margin-top: 20px; text-align: center; font-size: 12px; }
+                        @media print {
+                            .no-print { display: none; }
+                            table { page-break-inside: auto; }
+                            tr { page-break-inside: avoid; page-break-after: auto; }
+                            thead { display: table-header-group; }
+                        }
                     </style>
                 </head>
                 <body>
@@ -2743,27 +2743,31 @@ if ($conn instanceof mysqli) {
                     <table>
                         <thead>
                             <tr>
-                                <th>Student ID</th>
+                                <th>ID Number</th>
+                                <th>Student Name</th>
                                 <th>Purpose</th>
                                 <th>Lab</th>
                                 <th>Login Time</th>
                                 <th>Logout Time</th>
                                 <th>Duration</th>
+                                <th>Status</th>
                             </tr>
                         </thead>
                         <tbody>
             `;
             
             // Add data rows
-            filteredData.forEach(record => {
+            data.forEach(record => {
                 printContent += `
                     <tr>
-                        <td>${record.id_number}</td>
-                        <td>${record.purpose}</td>
-                        <td>${record.lab}</td>
-                        <td>${record.login_time}</td>
-                        <td>${record.logout_time}</td>
-                        <td>${calculateDuration(record.login_time, record.logout_time)}</td>
+                        <td>${record.id_number || ''}</td>
+                        <td>${record.student_name || ''}</td>
+                        <td>${record.purpose || ''}</td>
+                        <td>${record.lab || ''}</td>
+                        <td>${record.login_time || ''}</td>
+                        <td>${record.logout_time || '-'}</td>
+                        <td>${record.duration || ''}</td>
+                        <td>${record.status || ''}</td>
                     </tr>
                 `;
             });
@@ -2773,21 +2777,23 @@ if ($conn instanceof mysqli) {
                         </tbody>
                     </table>
                     <div class="report-footer">
-                        <p>Total Records: ${filteredData.length}</p>
+                        <p>Total Records: ${data.length}</p>
+                    </div>
+                    <div class="no-print" style="text-align: center; margin-top: 20px;">
+                        <button onclick="window.print()">Print Report</button>
                     </div>
                 </body>
                 </html>
             `;
             
-            // Write to the new window and print
+            // Write to the new window and trigger print
             printWindow.document.write(printContent);
             printWindow.document.close();
             printWindow.focus();
             
-            // Wait for content to load before printing
+            // Automatically trigger print dialog after a short delay
             setTimeout(() => {
                 printWindow.print();
-                printWindow.close();
             }, 500);
         }
 
