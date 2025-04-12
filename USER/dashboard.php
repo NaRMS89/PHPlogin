@@ -97,6 +97,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_FILES['profile_picture'])) {
 
 $user_data = $_SESSION['user_data'];
 $profile_picture = !empty($user_data['profile_picture']) ? $user_data['profile_picture'] : 'default.png';
+
+// Lab rooms
+$lab_rooms = ['524', '526', '528', '530', '542', 'Mac Lab'];
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -128,322 +131,122 @@ $profile_picture = !empty($user_data['profile_picture']) ? $user_data['profile_p
             color: var(--light);
             background: var(--global-background);
             min-height: 100vh;
-            font-size: 1.6rem;
+            font-size: 16px;
         }
 
-        /* Top Navigation Bar */
-        .top-bar {
-            background: var(--background);
-            padding: 1.5rem 2rem;
-            border-bottom: 1px solid var(--border-color);
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 1000;
-            box-shadow: 0 2px 10px var(--shadow-1);
-        }
-
-        .button-container {
-            display: flex;
-            justify-content: flex-end;
-            gap: 1.5rem;
-            align-items: center;
-        }
-
-        .nav-btn {
-            background: transparent;
-            color: var(--light);
-            border: 1px solid var(--border-color);
-            padding: 0.8rem 1.5rem;
-            border-radius: 2rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 1.4rem;
-        }
-
-        .nav-btn:hover {
-            background: var(--primary);
-            border-color: var(--primary);
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px var(--shadow-1);
-        }
-
-        /* Main Content */
         .content-container {
-            margin-top: 8rem;
+            margin-top: 80px;
             padding: 2rem;
-            display: grid;
-            grid-template-columns: 1fr 1.5fr 1fr;
-            gap: 2rem;
             max-width: 1400px;
             margin-left: auto;
             margin-right: auto;
         }
 
-        /* Section Styling */
+        .dynamic-content {
+            display: none;
+            width: 100%;
+            padding: 2rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .dynamic-content.active {
+            display: block;
+        }
+
+        /* Home Content Styles */
         .section {
-            background: var(--background);
-            border-radius: 1.5rem;
-            padding: 2.5rem;
-            box-shadow: 0 0.4rem 1rem var(--shadow-1);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
         }
 
-        .section:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 0.8rem 2rem var(--shadow-2);
+        .profile-info {
+            margin-bottom: 1.5rem;
         }
 
-        /* Announcement Section */
+        .profile-info h2 {
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+
+        .profile-info p {
+            margin: 0.5rem 0;
+            font-size: 1rem;
+        }
+
         .announcement-list {
-            max-height: 500px;
-            overflow-y: auto;
-            padding: 1rem;
+            margin-top: 1rem;
         }
 
         .announcement-item {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 2rem;
-            border-radius: 1rem;
-            margin-bottom: 1.5rem;
-            border: 1px solid var(--border-color);
-            transition: transform 0.3s ease;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
         }
 
-        .announcement-item:hover {
-            transform: translateX(5px);
-            border-color: var(--primary);
+        .rules-list {
+            margin-top: 1rem;
         }
 
-        .announcement-item .date {
-            color: var(--primary);
-            font-size: 1.2rem;
+        .rules-list ol {
+            padding-left: 2rem;
+        }
+
+        .rules-list li {
             margin-bottom: 0.5rem;
         }
 
-        .announcement-item .content {
-            font-size: 1.4rem;
-            line-height: 1.6;
+        /* Profile Content Styles */
+        .profile-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 1rem;
+            padding: 2rem;
+            max-width: 800px;
+            margin: 0 auto;
         }
 
-        /* Edit Profile Modal */
-        .modal-content {
-            background: var(--background);
-            border-radius: 1.5rem;
-            padding: 3rem;
-            width: 90%;
-            max-width: 600px;
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            z-index: 1000;
-            box-shadow: 0 0 30px var(--shadow-2);
-            display: none;
-        }
-
-        .modal-header {
+        .profile-header {
             text-align: center;
             margin-bottom: 2rem;
         }
 
-        .modal-close {
-            position: absolute;
-            top: 2rem;
-            right: 2rem;
-            background: transparent;
-            border: none;
-            color: var(--light);
-            font-size: 2rem;
-            cursor: pointer;
-            transition: transform 0.3s ease;
-        }
-
-        .modal-close:hover {
-            transform: rotate(90deg);
-        }
-
-        /* Form Controls */
-        .form-control {
-            background: rgba(0, 0, 0, 0.2);
-            border: 1px solid var(--border-color);
-            border-radius: 0.8rem;
-            color: var(--light);
-            padding: 1rem;
-            width: 100%;
-            margin-bottom: 1.5rem;
-            transition: all 0.3s ease;
-        }
-
-        .form-control:focus {
-            border-color: var(--primary);
-            box-shadow: 0 0 10px var(--primary);
-            outline: none;
-        }
-
-        /* Reservation and History Sections */
-        .reservation-section,
-        .history-section {
-            background: var(--background);
-            border-radius: 1.5rem;
-            padding: 2.5rem;
-            margin-top: 2rem;
-        }
-
-        .reservation-form {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 2rem;
-        }
-
-        .history-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 2rem;
-        }
-
-        .history-table th,
-        .history-table td {
-            padding: 1.5rem;
-            text-align: left;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .history-table th {
-            background: rgba(0, 0, 0, 0.2);
-            font-weight: 600;
-        }
-
-        .history-table tr:hover {
-            background: rgba(255, 255, 255, 0.05);
-        }
-
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 4px;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: var(--primary);
-            border-radius: 4px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: var(--focus);
-        }
-
         .profile-picture-container {
             position: relative;
-            width: 120px;
-            height: 120px;
-            margin: 2rem auto;
-            cursor: pointer;
+            width: 150px;
+            height: 150px;
+            margin: 0 auto 2rem;
         }
 
-        .profile-picture-container:hover .profile-picture-overlay {
-            opacity: 1;
-        }
-
-        .profile-picture-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
+        .profile-picture {
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.5);
             border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            opacity: 0;
-            transition: opacity 0.3s ease;
+            object-fit: cover;
         }
 
-        .profile-picture-overlay span {
-            color: var(--light);
-            font-size: 1.4rem;
-        }
-
-        #imageInput {
-            display: none;
-        }
-
-        /* Lab Status Grid */
-        .lab-status-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 2rem;
-            margin-bottom: 3rem;
-        }
-
-        .lab-card {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 1rem;
-            padding: 2rem;
-            border: 1px solid var(--border-color);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .lab-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 5px 15px var(--shadow-1);
-        }
-
-        .lab-card h3 {
-            margin-bottom: 1.5rem;
-            color: var(--primary);
-        }
-
-        .occupancy-info {
-            margin-bottom: 1.5rem;
-        }
-
-        .occupancy-bar {
-            height: 8px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 4px;
-            margin-bottom: 0.5rem;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .occupancy-bar::after {
-            content: '';
+        .change-photo-btn {
             position: absolute;
-            top: 0;
-            left: 0;
-            height: 100%;
-            width: var(--occupancy);
+            bottom: 0;
+            right: 0;
             background: var(--primary);
-            border-radius: 4px;
+            border: none;
+            color: white;
+            padding: 0.5rem;
+            border-radius: 50%;
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        .status {
-            font-weight: 600;
-            margin-bottom: 1.5rem;
-        }
-
-        .status-available {
-            color: #4CAF50;
-        }
-
-        .status-full {
-            color: #f44336;
-        }
-
-        .view-schedule-btn {
-            width: 100%;
-        }
-
-        /* Form Styling */
         .form-group {
-            margin-bottom: 2rem;
+            margin-bottom: 1.5rem;
         }
 
         .form-group label {
@@ -452,21 +255,39 @@ $profile_picture = !empty($user_data['profile_picture']) ? $user_data['profile_p
             color: var(--light);
         }
 
-        .full-width {
-            grid-column: 1 / -1;
+        .form-control {
+            width: 100%;
+            padding: 0.8rem;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            color: var(--light);
         }
 
-        /* History Table */
-        .history-table-container {
-            overflow-x: auto;
-            margin-top: 2rem;
+        /* Reservation Content Styles */
+        .reservation-container {
+            max-width: 1200px;
+            margin: 0 auto;
         }
 
-        .history-table {
-            min-width: 800px;
+        .lab-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
         }
 
-        /* Additional styles for the reservation form */
+        .lab-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 1rem;
+            padding: 1.5rem;
+        }
+
+        .lab-card h3 {
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+
         .reservation-form {
             background: rgba(255, 255, 255, 0.05);
             border-radius: 1rem;
@@ -474,21 +295,86 @@ $profile_picture = !empty($user_data['profile_picture']) ? $user_data['profile_p
             margin-top: 2rem;
         }
 
-        .form-actions {
-            display: flex;
-            justify-content: flex-end;
-            gap: 1rem;
-            margin-top: 2rem;
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        /* History Content Styles */
+        .history-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 1rem;
+            padding: 2rem;
+        }
+
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1.5rem;
+        }
+
+        .history-table th,
+        .history-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .history-table th {
+            color: var(--primary);
+            font-weight: 500;
+        }
+
+        /* Navigation Buttons */
+        .nav-btn {
+            background: transparent;
+            color: var(--light);
+            border: 1px solid var(--border-color);
+            padding: 0.8rem 1.5rem;
+            border-radius: 2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            margin: 0 0.5rem;
+        }
+
+        .nav-btn:hover,
+        .nav-btn.active {
+            background: var(--primary);
+            border-color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px var(--shadow-1);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .lab-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .content-container {
+                padding: 1rem;
+            }
+
+            .dynamic-content {
+                padding: 1rem;
+            }
         }
     </style>
 </head>
 <body>
     <header class="top-bar">
         <div class="button-container">
-            <button onclick="location.href='dashboard.php'" class="nav-btn">Home</button>
-            <button onclick="location.href='profile.php'" class="nav-btn">Profile</button>
-            <button onclick="location.href='reservation.php'" class="nav-btn">Reservation</button>
-            <button onclick="location.href='history.php'" class="nav-btn">History</button>
+            <button class="nav-btn active" onclick="switchContent('homeContent', this)">Home</button>
+            <button class="nav-btn" onclick="switchContent('profileContent', this)">Profile</button>
+            <button class="nav-btn" onclick="switchContent('reservationContent', this)">Reservation</button>
+            <button class="nav-btn" onclick="switchContent('historyContent', this)">History</button>
             <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post" style="display: inline;">
                 <button type="submit" name="logout" class="nav-btn">Logout</button>
             </form>
@@ -496,11 +382,169 @@ $profile_picture = !empty($user_data['profile_picture']) ? $user_data['profile_p
     </header>
 
     <div class="content-container">
-        <div class="section">
-            <div class="section-header">
-                <h2>STUDENT INFORMATION</h2>
+        <!-- Home Content -->
+        <div id="homeContent" class="dynamic-content active">
+            <div class="section">
+                <div class="profile-info">
+                    <h2>My Profile</h2>
+                    <p>Name: <?php echo htmlspecialchars($user_data['first_name'] . ' ' . $user_data['last_name']); ?></p>
+                    <p>Student ID: <?php echo htmlspecialchars($user_data['id_number']); ?></p>
+                    <p>Course: <?php echo htmlspecialchars($user_data['course']); ?></p>
+                    <p>Year Level: <?php echo htmlspecialchars($user_data['year_level']); ?></p>
+                    <p>Email: <?php echo htmlspecialchars($user_data['email']); ?></p>
+                    <p>Sessions Remaining: <?php echo $user_data['sessions']; ?></p>
+                    <a href="#editProfileModal" class="link-1">Edit Profile</a>
+                </div>
             </div>
-            <div class="profile-header">
+            <div class="section">
+                <h2>Announcements</h2>
+                <div id="announcementList" class="announcement-list">
+                    <!-- Announcements will be loaded here -->
+                </div>
+            </div>
+            <div class="section">
+                <h2>Rules</h2>
+                <div class="rules-list">
+                    <ol>
+                        <li>Students must present their ID upon entry.</li>
+                        <li>Food and drinks are not allowed inside the laboratory.</li>
+                        <li>Keep noise to a minimum.</li>
+                        <li>Do not install unauthorized software.</li>
+                        <li>Report any technical issues to the laboratory staff.</li>
+                        <li>Clean your workspace before leaving.</li>
+                        <li>Save your work before leaving.</li>
+                        <li>Follow the laboratory schedule.</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+
+        <!-- Profile Content -->
+        <div id="profileContent" class="dynamic-content">
+            <div class="profile-card">
+                <div class="profile-header">
+                    <h2>Edit Profile</h2>
+                    <div class="profile-picture-container" onclick="document.getElementById('imageInput').click()">
+                        <img src="../uploads/<?php echo $profile_picture; ?>" alt="Profile Picture" class="profile-picture">
+                        <div class="profile-picture-overlay">
+                            <span>Change Photo</span>
+                        </div>
+                    </div>
+                    <input type="file" id="imageInput" name="profile_picture" accept="image/*" style="display: none;">
+                </div>
+                <form id="userInfoForm" class="edit-profile-form">
+                    <div class="form-group">
+                        <label for="first_name">First Name</label>
+                        <input type="text" id="first_name" name="first_name" class="form-control" value="<?php echo htmlspecialchars($user_data['first_name']); ?>">
+                    </div>
+                    <div class="form-group">
+                        <label for="last_name">Last Name</label>
+                        <input type="text" id="last_name" name="last_name" class="form-control" value="<?php echo htmlspecialchars($user_data['last_name']); ?>">
+                    </div>
+                    <div class="form-group">
+                        <label for="middle_name">Middle Name</label>
+                        <input type="text" id="middle_name" name="middle_name" class="form-control" value="<?php echo htmlspecialchars($user_data['middle_name']); ?>">
+                    </div>
+                    <div class="form-group">
+                        <label for="course">Course</label>
+                        <input type="text" id="course" name="course" class="form-control" value="<?php echo htmlspecialchars($user_data['course']); ?>">
+                    </div>
+                    <div class="form-group">
+                        <label for="year_level">Year Level</label>
+                        <input type="text" id="year_level" name="year_level" class="form-control" value="<?php echo htmlspecialchars($user_data['year_level']); ?>">
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" name="email" class="form-control" value="<?php echo htmlspecialchars($user_data['email']); ?>">
+                    </div>
+                    <button type="submit" class="nav-btn">Save Changes</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Reservation Content -->
+        <div id="reservationContent" class="dynamic-content">
+            <div class="reservation-container">
+                <h2>Lab Reservation</h2>
+                <div class="lab-grid">
+                    <?php foreach ($lab_rooms as $room): 
+                        $occupancy_sql = "SELECT COUNT(*) as count FROM sitin WHERE lab = '$room' AND status = 'active'";
+                        $occupancy_result = mysqli_query($conn, $occupancy_sql);
+                        $occupancy_row = mysqli_fetch_assoc($occupancy_result);
+                        $current_occupancy = $occupancy_row['count'];
+                        $status = ($current_occupancy >= 50) ? 'Full' : 'Available';
+                    ?>
+                    <div class="lab-card">
+                        <h3>Lab <?php echo htmlspecialchars($room); ?></h3>
+                        <p class="lab-status">Current Occupancy: <?php echo $current_occupancy; ?>/50</p>
+                        <p class="lab-status <?php echo strtolower($status); ?>">Status: <?php echo $status; ?></p>
+                    </div>
+                    <?php endforeach; ?>
+                </div>
+                
+                <form id="reservationForm" class="reservation-form" action="make_reservation.php" method="post">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="labRoom">Lab Room</label>
+                            <select class="form-control" id="labRoom" name="lab" required>
+                                <option value="">Select Lab Room</option>
+                                <?php foreach ($lab_rooms as $room): ?>
+                                <option value="<?php echo $room; ?>">Lab <?php echo $room; ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="reservationDate">Date</label>
+                            <input type="date" class="form-control" id="reservationDate" name="date" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="startTime">Start Time</label>
+                            <input type="time" class="form-control" id="startTime" name="start_time" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="endTime">End Time</label>
+                            <input type="time" class="form-control" id="endTime" name="end_time" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="purpose">Purpose</label>
+                        <textarea class="form-control" id="purpose" name="purpose" rows="3" required></textarea>
+                    </div>
+                    <button type="submit" class="nav-btn">Submit Reservation</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- History Content -->
+        <div id="historyContent" class="dynamic-content">
+            <div class="history-card">
+                <h2>Reservation History</h2>
+                <table class="history-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Lab Room</th>
+                            <th>Time</th>
+                            <th>Status</th>
+                            <th>Purpose</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyTableBody">
+                        <!-- History data will be loaded here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Profile Modal -->
+    <div id="editProfileModal" class="modal-container">
+        <div class="modal">
+            <h2 class="modal__title">Edit Profile</h2>
+            <a href="#" class="link-2"></a>
+            <form id="userInfoForm" class="modal__content">
                 <div class="profile-picture-container" onclick="document.getElementById('imageInput').click()">
                     <img src="../uploads/<?php echo $profile_picture; ?>" alt="Profile Picture" class="profile-picture">
                     <div class="profile-picture-overlay">
@@ -508,211 +552,36 @@ $profile_picture = !empty($user_data['profile_picture']) ? $user_data['profile_p
                     </div>
                 </div>
                 <input type="file" id="imageInput" name="profile_picture" accept="image/*" style="display: none;">
-                <div class="profile-info">
-                    <h2><?php echo $user_data['first_name'] . ' ' . $user_data['last_name']; ?></h2>
-                    <p>Course: <?php echo $user_data['course']; ?></p>
-                    <p>Year: <?php echo $user_data['year_level']; ?></p>
-                    <p>Email: <?php echo $user_data['email']; ?></p>
-                    <p>Sessions Remaining: <?php echo $user_data['sessions']; ?></p>
-                </div>
-            </div>
-        </div>
-
-        <div class="section">
-            <div class="section-header">
-                <h2>ANNOUNCEMENTS</h2>
-            </div>
-            <div id="announcementList" class="announcement-list">
-                <!-- Announcements will be loaded here dynamically -->
-            </div>
-        </div>
-
-        <div class="section">
-            <div class="section-header">
-                <h2>RULES</h2>
-            </div>
-            <div id="rulesContent">
-                <h3>Laboratory Rules and Regulations</h3>
-                <p>To avoid embarrassment and maintain camaraderie with your friends and superiors at our laboratories, please observe the following:</p>
-                <ol>
-                    <li>Maintain silence, proper decorum, and discipline inside the laboratory. Mobile phones, walkmans and other personal pieces of equipment must be switched off.</li>
-                    <li>Games are not allowed inside the lab. This includes computer-related games, card games and other games that may disturb the operation of the lab.</li>
-                    <li>Surfing the Internet is allowed only with the permission of the instructor. Downloading and installing of software are strictly prohibited.</li>
-                    <li>Getting access to other websites not related to the course (especially pornographic and illicit sites) is strictly prohibited.</li>
-                    <li>Deleting computer files and changing the set-up of the computer is a major offense.</li>
-                    <li>Observe computer time usage carefully. A fifteen-minute allowance is given for each use. Otherwise, the unit will be given to those who wish to "sit-in".</li>
-                    <li>Observe proper decorum while inside the laboratory.
-                        <ul>
-                            <li>Do not get inside the lab unless the instructor is present.</li>
-                            <li>All bags, knapsacks, and the likes must be deposited at the counter.</li>
-                            <li>Follow the seating arrangement of your instructor.</li>
-                            <li>At the end of class, all software programs must be closed.</li>
-                            <li>Return all chairs to their proper places after using.</li>
-                        </ul>
-                    </li>
-                    <li>Chewing gum, eating, drinking, smoking, and other forms of vandalism are prohibited inside the lab.</li>
-                    <li>Anyone causing a continual disturbance will be asked to leave the lab. Acts or gestures offensive to the members of the community, including public display of physical intimacy, are not tolerated.</li>
-                    <li>Persons exhibiting hostile or threatening behavior such as yelling, swearing, or disregarding requests made by lab personnel will be asked to leave the lab.</li>
-                    <li>For serious offenses, the lab personnel may call the Civil Security Office (CSU) for assistance.</li>
-                    <li>Any technical problem or difficulty must be addressed to the laboratory supervisor, student assistant, or instructor immediately.</li>
-                </ol>
-                <h3>DISCIPLINARY ACTION</h3>
-                <p>First Offense - The Head or the Dean or OIC recommends to the Guidance Center for a suspension from classes for each offender.</p>
-                <p>Second and Subsequent Offenses - A recommendation for a heavier sanction will be endorsed to the Guidance Center.</p>
-            </div>
-        </div>
-    </div>
-
-    <div id="mainContent">
-        <!-- Your main dashboard content here -->
-    </div>
-
-    <!-- Edit Profile Modal -->
-    <div id="editProfileModal" class="modal-content">
-        <div class="modal-header">
-            <h2>Edit Profile</h2>
-            <button class="modal-close" onclick="closeModal()">&times;</button>
-        </div>
-        <form id="userInfoForm" class="edit-profile-form">
-            <div class="form-group">
-                <label for="first_name">First Name</label>
-                <input type="text" id="first_name" name="first_name" class="form-control" value="<?php echo htmlspecialchars($user_data['first_name']); ?>">
-            </div>
-            <div class="form-group">
-                <label for="last_name">Last Name</label>
-                <input type="text" id="last_name" name="last_name" class="form-control" value="<?php echo htmlspecialchars($user_data['last_name']); ?>">
-            </div>
-            <div class="form-group">
-                <label for="middle_name">Middle Name</label>
-                <input type="text" id="middle_name" name="middle_name" class="form-control" value="<?php echo htmlspecialchars($user_data['middle_name']); ?>">
-            </div>
-            <div class="form-group">
-                <label for="course">Course</label>
-                <input type="text" id="course" name="course" class="form-control" value="<?php echo htmlspecialchars($user_data['course']); ?>">
-            </div>
-            <div class="form-group">
-                <label for="year_level">Year Level</label>
-                <input type="text" id="year_level" name="year_level" class="form-control" value="<?php echo htmlspecialchars($user_data['year_level']); ?>">
-            </div>
-            <div class="form-group">
-                <label for="email">Email</label>
-                <input type="email" id="email" name="email" class="form-control" value="<?php echo htmlspecialchars($user_data['email']); ?>">
-            </div>
-            <div class="form-actions">
-                <button type="submit" class="nav-btn">Save Changes</button>
-                <button type="button" class="nav-btn" onclick="closeModal()">Cancel</button>
-            </div>
-        </form>
-    </div>
-
-    <!-- Reservation Section -->
-    <div class="reservation-section">
-        <div class="section-header">
-            <h2>Lab Reservation</h2>
-        </div>
-        <div class="lab-status-grid">
-            <?php
-            // Lab rooms
-            $lab_rooms = ['524', '526', '528', '530', '542', 'Mac Lab'];
-            
-            foreach ($lab_rooms as $room) {
-                // Get current occupancy
-                $occupancy_sql = "SELECT COUNT(*) as count FROM sitin WHERE lab = '$room' AND status = 'active'";
-                $occupancy_result = mysqli_query($conn, $occupancy_sql);
-                $occupancy_row = mysqli_fetch_assoc($occupancy_result);
-                $current_occupancy = $occupancy_row['count'];
                 
-                // Determine status
-                $status = ($current_occupancy >= 50) ? 'Full' : 'Available';
-                $status_class = ($status == 'Full') ? 'status-full' : 'status-available';
-                
-                echo "<div class='lab-card'>";
-                echo "<h3>Lab " . htmlspecialchars($room) . "</h3>";
-                echo "<div class='occupancy-info'>";
-                echo "<div class='occupancy-bar' style='--occupancy: " . ($current_occupancy * 2) . "%'></div>";
-                echo "<p>Current Occupancy: " . $current_occupancy . "/50</p>";
-                echo "</div>";
-                echo "<p class='status " . $status_class . "'>Status: " . $status . "</p>";
-                echo "<button class='nav-btn view-schedule-btn' onclick='viewLabSchedule(\"" . $room . "\")'>View Schedule</button>";
-                echo "</div>";
-            }
-            ?>
-        </div>
-        
-        <form id="reservationForm" class="reservation-form" action="make_reservation.php" method="post">
-            <div class="form-group">
-                <label for="labRoom">Lab Room</label>
-                <select class="form-control" id="labRoom" name="lab" required>
-                    <option value="">Select Lab Room</option>
-                    <?php
-                    foreach ($lab_rooms as $room) {
-                        echo "<option value='" . $room . "'>Lab " . $room . "</option>";
-                    }
-                    ?>
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="reservationDate">Date</label>
-                <input type="date" class="form-control" id="reservationDate" name="date" required>
-            </div>
-            <div class="form-group">
-                <label for="startTime">Start Time</label>
-                <input type="time" class="form-control" id="startTime" name="start_time" required>
-            </div>
-            <div class="form-group">
-                <label for="endTime">End Time</label>
-                <input type="time" class="form-control" id="endTime" name="end_time" required>
-            </div>
-            <div class="form-group full-width">
-                <label for="purpose">Purpose</label>
-                <textarea class="form-control" id="purpose" name="purpose" rows="3" required></textarea>
-            </div>
-            <div class="form-actions full-width">
-                <button type="submit" class="nav-btn">Submit Reservation</button>
-            </div>
-        </form>
-    </div>
-
-    <!-- History Section -->
-    <div class="history-section">
-        <div class="section-header">
-            <h2>Reservation History</h2>
-        </div>
-        <div class="history-table-container">
-            <table class="history-table">
-                <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Lab Room</th>
-                        <th>Time</th>
-                        <th>Status</th>
-                        <th>Purpose</th>
-                    </tr>
-                </thead>
-                <tbody id="historyTableBody">
-                    <!-- History data will be loaded here dynamically -->
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <!-- Lab Schedule Modal -->
-    <div class="modal fade" id="labScheduleModal" tabindex="-1" aria-labelledby="labScheduleModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="labScheduleModalLabel">Lab Schedule</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <div class="form-group">
+                    <label for="first_name">First Name</label>
+                    <input type="text" id="first_name" name="first_name" class="form-control" value="<?php echo htmlspecialchars($user_data['first_name']); ?>">
                 </div>
-                <div class="modal-body">
-                    <div id="labScheduleContent">
-                        <!-- Schedule content will be loaded here -->
-                    </div>
+                <div class="form-group">
+                    <label for="last_name">Last Name</label>
+                    <input type="text" id="last_name" name="last_name" class="form-control" value="<?php echo htmlspecialchars($user_data['last_name']); ?>">
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <div class="form-group">
+                    <label for="middle_name">Middle Name</label>
+                    <input type="text" id="middle_name" name="middle_name" class="form-control" value="<?php echo htmlspecialchars($user_data['middle_name']); ?>">
                 </div>
-            </div>
+                <div class="form-group">
+                    <label for="course">Course</label>
+                    <input type="text" id="course" name="course" class="form-control" value="<?php echo htmlspecialchars($user_data['course']); ?>">
+                </div>
+                <div class="form-group">
+                    <label for="year_level">Year Level</label>
+                    <input type="text" id="year_level" name="year_level" class="form-control" value="<?php echo htmlspecialchars($user_data['year_level']); ?>">
+                </div>
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" class="form-control" value="<?php echo htmlspecialchars($user_data['email']); ?>">
+                </div>
+                <div class="modal__actions">
+                    <button type="submit" class="modal__btn">Save Changes</button>
+                    <a href="#" class="modal__btn">Cancel</a>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -765,7 +634,7 @@ $profile_picture = !empty($user_data['profile_picture']) ? $user_data['profile_p
 
         function loadAnnouncements() {
             var announcementList = document.getElementById('announcementList');
-            announcementList.innerHTML = ''; // Clear existing announcements
+            announcementList.innerHTML = '';
 
             fetch('../ADMIN/get_announcements.php')
             .then(response => response.json())
@@ -872,25 +741,22 @@ $profile_picture = !empty($user_data['profile_picture']) ? $user_data['profile_p
             }
         });
 
-        // View lab schedule
+        // Update the view schedule function to use a more modern approach
         function viewLabSchedule(room) {
-            const modal = document.getElementById('labScheduleModal');
-            const modalTitle = document.getElementById('labScheduleModalLabel');
-            const scheduleContent = document.getElementById('labScheduleContent');
+            // Instead of modal, we'll update the content directly in the reservation section
+            const scheduleContainer = document.createElement('div');
+            scheduleContainer.className = 'schedule-container';
             
-            modalTitle.textContent = 'Lab ' + room + ' Schedule';
-            
-            // Load schedule content via AJAX
             fetch('get_lab_schedule.php?room=' + room)
                 .then(response => response.text())
                 .then(html => {
-                    scheduleContent.innerHTML = html;
-                    new bootstrap.Modal(modal).show();
+                    const currentContent = document.querySelector('.lab-status-grid');
+                    scheduleContainer.innerHTML = html;
+                    currentContent.parentNode.insertBefore(scheduleContainer, currentContent.nextSibling);
                 })
                 .catch(error => {
-                    console.error('Error loading schedule:', error);
-                    scheduleContent.innerHTML = '<div class="alert alert-danger">Error loading schedule data.</div>';
-                    new bootstrap.Modal(modal).show();
+                    console.error('Error:', error);
+                    scheduleContainer.innerHTML = '<div class="error-message">Error loading schedule data</div>';
                 });
         }
 
@@ -907,6 +773,97 @@ $profile_picture = !empty($user_data['profile_picture']) ? $user_data['profile_p
                 alert('End time must be after start time');
             }
         });
+
+        // Function to switch between content sections
+        function switchContent(contentId, button) {
+            // Hide all content sections
+            document.querySelectorAll('.dynamic-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // Show selected content section
+            const selectedContent = document.getElementById(contentId);
+            selectedContent.classList.add('active');
+            
+            // Update active button state
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            button.classList.add('active');
+            
+            // Load specific content data if needed
+            if (contentId === 'historyContent') {
+                loadHistoryData();
+            } else if (contentId === 'reservationContent') {
+                // Reset any previous schedule views
+                const existingSchedule = document.querySelector('.schedule-container');
+                if (existingSchedule) {
+                    existingSchedule.remove();
+                }
+            }
+        }
+
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set home content and button as active by default
+            document.getElementById('homeContent').classList.add('active');
+            document.querySelector('button[onclick*="homeContent"]').classList.add('active');
+            
+            // Load initial data
+            loadAnnouncements();
+        });
+
+        // Add styles for active button state
+        const style = document.createElement('style');
+        style.textContent = `
+            .nav-btn {
+                background: transparent;
+                color: var(--light);
+                border: 1px solid var(--border-color);
+                padding: 0.8rem 1.5rem;
+                border-radius: 2rem;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                font-size: 1.4rem;
+                margin: 0 0.5rem;
+            }
+
+            .nav-btn:hover {
+                background: var(--primary);
+                border-color: var(--primary);
+                transform: translateY(-2px);
+                box-shadow: 0 5px 15px var(--shadow-1);
+            }
+
+            .nav-btn.active {
+                background: var(--primary);
+                border-color: var(--primary);
+                transform: translateY(-2px);
+                box-shadow: 0 5px 15px var(--shadow-1);
+            }
+
+            .top-bar {
+                background: var(--background);
+                padding: 1.5rem 2rem;
+                border-bottom: 1px solid var(--border-color);
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                z-index: 1000;
+                box-shadow: 0 2px 10px var(--shadow-1);
+            }
+
+            .button-container {
+                display: flex;
+                justify-content: flex-end;
+                align-items: center;
+                gap: 1rem;
+                max-width: 1400px;
+                margin: 0 auto;
+            }
+        `;
+        document.head.appendChild(style);
     </script>
 </body>
 </html>
