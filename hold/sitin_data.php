@@ -126,54 +126,39 @@ while ($row = mysqli_fetch_assoc($purposes_result)) {
                             <table id="sitinTable" class="table table-striped table-bordered">
                                 <thead>
                                     <tr>
-                                        <th>ID</th>
-                                        <th>Name</th>
+                                        <th>Student ID</th>
                                         <th>Purpose</th>
                                         <th>Lab</th>
                                         <th>Login Time</th>
                                         <th>Logout Time</th>
                                         <th>Duration</th>
-                                        <th>Status</th>
+                                        <th>Feedback</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <?php
-                                    $query = "SELECT 
-                                        s.id_number,
-                                        CONCAT(i.first_name, ' ', i.last_name) as student_name,
-                                        s.purpose,
-                                        s.lab,
-                                        s.login_time,
-                                        s.logout_time,
-                                        CASE 
-                                            WHEN s.logout_time IS NULL THEN 'active'
-                                            ELSE 'completed'
-                                        END as status
-                                    FROM sitin_report s
-                                    JOIN info i ON s.id_number = i.id_number
-                                    ORDER BY s.login_time DESC";
-                                    
+                                    // Fetch sit-in data with feedback
+                                    $query = "SELECT sr.*, f.feedback_text 
+                                             FROM sitin_report sr 
+                                             LEFT JOIN feedback f ON sr.id = f.sitin_id 
+                                             ORDER BY sr.logout_time DESC";
                                     $result = mysqli_query($conn, $query);
+                                    
                                     while ($row = mysqli_fetch_assoc($result)) {
-                                        // Calculate duration
-                                        if ($row['logout_time']) {
-                                            $login = new DateTime($row['login_time']);
-                                            $logout = new DateTime($row['logout_time']);
-                                            $interval = $login->diff($logout);
-                                            $duration = $interval->format('%H:%I');
-                                        } else {
-                                            $duration = 'Active';
-                                        }
-                                        
                                         echo "<tr>";
-                                        echo "<td>" . htmlspecialchars($row['id_number']) . "</td>";
-                                        echo "<td>" . htmlspecialchars($row['student_name']) . "</td>";
+                                        echo "<td>" . htmlspecialchars($row['student_id']) . "</td>";
                                         echo "<td>" . htmlspecialchars($row['purpose']) . "</td>";
                                         echo "<td>" . htmlspecialchars($row['lab']) . "</td>";
                                         echo "<td>" . htmlspecialchars($row['login_time']) . "</td>";
-                                        echo "<td>" . ($row['logout_time'] ? htmlspecialchars($row['logout_time']) : '-') . "</td>";
-                                        echo "<td>" . $duration . "</td>";
-                                        echo "<td>" . htmlspecialchars($row['status']) . "</td>";
+                                        echo "<td>" . htmlspecialchars($row['logout_time']) . "</td>";
+                                        echo "<td>" . htmlspecialchars($row['duration']) . "</td>";
+                                        echo "<td>";
+                                        if (!empty($row['feedback_text'])) {
+                                            echo "<button class='btn btn-info' onclick='viewFeedback(" . $row['id'] . ")'>View Feedback</button>";
+                                        } else {
+                                            echo "No Feedback";
+                                        }
+                                        echo "</td>";
                                         echo "</tr>";
                                     }
                                     ?>
@@ -239,6 +224,15 @@ while ($row = mysqli_fetch_assoc($purposes_result)) {
         </div>
     </div>
 
+    <!-- Feedback Modal -->
+    <div id="feedbackModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('feedbackModal')">&times;</span>
+            <h2>View Feedback</h2>
+            <div id="feedbackContent"></div>
+        </div>
+    </div>
+
     <script src="../assets/js/jquery.min.js"></script>
     <script src="../assets/js/bootstrap.bundle.min.js"></script>
     <script src="../assets/js/jquery.dataTables.min.js"></script>
@@ -297,6 +291,20 @@ while ($row = mysqli_fetch_assoc($purposes_result)) {
             $('#fromDate').val('');
             $('#toDate').val('');
             sitinTable.draw();
+        }
+
+        function viewFeedback(sitinId) {
+            // Fetch and display feedback
+            fetch('get_feedback_data.php?id=' + sitinId)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('feedbackContent').innerHTML = data.feedback_text;
+                    document.getElementById('feedbackModal').style.display = 'block';
+                });
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
         }
     </script>
 </body>

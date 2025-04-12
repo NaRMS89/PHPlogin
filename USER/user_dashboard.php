@@ -51,8 +51,32 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['logout'])) {
         </div>
         <main class="main-content">
             <div id="dynamicContent">
-                <h2>Welcome, <?php echo $_SESSION['username']; ?>!</h2>
-                <p>This is your dashboard. You can view announcements, make reservations, and submit feedback.</p>
+                <div class="dashboard-header">
+                    <h1>Welcome, <?php echo htmlspecialchars($_SESSION['first_name']); ?>!</h1>
+                    <div class="header-buttons">
+                        <button id="editProfileBtn" class="btn btn-primary">Edit Profile</button>
+                        <button id="historyBtn" class="btn btn-info">History</button>
+                    </div>
+                </div>
+
+                <div class="announcements-section">
+                    <h2>Announcements</h2>
+                    <div class="announcements-list">
+                        <?php
+                        // Fetch announcements
+                        $query = "SELECT * FROM announcements ORDER BY created_at DESC";
+                        $result = mysqli_query($conn, $query);
+                        
+                        while ($row = mysqli_fetch_assoc($result)) {
+                            echo "<div class='announcement'>";
+                            echo "<h3>" . htmlspecialchars($row['title']) . "</h3>";
+                            echo "<p>" . htmlspecialchars($row['content']) . "</p>";
+                            echo "<small>Posted on: " . date('Y-m-d H:i:s', strtotime($row['created_at'])) . "</small>";
+                            echo "</div>";
+                        }
+                        ?>
+                    </div>
+                </div>
             </div>
         </main>
     </div>
@@ -95,6 +119,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['logout'])) {
                 event.target.style.display = "none";
             }
         }
+
+        document.getElementById('historyBtn').addEventListener('click', function() {
+            window.location.href = 'history.php';
+        });
     </script>
 </body>
 </html>

@@ -68,26 +68,38 @@ while ($row = mysqli_fetch_assoc($result)) {
                                 <thead>
                                     <tr>
                                         <th>Rank</th>
-                                        <th>ID Number</th>
-                                        <th>Name</th>
-                                        <th>Course</th>
+                                        <th>Student ID</th>
+                                        <th>Student Name</th>
+                                        <th>Lab</th>
                                         <th>Points</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <?php 
+                                    <?php
+                                    // Fetch student points
+                                    $query = "SELECT 
+                                             s.id_number,
+                                             CONCAT(i.first_name, ' ', i.last_name) as student_name,
+                                             s.lab,
+                                             COALESCE(SUM(sr.points), 0) as points
+                                             FROM students s
+                                             JOIN info i ON s.id_number = i.id_number
+                                             LEFT JOIN sitin_report sr ON s.id_number = sr.student_id
+                                             GROUP BY s.id_number, i.first_name, i.last_name, s.lab
+                                             ORDER BY points DESC";
+                                    $result = mysqli_query($conn, $query);
+                                    
                                     $rank = 1;
-                                    foreach ($students as $student): 
-                                        $rowClass = $rank <= 3 ? "rank-{$rank}" : "";
+                                    while ($row = mysqli_fetch_assoc($result)) {
+                                        echo "<tr>";
+                                        echo "<td>" . $rank++ . "</td>";
+                                        echo "<td>" . htmlspecialchars($row['id_number']) . "</td>";
+                                        echo "<td>" . htmlspecialchars($row['student_name']) . "</td>";
+                                        echo "<td>" . htmlspecialchars($row['lab']) . "</td>";
+                                        echo "<td>" . htmlspecialchars($row['points']) . "</td>";
+                                        echo "</tr>";
+                                    }
                                     ?>
-                                    <tr class="<?php echo $rowClass; ?>">
-                                        <td><?php echo $rank++; ?></td>
-                                        <td><?php echo htmlspecialchars($student['id_number']); ?></td>
-                                        <td><?php echo htmlspecialchars($student['first_name'] . ' ' . $student['last_name']); ?></td>
-                                        <td><?php echo htmlspecialchars($student['course']); ?></td>
-                                        <td><?php echo htmlspecialchars($student['points']); ?></td>
-                                    </tr>
-                                    <?php endforeach; ?>
                                 </tbody>
                             </table>
                         </div>

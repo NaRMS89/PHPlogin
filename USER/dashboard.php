@@ -387,8 +387,20 @@ $profile_picture = !empty($user_data['profile_picture']) ? $user_data['profile_p
             <div class="section-header">
                 <h2>ANNOUNCEMENT</h2>
             </div>
-            <div id="announcementList" class="announcement-list">
-                <!-- Announcements will be loaded here -->
+            <div class="profile-section">
+                <button onclick="openModal('editProfileModal')">Edit Profile</button>
+                <button onclick="window.location.href='history.php'">History</button>
+            </div>
+
+            <div class="announcement-section">
+                <h3>Announcements</h3>
+                <div class="announcement-form">
+                    <form id="announcementForm" onsubmit="submitAnnouncement(event)">
+                        <textarea id="announcementText" placeholder="Type your announcement here..." required></textarea>
+                        <button type="submit">Post Announcement</button>
+                    </form>
+                </div>
+                <div id="announcementList" class="announcement-list"></div>
             </div>
         </div>
 

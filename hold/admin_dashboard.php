@@ -926,7 +926,6 @@ if ($conn instanceof mysqli) {
         <button id="studentBtn" class="sidebar-button">Students</button>
         <button id="sitinBtn" class="sidebar-button">Current Sit-in</button>
         <button id="sitInDataBtn" class="sidebar-button">Sit-in Data</button>
-        <button id="feedbackReservationBtn" class="sidebar-button">Feedback Reports</button>
         <button id="reservationBtn" class="sidebar-button">Reservation</button>
         <button id="labResourcesBtn" class="sidebar-button">Lab Resources</button>
         <button id="labSchedulesBtn" class="sidebar-button">Lab Schedules</button>
@@ -1374,8 +1373,7 @@ if ($conn instanceof mysqli) {
                                         <th>Student ID</th>
                                         <th>Student Name</th>
                                         <th>Lab Usage Points</th>
-                                        <th>Admin Points</th>
-                                        <th>Total Points</th>
+                                        <th>Points</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -1396,7 +1394,6 @@ if ($conn instanceof mysqli) {
                                         $rank = 1;
                                         while ($point_row = mysqli_fetch_assoc($points_result)) {
                                             $lab_points = $point_row['sitin_count'] * 3;
-                                            $total_points = $lab_points + $point_row['admin_points'];
                                             
                                             echo "<tr>";
                                             echo "<td>" . $rank . "</td>";
@@ -1404,41 +1401,17 @@ if ($conn instanceof mysqli) {
                                             echo "<td>" . htmlspecialchars($point_row['first_name'] . " " . $point_row['last_name']) . "</td>";
                                             echo "<td>" . $lab_points . "</td>";
                                             echo "<td>" . $point_row['admin_points'] . "</td>";
-                                            echo "<td>" . $total_points . "</td>";
                                             echo "</tr>";
                                             
                                             $rank++;
                                         }
                                     } else {
-                                        echo "<tr><td colspan='6' class='text-center'>No data available</td></tr>";
+                                        echo "<tr><td colspan='5' class='text-center'>No data available</td></tr>";
                                     }
                                     ?>
                                 </tbody>
                             </table>
                         </div>
-                    </div>
-                </div>
-                
-                <div class="card mt-4">
-                    <div class="card-header">
-                        <h5>Add Admin Points</h5>
-                    </div>
-                    <div class="card-body">
-                        <form id="adminPointsForm" action="add_admin_points.php" method="post">
-                            <div class="mb-3">
-                                <label for="studentId" class="form-label">Student ID</label>
-                                <input type="text" class="form-control" id="studentId" name="id_number" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="points" class="form-label">Points</label>
-                                <input type="number" class="form-control" id="points" name="points" min="1" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="reason" class="form-label">Reason</label>
-                                <textarea class="form-control" id="reason" name="reason" rows="2" required></textarea>
-                            </div>
-                            <button type="submit" class="btn btn-primary">Add Points</button>
-                        </form>
                     </div>
                 </div>
             </div>
@@ -1541,6 +1514,7 @@ if ($conn instanceof mysqli) {
                                 <th onclick="sortTable(3)">Login Time ↕</th>
                                 <th onclick="sortTable(4)">Logout Time ↕</th>
                                 <th onclick="sortTable(5)">Duration ↕</th>
+                                <th>Feedback</th>
                             </tr>
                         </thead>
                         <tbody id="sitInDataBody"></tbody>
@@ -1666,6 +1640,17 @@ if ($conn instanceof mysqli) {
                 <input type="submit" value="Add Student">
             </form>
             <div id="form-message"></div>
+        </div>
+    </div>
+
+    <!-- Feedback Modal -->
+    <div id="feedbackModal" class="modal-container">
+        <div class="modal">
+            <span class="close" onclick="closeModal('feedbackModal')">&times;</span>
+            <h2 class="modal-title">Student Feedback</h2>
+            <div class="feedback-content">
+                <div id="feedbackText"></div>
+            </div>
         </div>
     </div>
 
@@ -2515,6 +2500,11 @@ if ($conn instanceof mysqli) {
                     <td>${record.login_time}</td>
                     <td>${record.logout_time}</td>
                     <td>${calculateDuration(record.login_time, record.logout_time)}</td>
+                    <td>
+                        ${record.feedback ? 
+                            `<button class="feedback-btn" onclick="viewFeedback('${record.id_number}', '${record.login_time}')">View Feedback</button>` : 
+                            'No Feedback'}
+                    </td>
                 `;
                 tbody.appendChild(row);
             });
@@ -3011,6 +3001,29 @@ if ($conn instanceof mysqli) {
                 console.error('Error:', error);
                 alert('Error adding points. Please try again.');
             });
+        }
+
+        function viewFeedback(idNumber, loginTime) {
+            fetch(`get_feedback.php?id=${idNumber}&login_time=${loginTime}`)
+                .then(response => response.json())
+                .then(data => {
+                    const feedbackText = document.getElementById('feedbackText');
+                    if (data.feedback) {
+                        feedbackText.innerHTML = `
+                            <p><strong>Student ID:</strong> ${data.id_number}</p>
+                            <p><strong>Date:</strong> ${data.date}</p>
+                            <p><strong>Feedback:</strong></p>
+                            <p>${data.feedback}</p>
+                        `;
+                    } else {
+                        feedbackText.innerHTML = '<p>No feedback available for this session.</p>';
+                    }
+                    openModal('feedbackModal');
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error loading feedback. Please try again.');
+                });
         }
     </script>
 </body>
