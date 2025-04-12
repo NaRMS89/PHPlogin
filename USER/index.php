@@ -16,7 +16,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         if ($remember_me) {
             setcookie("admin_logged_in", true, time() + (86400 * 30), "/");
         }
-        header("Location: ../ADMIN/admin_dashboard.php");
+        header("Location: ../hold/admin_dashboard.php");
         exit();
     } else {
         $check_user_sql = "SELECT * FROM info WHERE id_number = ?";

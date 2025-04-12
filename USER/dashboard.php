@@ -432,60 +432,74 @@ $lab_rooms = ['524', '526', '528', '530', '542', 'Mac Lab'];
         <div id="homeContent" class="dynamic-content active">
             <div class="three-column-layout">
                 <!-- Left Column - Profile -->
-                <div class="profile-column">
-                    <div class="profile-info">
+                <aside class="profile-column">
+                    <section class="profile-info">
                         <h2>My Profile</h2>
-                        <p>Name: <?php echo htmlspecialchars($user_data['first_name'] . ' ' . $user_data['last_name']); ?></p>
-                        <p>Student ID: <?php echo htmlspecialchars($user_data['id_number']); ?></p>
-                        <p>Course: <?php echo htmlspecialchars($user_data['course']); ?></p>
-                        <p>Year Level: <?php echo htmlspecialchars($user_data['year_level']); ?></p>
-                        <p>Email: <?php echo htmlspecialchars($user_data['email']); ?></p>
-                        <p>Sessions Remaining: <?php echo $user_data['sessions']; ?></p>
+                        <div class="profile-picture-wrapper">
+                            <img src="../uploads/<?php echo $profile_picture; ?>" alt="Profile Picture" class="profile-picture-main">
+                        </div>
+                        <p><strong>Name:</strong> <?php echo htmlspecialchars($user_data['first_name'] . ' ' . $user_data['last_name']); ?></p>
+                        <p><strong>Student ID:</strong> <?php echo htmlspecialchars($user_data['id_number']); ?></p>
+                        <p><strong>Course:</strong> <?php echo htmlspecialchars($user_data['course']); ?></p>
+                        <p><strong>Year Level:</strong> <?php echo htmlspecialchars($user_data['year_level']); ?></p>
+                        <p><strong>Email:</strong> <?php echo htmlspecialchars($user_data['email']); ?></p>
+                        <p><strong>Sessions Remaining:</strong> <?php echo $user_data['sessions']; ?></p>
                         <a href="javascript:void(0);" class="link-1" onclick="openEditProfileModal()">Edit Profile</a>
-                    </div>
-                </div>
+                    </section>
+                </aside>
 
                 <!-- Center Column - Announcements -->
-                <div class="announcement-column">
+                <main class="announcement-column">
                     <h2>Announcements</h2>
                     <div id="announcementList" class="announcement-list">
-                        <!-- Announcements will be loaded here -->
+                        <?php
+                        if (!empty($announcements)) {
+                            foreach ($announcements as $announcement) {
+                                echo '<div class="announcement-item">';
+                                echo '<h3>' . htmlspecialchars($announcement['title']) . '</h3>';
+                                echo '<p>' . nl2br(htmlspecialchars($announcement['message'])) . '</p>';
+                                echo '<span class="announcement-date">' . date("F j, Y", strtotime($announcement['date'])) . '</span>';
+                                echo '</div>';
+                            }
+                        } else {
+                            echo '<p class="no-announcements">No announcements available at the moment.</p>';
+                        }
+                        ?>
                     </div>
-                </div>
+                </main>
 
                 <!-- Right Column - Rules -->
-                <div class="rules-column">
-                    <h2>Rules</h2>
-                    <div id="rulesContent">
+                <aside class="rules-column">
+                    <section id="rulesContent">
+                        <h2>Rules</h2>
                         <h3>Laboratory Rules and Regulations</h3>
-                        <p>To avoid embarrassment and maintain camaraderie with your friends and superiors at our laboratories, please observe the following:</p>
                         <ol>
-                            <li>Maintain silence, proper decorum, and discipline inside the laboratory. Mobile phones, walkmans and other personal pieces of equipment must be switched off.</li>
-                            <li>Games are not allowed inside the lab. This includes computer-related games, card games and other games that may disturb the operation of the lab.</li>
-                            <li>Surfing the Internet is allowed only with the permission of the instructor. Downloading and installing of software are strictly prohibited.</li>
-                            <li>Getting access to other websites not related to the course (especially pornographic and illicit sites) is strictly prohibited.</li>
-                            <li>Deleting computer files and changing the set-up of the computer is a major offense.</li>
-                            <li>Observe computer time usage carefully. A fifteen-minute allowance is given for each use. Otherwise, the unit will be given to those who wish to "sit-in".</li>
-                            <li>Observe proper decorum while inside the laboratory.
+                            <li>Maintain silence and discipline. Switch off personal devices.</li>
+                            <li>No games allowed.</li>
+                            <li>Internet use only with permission. No downloads/installations.</li>
+                            <li>No access to unrelated or inappropriate sites.</li>
+                            <li>Altering system settings or deleting files is prohibited.</li>
+                            <li>Fifteen-minute grace period per use; then seat is forfeited.</li>
+                            <li>
+                                Proper decorum:
                                 <ul>
-                                    <li>Do not get inside the lab unless the instructor is present.</li>
-                                    <li>All bags, knapsacks, and the likes must be deposited at the counter.</li>
-                                    <li>Follow the seating arrangement of your instructor.</li>
-                                    <li>At the end of class, all software programs must be closed.</li>
-                                    <li>Return all chairs to their proper places after using.</li>
+                                    <li>Enter only with instructor present.</li>
+                                    <li>Store bags at the counter.</li>
+                                    <li>Follow seating assignments.</li>
+                                    <li>Close all software and return chairs after use.</li>
                                 </ul>
                             </li>
-                            <li>Chewing gum, eating, drinking, smoking, and other forms of vandalism are prohibited inside the lab.</li>
-                            <li>Anyone causing a continual disturbance will be asked to leave the lab. Acts or gestures offensive to the members of the community, including public display of physical intimacy, are not tolerated.</li>
-                            <li>Persons exhibiting hostile or threatening behavior such as yelling, swearing, or disregarding requests made by lab personnel will be asked to leave the lab.</li>
-                            <li>For serious offenses, the lab personnel may call the Civil Security Office (CSU) for assistance.</li>
-                            <li>Any technical problem or difficulty must be addressed to the laboratory supervisor, student assistant, or instructor immediately.</li>
+                            <li>No eating, drinking, gum, smoking, or vandalism.</li>
+                            <li>Disturbances and offensive acts will not be tolerated.</li>
+                            <li>Hostile behavior will lead to removal or CSU involvement.</li>
+                            <li>Report issues to lab staff immediately.</li>
                         </ol>
+
                         <h3>DISCIPLINARY ACTION</h3>
-                        <p>First Offense - The Head or the Dean or OIC recommends to the Guidance Center for a suspension from classes for each offender.</p>
-                        <p>Second and Subsequent Offenses - A recommendation for a heavier sanction will be endorsed to the Guidance Center.</p>
-                    </div>
-                </div>
+                        <p><strong>First Offense:</strong> May lead to class suspension via Guidance Center.</p>
+                        <p><strong>Further Offenses:</strong> Harsher sanctions to follow.</p>
+                    </section>
+                </aside>
             </div>
         </div>
 
@@ -611,36 +625,47 @@ $lab_rooms = ['524', '526', '528', '530', '542', 'Mac Lab'];
     </div>
 
     <!-- Edit Profile Modal -->
-    <div id="editProfileModal" class="modal-container" style="display: none;">
-        <div class="modal">
-            <h2>Edit Profile</h2>
-            <form id="editProfileForm" method="post">
-                <div class="form-group">
-                    <label for="first_name">First Name</label>
-                    <input type="text" id="first_name" name="first_name" class="form-control" value="<?php echo htmlspecialchars($user_data['first_name']); ?>">
+    <div id="editProfileModal" class="modal-container" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 1000; overflow-y: auto;">
+        <div class="modal" style="background: var(--global-background); padding: 2rem; border-radius: 1rem; width: 90%; max-width: 600px; margin: 2rem auto; display: flex; flex-direction: column; align-items: center;">
+            <h2 style="color: var(--primary); margin-bottom: 1.5rem;">Edit Profile</h2>
+            
+            <div class="profile-picture-container" style="position: relative; width: 150px; height: 150px; margin: 0 auto 2rem; cursor: pointer;" onclick="document.getElementById('profilePictureInput').click()">
+                <img src="../uploads/<?php echo $profile_picture; ?>" alt="Profile Picture" class="profile-picture" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">
+                <div class="change-photo-btn" style="position: absolute; bottom: 0; right: 0; background: var(--primary); border: none; color: white; padding: 0.5rem; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-camera"></i>
                 </div>
-                <div class="form-group">
-                    <label for="last_name">Last Name</label>
-                    <input type="text" id="last_name" name="last_name" class="form-control" value="<?php echo htmlspecialchars($user_data['last_name']); ?>">
+            </div>
+            <input type="file" id="profilePictureInput" name="profile_picture" accept="image/*" style="display: none;">
+
+            <form id="editProfileForm" method="post" style="width: 100%;">
+                <div class="form-group" style="margin-bottom: 1.5rem; width: 100%;">
+                    <label for="first_name" style="display: block; margin-bottom: 0.5rem; color: var(--light);">First Name</label>
+                    <input type="text" id="first_name" name="first_name" class="form-control" value="<?php echo htmlspecialchars($user_data['first_name']); ?>" style="width: 100%; padding: 0.8rem; background: rgba(0,0,0,0.2); border: 1px solid var(--border-color); border-radius: 0.5rem; color: var(--light);">
                 </div>
-                <div class="form-group">
-                    <label for="middle_name">Middle Name</label>
-                    <input type="text" id="middle_name" name="middle_name" class="form-control" value="<?php echo htmlspecialchars($user_data['middle_name']); ?>">
+                <div class="form-group" style="margin-bottom: 1.5rem; width: 100%;">
+                    <label for="last_name" style="display: block; margin-bottom: 0.5rem; color: var(--light);">Last Name</label>
+                    <input type="text" id="last_name" name="last_name" class="form-control" value="<?php echo htmlspecialchars($user_data['last_name']); ?>" style="width: 100%; padding: 0.8rem; background: rgba(0,0,0,0.2); border: 1px solid var(--border-color); border-radius: 0.5rem; color: var(--light);">
                 </div>
-                <div class="form-group">
-                    <label for="course">Course</label>
-                    <input type="text" id="course" name="course" class="form-control" value="<?php echo htmlspecialchars($user_data['course']); ?>">
+                <div class="form-group" style="margin-bottom: 1.5rem; width: 100%;">
+                    <label for="middle_name" style="display: block; margin-bottom: 0.5rem; color: var(--light);">Middle Name</label>
+                    <input type="text" id="middle_name" name="middle_name" class="form-control" value="<?php echo htmlspecialchars($user_data['middle_name']); ?>" style="width: 100%; padding: 0.8rem; background: rgba(0,0,0,0.2); border: 1px solid var(--border-color); border-radius: 0.5rem; color: var(--light);">
                 </div>
-                <div class="form-group">
-                    <label for="year_level">Year Level</label>
-                    <input type="text" id="year_level" name="year_level" class="form-control" value="<?php echo htmlspecialchars($user_data['year_level']); ?>">
+                <div class="form-group" style="margin-bottom: 1.5rem; width: 100%;">
+                    <label for="course" style="display: block; margin-bottom: 0.5rem; color: var(--light);">Course</label>
+                    <input type="text" id="course" name="course" class="form-control" value="<?php echo htmlspecialchars($user_data['course']); ?>" style="width: 100%; padding: 0.8rem; background: rgba(0,0,0,0.2); border: 1px solid var(--border-color); border-radius: 0.5rem; color: var(--light);">
                 </div>
-                <div class="form-group">
-                    <label for="email">Email</label>
-                    <input type="email" id="email" name="email" class="form-control" value="<?php echo htmlspecialchars($user_data['email']); ?>">
+                <div class="form-group" style="margin-bottom: 1.5rem; width: 100%;">
+                    <label for="year_level" style="display: block; margin-bottom: 0.5rem; color: var(--light);">Year Level</label>
+                    <input type="text" id="year_level" name="year_level" class="form-control" value="<?php echo htmlspecialchars($user_data['year_level']); ?>" style="width: 100%; padding: 0.8rem; background: rgba(0,0,0,0.2); border: 1px solid var(--border-color); border-radius: 0.5rem; color: var(--light);">
                 </div>
-                <button type="submit" name="save_changes" class="nav-btn">Save Changes</button>
-                <button type="button" class="nav-btn" onclick="closeEditProfileModal()">Cancel</button>
+                <div class="form-group" style="margin-bottom: 1.5rem; width: 100%;">
+                    <label for="email" style="display: block; margin-bottom: 0.5rem; color: var(--light);">Email</label>
+                    <input type="email" id="email" name="email" class="form-control" value="<?php echo htmlspecialchars($user_data['email']); ?>" style="width: 100%; padding: 0.8rem; background: rgba(0,0,0,0.2); border: 1px solid var(--border-color); border-radius: 0.5rem; color: var(--light);">
+                </div>
+                <div style="display: flex; gap: 1rem; width: 100%;">
+                    <button type="submit" name="save_changes" class="nav-btn" style="flex: 1;">Save Changes</button>
+                    <button type="button" class="nav-btn" onclick="closeEditProfileModal()" style="flex: 1;">Cancel</button>
+                </div>
             </form>
         </div>
     </div>
