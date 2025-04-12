@@ -353,7 +353,10 @@ $profile_picture = !empty($user_data['profile_picture']) ? $user_data['profile_p
 <body>
     <header class="top-bar">
         <div class="button-container">
+            <button class="modal__btn" onclick="showHome()">Home</button>
             <button class="modal__btn" onclick="openModal('editProfileModal')">Edit Profile</button>
+            <button class="modal__btn" onclick="loadContent('historyContent')">History</button>
+            <button class="modal__btn" onclick="loadContent('reservationContent')">Reservation</button>
             <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post" style="display: inline;">
                 <button type="submit" name="logout" class="modal__btn">Logout</button>
             </form>
@@ -387,21 +390,7 @@ $profile_picture = !empty($user_data['profile_picture']) ? $user_data['profile_p
             <div class="section-header">
                 <h2>ANNOUNCEMENT</h2>
             </div>
-            <div class="profile-section">
-                <button onclick="openModal('editProfileModal')">Edit Profile</button>
-                <button onclick="window.location.href='history.php'">History</button>
-            </div>
-
-            <div class="announcement-section">
-                <h3>Announcements</h3>
-                <div class="announcement-form">
-                    <form id="announcementForm" onsubmit="submitAnnouncement(event)">
-                        <textarea id="announcementText" placeholder="Type your announcement here..." required></textarea>
-                        <button type="submit">Post Announcement</button>
-                    </form>
-                </div>
-                <div id="announcementList" class="announcement-list"></div>
-            </div>
+            <div id="announcementList" class="announcement-list"></div>
         </div>
 
         <div class="section">
@@ -666,32 +655,106 @@ $profile_picture = !empty($user_data['profile_picture']) ? $user_data['profile_p
         </div>
     </div>
     <script>
-        function loadAnnouncements() {
-            var announcementList = document.getElementById('announcementList');
-            announcementList.innerHTML = ''; // Clear existing announcements
+        function loadContent(contentId) {
+            // Hide main content
+            document.querySelector('.content-container').style.display = 'none';
+            
+            // Hide all other content sections
+            document.getElementById('historyContent').style.display = 'none';
+            document.getElementById('reservationContent').style.display = 'none';
+            
+            // Show the selected content
+            const selectedContent = document.getElementById(contentId);
+            if (selectedContent) {
+                selectedContent.style.display = 'block';
+                
+                // Load data if needed
+                if (contentId === 'historyContent') {
+                    loadHistoryData();
+                }
+                else if (contentId === 'reservationContent') {
+                    // Initialize reservation content if needed
+                }
+            }
+        }
 
-            fetch('../ADMIN/get_announcements.php')
-            .then(response => response.json())
-            .then(data => {
-                // Limit to 5 announcements
-                data.slice(0, 5).forEach(announcement => {
-                    announcementList.innerHTML += `
-                        <div class="announcement-item">
-                            <p>${announcement.admin_name} / ${announcement.date_posted}</p>
-                            <p>${announcement.announcement_text.replace('undefined', 'CSS ADMIN')}</p>
+        function loadHistoryData() {
+            const historyContent = document.getElementById('historyContent');
+            fetch('get_history_data.php')
+                .then(response => response.text())
+                .then(html => {
+                    historyContent.innerHTML = html;
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    historyContent.innerHTML = '<p>Error loading history data</p>';
+                });
+        }
+
+        function loadAnnouncements() {
+            const announcementList = document.getElementById('announcementList');
+            announcementList.innerHTML = '<div class="loading">Loading announcements...</div>';
+
+            fetch('hold/get_announcements.php')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    announcementList.innerHTML = '';
+                    
+                    if (data.error) {
+                        announcementList.innerHTML = `<div class="error">${data.error}</div>`;
+                        return;
+                    }
+
+                    if (!data.length) {
+                        announcementList.innerHTML = '<div class="no-announcements">No announcements available</div>';
+                        return;
+                    }
+
+                    // Limit to 5 most recent announcements
+                    data.slice(0, 5).forEach(announcement => {
+                        const announcementDate = new Date(announcement.date_posted);
+                        const formattedDate = announcementDate.toLocaleDateString('en-US', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric'
+                        });
+
+                        const announcementDiv = document.createElement('div');
+                        announcementDiv.className = 'announcement-item';
+                        announcementDiv.innerHTML = `
+                            <h4>${announcement.title || 'Announcement'}</h4>
+                            <p class="announcement-meta">Posted on: ${formattedDate}</p>
+                            <div class="announcement-content">${announcement.content || announcement.announcement_text || ''}</div>
+                        `;
+                        announcementList.appendChild(announcementDiv);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error loading announcements:', error);
+                    announcementList.innerHTML = `
+                        <div class="error">
+                            Failed to load announcements. Please try again later.
+                            <button onclick="loadAnnouncements()">Retry</button>
                         </div>
                     `;
                 });
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                announcementList.innerHTML = '<p>Error loading announcements.</p>';
-            });
         }
 
         function showHome() {
-            document.getElementById('homeContent').style.display = 'block';
-            document.getElementById('editProfileModal').style.display = 'none';
+            // Hide all content sections
+            document.getElementById('historyContent').style.display = 'none';
+            document.getElementById('reservationContent').style.display = 'none';
+            
+            // Show announcements section (main content)
+            document.querySelector('.content-container').style.display = 'grid';
+            
+            // Reload announcements
+            loadAnnouncements();
         }
 
         function openModal(modalId) {
@@ -787,13 +850,8 @@ $profile_picture = !empty($user_data['profile_picture']) ? $user_data['profile_p
             }
         });
 
-        // Load announcements on page load
-        loadAnnouncements();
-
-        // Add event listener for history button
-        document.getElementById('historyBtn').addEventListener('click', function() {
-            loadContent('historyContent');
-        });
+        // Initialize page - show announcements as home content
+        showHome();
 
         // View lab schedule
         function viewLabSchedule(room) {
