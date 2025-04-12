@@ -142,6 +142,47 @@ $lab_rooms = ['524', '526', '528', '530', '542', 'Mac Lab'];
             margin-right: auto;
         }
 
+        .three-column-layout {
+            display: flex;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .profile-column {
+            flex: 0 0 30%;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 1rem;
+            padding: 2rem;
+        }
+
+        .announcement-column {
+            flex: 0 0 40%;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 1rem;
+            padding: 2rem;
+        }
+
+        .rules-column {
+            flex: 0 0 30%;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 1rem;
+            padding: 2rem;
+            overflow-y: auto;
+            max-height: 80vh;
+        }
+
+        @media (max-width: 1200px) {
+            .three-column-layout {
+                flex-direction: column;
+            }
+            
+            .profile-column,
+            .announcement-column,
+            .rules-column {
+                flex: 1 1 100%;
+            }
+        }
+
         .dynamic-content {
             display: none;
             width: 100%;
@@ -153,14 +194,6 @@ $lab_rooms = ['524', '526', '528', '530', '542', 'Mac Lab'];
 
         .dynamic-content.active {
             display: block;
-        }
-
-        /* Home Content Styles */
-        .section {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 1rem;
-            padding: 2rem;
-            margin-bottom: 2rem;
         }
 
         .profile-info {
@@ -188,15 +221,11 @@ $lab_rooms = ['524', '526', '528', '530', '542', 'Mac Lab'];
             margin-bottom: 1rem;
         }
 
-        .rules-list {
-            margin-top: 1rem;
-        }
-
-        .rules-list ol {
+        #rulesContent ol {
             padding-left: 2rem;
         }
 
-        .rules-list li {
+        #rulesContent li {
             margin-bottom: 0.5rem;
         }
 
@@ -384,37 +413,67 @@ $lab_rooms = ['524', '526', '528', '530', '542', 'Mac Lab'];
     <div class="content-container">
         <!-- Home Content -->
         <div id="homeContent" class="dynamic-content active">
-            <div class="section">
-                <div class="profile-info">
-                    <h2>My Profile</h2>
-                    <p>Name: <?php echo htmlspecialchars($user_data['first_name'] . ' ' . $user_data['last_name']); ?></p>
-                    <p>Student ID: <?php echo htmlspecialchars($user_data['id_number']); ?></p>
-                    <p>Course: <?php echo htmlspecialchars($user_data['course']); ?></p>
-                    <p>Year Level: <?php echo htmlspecialchars($user_data['year_level']); ?></p>
-                    <p>Email: <?php echo htmlspecialchars($user_data['email']); ?></p>
-                    <p>Sessions Remaining: <?php echo $user_data['sessions']; ?></p>
-                    <a href="#editProfileModal" class="link-1">Edit Profile</a>
+            <div class="three-column-layout">
+                <!-- Left Column - Profile -->
+                <div class="profile-column">
+                    <div class="profile-info">
+                        <div class="profile-picture-container" onclick="document.getElementById('imageInput').click()">
+                            <img src="../uploads/<?php echo $profile_picture; ?>" alt="Profile Picture" class="profile-picture">
+                            <div class="profile-picture-overlay">
+                                <span>Change Photo</span>
+                            </div>
+                        </div>
+                        <h2>My Profile</h2>
+                        <p>Name: <?php echo htmlspecialchars($user_data['first_name'] . ' ' . $user_data['last_name']); ?></p>
+                        <p>Student ID: <?php echo htmlspecialchars($user_data['id_number']); ?></p>
+                        <p>Course: <?php echo htmlspecialchars($user_data['course']); ?></p>
+                        <p>Year Level: <?php echo htmlspecialchars($user_data['year_level']); ?></p>
+                        <p>Email: <?php echo htmlspecialchars($user_data['email']); ?></p>
+                        <p>Sessions Remaining: <?php echo $user_data['sessions']; ?></p>
+                        <a href="#editProfileModal" class="link-1">Edit Profile</a>
+                    </div>
                 </div>
-            </div>
-            <div class="section">
-                <h2>Announcements</h2>
-                <div id="announcementList" class="announcement-list">
-                    <!-- Announcements will be loaded here -->
+
+                <!-- Center Column - Announcements -->
+                <div class="announcement-column">
+                    <h2>Announcements</h2>
+                    <div id="announcementList" class="announcement-list">
+                        <!-- Announcements will be loaded here -->
+                    </div>
                 </div>
-            </div>
-            <div class="section">
-                <h2>Rules</h2>
-                <div class="rules-list">
-                    <ol>
-                        <li>Students must present their ID upon entry.</li>
-                        <li>Food and drinks are not allowed inside the laboratory.</li>
-                        <li>Keep noise to a minimum.</li>
-                        <li>Do not install unauthorized software.</li>
-                        <li>Report any technical issues to the laboratory staff.</li>
-                        <li>Clean your workspace before leaving.</li>
-                        <li>Save your work before leaving.</li>
-                        <li>Follow the laboratory schedule.</li>
-                    </ol>
+
+                <!-- Right Column - Rules -->
+                <div class="rules-column">
+                    <h2>Rules</h2>
+                    <div id="rulesContent">
+                        <h3>Laboratory Rules and Regulations</h3>
+                        <p>To avoid embarrassment and maintain camaraderie with your friends and superiors at our laboratories, please observe the following:</p>
+                        <ol>
+                            <li>Maintain silence, proper decorum, and discipline inside the laboratory. Mobile phones, walkmans and other personal pieces of equipment must be switched off.</li>
+                            <li>Games are not allowed inside the lab. This includes computer-related games, card games and other games that may disturb the operation of the lab.</li>
+                            <li>Surfing the Internet is allowed only with the permission of the instructor. Downloading and installing of software are strictly prohibited.</li>
+                            <li>Getting access to other websites not related to the course (especially pornographic and illicit sites) is strictly prohibited.</li>
+                            <li>Deleting computer files and changing the set-up of the computer is a major offense.</li>
+                            <li>Observe computer time usage carefully. A fifteen-minute allowance is given for each use. Otherwise, the unit will be given to those who wish to "sit-in".</li>
+                            <li>Observe proper decorum while inside the laboratory.
+                                <ul>
+                                    <li>Do not get inside the lab unless the instructor is present.</li>
+                                    <li>All bags, knapsacks, and the likes must be deposited at the counter.</li>
+                                    <li>Follow the seating arrangement of your instructor.</li>
+                                    <li>At the end of class, all software programs must be closed.</li>
+                                    <li>Return all chairs to their proper places after using.</li>
+                                </ul>
+                            </li>
+                            <li>Chewing gum, eating, drinking, smoking, and other forms of vandalism are prohibited inside the lab.</li>
+                            <li>Anyone causing a continual disturbance will be asked to leave the lab. Acts or gestures offensive to the members of the community, including public display of physical intimacy, are not tolerated.</li>
+                            <li>Persons exhibiting hostile or threatening behavior such as yelling, swearing, or disregarding requests made by lab personnel will be asked to leave the lab.</li>
+                            <li>For serious offenses, the lab personnel may call the Civil Security Office (CSU) for assistance.</li>
+                            <li>Any technical problem or difficulty must be addressed to the laboratory supervisor, student assistant, or instructor immediately.</li>
+                        </ol>
+                        <h3>DISCIPLINARY ACTION</h3>
+                        <p>First Offense - The Head or the Dean or OIC recommends to the Guidance Center for a suspension from classes for each offender.</p>
+                        <p>Second and Subsequent Offenses - A recommendation for a heavier sanction will be endorsed to the Guidance Center.</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -587,19 +646,19 @@ $lab_rooms = ['524', '526', '528', '530', '542', 'Mac Lab'];
 
     <script>
         function loadContent(contentId) {
-            // Hide all content sections first
-            const contentSections = ['homeContent', 'historyContent', 'reservationContent'];
-            contentSections.forEach(section => {
-                const element = document.getElementById(section);
-                if (element) {
-                    element.style.display = 'none';
-                }
-            });
-
+            // Hide the home content (three-column layout)
+            document.getElementById('homeContent').style.display = 'none';
+            
+            // Hide other content sections
+            document.getElementById('historyContent').style.display = 'none';
+            document.getElementById('reservationContent').style.display = 'none';
+            
             // Show the selected content
             const selectedContent = document.getElementById(contentId);
             if (selectedContent) {
                 selectedContent.style.display = 'block';
+                
+                // Load data if needed
                 if (contentId === 'historyContent') {
                     loadHistoryData();
                 }
@@ -655,8 +714,15 @@ $lab_rooms = ['524', '526', '528', '530', '542', 'Mac Lab'];
         }
 
         function showHome() {
+            // Hide other content sections
+            document.getElementById('historyContent').style.display = 'none';
+            document.getElementById('reservationContent').style.display = 'none';
+            
+            // Show the three-column layout (profile, announcements, rules)
             document.getElementById('homeContent').style.display = 'block';
-            document.getElementById('editProfileModal').style.display = 'none';
+            
+            // Reload announcements
+            loadAnnouncements();
         }
 
         function openModal() {
