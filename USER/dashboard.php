@@ -95,6 +95,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_FILES['profile_picture'])) {
     exit();
 }
 
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['make_reservation'])) {
+    $lab = filter_input(INPUT_POST, 'lab', FILTER_SANITIZE_STRING);
+    $date = filter_input(INPUT_POST, 'date', FILTER_SANITIZE_STRING);
+    $start_time = filter_input(INPUT_POST, 'start_time', FILTER_SANITIZE_STRING);
+    $end_time = filter_input(INPUT_POST, 'end_time', FILTER_SANITIZE_STRING);
+    $purpose = filter_input(INPUT_POST, 'purpose', FILTER_SANITIZE_SPECIAL_CHARS);
+
+    $user_id = $_SESSION['user_data']['id_number'];
+    $sql = "INSERT INTO reservations (user_id, lab, date, start_time, end_time, purpose, status) 
+            VALUES ('$user_id', '$lab', '$date', '$start_time', '$end_time', '$purpose', 'Pending')";
+
+    if (mysqli_query($conn, $sql)) {
+        echo "<script>alert('Reservation submitted successfully!');</script>";
+    } else {
+        echo "<script>alert('Error submitting reservation: " . mysqli_error($conn) . "');</script>";
+    }
+}
+
 $user_data = $_SESSION['user_data'];
 $profile_picture = !empty($user_data['profile_picture']) ? $user_data['profile_picture'] : 'default.png';
 
@@ -401,7 +419,6 @@ $lab_rooms = ['524', '526', '528', '530', '542', 'Mac Lab'];
     <header class="top-bar">
         <div class="button-container">
             <button class="nav-btn active" onclick="switchContent('homeContent', this)">Home</button>
-            <button class="nav-btn" onclick="switchContent('profileContent', this)">Profile</button>
             <button class="nav-btn" onclick="switchContent('reservationContent', this)">Reservation</button>
             <button class="nav-btn" onclick="switchContent('historyContent', this)">History</button>
             <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post" style="display: inline;">
@@ -417,12 +434,6 @@ $lab_rooms = ['524', '526', '528', '530', '542', 'Mac Lab'];
                 <!-- Left Column - Profile -->
                 <div class="profile-column">
                     <div class="profile-info">
-                        <div class="profile-picture-container" onclick="document.getElementById('imageInput').click()">
-                            <img src="../uploads/<?php echo $profile_picture; ?>" alt="Profile Picture" class="profile-picture">
-                            <div class="profile-picture-overlay">
-                                <span>Change Photo</span>
-                            </div>
-                        </div>
                         <h2>My Profile</h2>
                         <p>Name: <?php echo htmlspecialchars($user_data['first_name'] . ' ' . $user_data['last_name']); ?></p>
                         <p>Student ID: <?php echo htmlspecialchars($user_data['id_number']); ?></p>
@@ -430,7 +441,7 @@ $lab_rooms = ['524', '526', '528', '530', '542', 'Mac Lab'];
                         <p>Year Level: <?php echo htmlspecialchars($user_data['year_level']); ?></p>
                         <p>Email: <?php echo htmlspecialchars($user_data['email']); ?></p>
                         <p>Sessions Remaining: <?php echo $user_data['sessions']; ?></p>
-                        <a href="#editProfileModal" class="link-1">Edit Profile</a>
+                        <a href="javascript:void(0);" class="link-1" onclick="openEditProfileModal()">Edit Profile</a>
                     </div>
                 </div>
 
@@ -541,7 +552,8 @@ $lab_rooms = ['524', '526', '528', '530', '542', 'Mac Lab'];
                     <?php endforeach; ?>
                 </div>
                 
-                <form id="reservationForm" class="reservation-form" action="make_reservation.php" method="post">
+                <form id="reservationForm" class="reservation-form" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
+                    <input type="hidden" name="make_reservation" value="1">
                     <div class="form-row">
                         <div class="form-group">
                             <label for="labRoom">Lab Room</label>
@@ -599,19 +611,10 @@ $lab_rooms = ['524', '526', '528', '530', '542', 'Mac Lab'];
     </div>
 
     <!-- Edit Profile Modal -->
-    <div id="editProfileModal" class="modal-container">
+    <div id="editProfileModal" class="modal-container" style="display: none;">
         <div class="modal">
-            <h2 class="modal__title">Edit Profile</h2>
-            <a href="#" class="link-2"></a>
-            <form id="userInfoForm" class="modal__content">
-                <div class="profile-picture-container" onclick="document.getElementById('imageInput').click()">
-                    <img src="../uploads/<?php echo $profile_picture; ?>" alt="Profile Picture" class="profile-picture">
-                    <div class="profile-picture-overlay">
-                        <span>Change Photo</span>
-                    </div>
-                </div>
-                <input type="file" id="imageInput" name="profile_picture" accept="image/*" style="display: none;">
-                
+            <h2>Edit Profile</h2>
+            <form id="editProfileForm" method="post">
                 <div class="form-group">
                     <label for="first_name">First Name</label>
                     <input type="text" id="first_name" name="first_name" class="form-control" value="<?php echo htmlspecialchars($user_data['first_name']); ?>">
@@ -636,10 +639,8 @@ $lab_rooms = ['524', '526', '528', '530', '542', 'Mac Lab'];
                     <label for="email">Email</label>
                     <input type="email" id="email" name="email" class="form-control" value="<?php echo htmlspecialchars($user_data['email']); ?>">
                 </div>
-                <div class="modal__actions">
-                    <button type="submit" class="modal__btn">Save Changes</button>
-                    <a href="#" class="modal__btn">Cancel</a>
-                </div>
+                <button type="submit" name="save_changes" class="nav-btn">Save Changes</button>
+                <button type="button" class="nav-btn" onclick="closeEditProfileModal()">Cancel</button>
             </form>
         </div>
     </div>
@@ -725,11 +726,11 @@ $lab_rooms = ['524', '526', '528', '530', '542', 'Mac Lab'];
             loadAnnouncements();
         }
 
-        function openModal() {
+        function openEditProfileModal() {
             document.getElementById('editProfileModal').style.display = 'block';
         }
 
-        function closeModal() {
+        function closeEditProfileModal() {
             document.getElementById('editProfileModal').style.display = 'none';
         }
 
@@ -737,7 +738,7 @@ $lab_rooms = ['524', '526', '528', '530', '542', 'Mac Lab'];
         window.onclick = function(event) {
             const modal = document.getElementById('editProfileModal');
             if (event.target === modal) {
-                closeModal();
+                closeEditProfileModal();
             }
         }
 
