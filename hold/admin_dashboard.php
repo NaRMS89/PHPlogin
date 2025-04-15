@@ -287,6 +287,7 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['get_feedback'])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
     <link rel="stylesheet" href="../styles.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -1455,6 +1456,165 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['get_feedback'])) {
             transform: translateY(-2px);
             box-shadow: 0 0 15px rgba(40, 167, 69, 0.4);
         }
+
+        /* Feedback Button and Modal Styles */
+        .feedback-btn {
+            padding: 0.6rem 1.2rem;
+            border: 1px solid var(--primary);
+            border-radius: 100rem;
+            background: transparent;
+            color: var(--primary);
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .feedback-btn:hover {
+            background: var(--primary);
+            color: var(--light);
+            transform: translateY(-2px);
+            box-shadow: 0 0 15px var(--shadow-1);
+        }
+
+        .feedback-modal {
+            background: var(--background);
+            padding: 2.5rem;
+            border-radius: 0.8rem;
+            width: 90%;
+            max-width: 500px;
+            position: relative;
+            color: var(--light);
+        }
+
+        .feedback-content {
+            margin-top: 2rem;
+        }
+
+        .feedback-details {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 2rem;
+            border-radius: 0.8rem;
+            margin-top: 1rem;
+        }
+
+        .feedback-details p {
+            margin: 1rem 0;
+            line-height: 1.6;
+        }
+
+        .no-feedback {
+            text-align: center;
+            padding: 2rem;
+            color: var(--light);
+            opacity: 0.7;
+            font-style: italic;
+        }
+
+        /* Loading Animation */
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: var(--light);
+        }
+
+        .loading:after {
+            content: '.';
+            animation: dots 1.5s steps(5, end) infinite;
+        }
+
+        @keyframes dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60% { content: '...'; }
+            80%, 100% { content: ''; }
+        }
+
+        /* Button Styles */
+        .btn-primary,
+        .feedback-button,
+        .action-btn {
+            padding: 0.8rem 1.6rem;
+            border: 1px solid var(--primary);
+            border-radius: 100rem;
+            background: transparent;
+            color: var(--primary);
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            margin: 0.2rem;
+        }
+
+        .btn-sm {
+            padding: 0.6rem 1.2rem;
+            font-size: 1.1rem;
+        }
+
+        .btn-primary:hover,
+        .feedback-button:hover,
+        .action-btn:hover {
+            background: var(--primary);
+            color: var(--light);
+            transform: translateY(-2px);
+            box-shadow: 0 0 15px var(--shadow-1);
+        }
+
+        /* Specific Button Styles */
+        .manage-schedule-btn {
+            border-color: #4CAF50;
+            color: #4CAF50;
+        }
+
+        .manage-schedule-btn:hover {
+            background: #4CAF50;
+            color: var(--light);
+            box-shadow: 0 0 15px rgba(76, 175, 80, 0.4);
+        }
+
+        .add-points-btn {
+            border-color: #2196F3;
+            color: #2196F3;
+        }
+
+        .add-points-btn:hover {
+            background: #2196F3;
+            color: var(--light);
+            box-shadow: 0 0 15px rgba(33, 150, 243, 0.4);
+        }
+
+        .export-btn {
+            border-color: #9C27B0;
+            color: #9C27B0;
+        }
+
+        .export-btn:hover {
+            background: #9C27B0;
+            color: var(--light);
+            box-shadow: 0 0 15px rgba(156, 39, 176, 0.4);
+        }
+
+        /* Button Group Styles */
+        .button-group {
+            display: flex;
+            gap: 0.8rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        /* Icon Button Styles */
+        .btn-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .btn-icon i {
+            font-size: 1.4rem;
+        }
     </style>
 
 </head>
@@ -2201,17 +2361,70 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['get_feedback'])) {
 
         <!-- Feedback Modal -->
         <div id="feedbackModal" class="modal-container">
-            <div class="modal">
+            <div class="feedback-modal">
                 <span class="close" onclick="closeModal('feedbackModal')">&times;</span>
-                <h2 class="modal-title">Feedback Details</h2>
-                <div id="feedbackContent" class="feedback-content">
-                    <!-- Feedback content will be loaded here -->
-                </div>
-                <div class="button-group">
-                    <button class="modal-button secondary" onclick="closeModal('feedbackModal')">Close</button>
-                </div>
+                <h2>Student Feedback</h2>
+                <div id="feedbackContent"></div>
             </div>
         </div>
+
+        <script>
+            function showFeedback(studentId) {
+                const modal = document.getElementById('feedbackModal');
+                const content = document.getElementById('feedbackContent');
+                
+                modal.style.display = 'flex';
+                content.innerHTML = '<p class="loading">Loading feedback</p>';
+                
+                // Fetch feedback from sitin_reports
+                fetch(`get_sitin_feedback.php?id=${studentId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data && data.length > 0) {
+                            let feedbackHtml = '';
+                            data.forEach(feedback => {
+                                feedbackHtml += `
+                                    <div class="feedback-details">
+                                        <p><strong>Purpose:</strong> ${feedback.purpose}</p>
+                                        <p><strong>Lab:</strong> ${feedback.lab}</p>
+                                        <p><strong>Login Time:</strong> ${formatDateTime(feedback.login_time)}</p>
+                                        <p><strong>Logout Time:</strong> ${formatDateTime(feedback.logout_time)}</p>
+                                        <p><strong>Duration:</strong> ${feedback.duration || 'N/A'}</p>
+                                        <p><strong>Feedback:</strong> ${feedback.feedback || 'No feedback provided'}</p>
+                                        <p><strong>Date:</strong> ${formatDateTime(feedback.feedback_date)}</p>
+                                    </div>
+                                `;
+                            });
+                            content.innerHTML = feedbackHtml;
+                        } else {
+                            content.innerHTML = '<p class="no-feedback">No feedback available for this student</p>';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        content.innerHTML = '<p class="no-feedback">Error loading feedback. Please try again.</p>';
+                    });
+            }
+
+            function formatDateTime(dateString) {
+                if (!dateString) return 'N/A';
+                const date = new Date(dateString);
+                return date.toLocaleString('en-US', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: false
+                });
+            }
+
+            // Update the feedback button in the table
+            function createFeedbackButton(studentId) {
+                return `<button onclick="showFeedback('${studentId}')" class="feedback-btn">View Feedback</button>`;
+            }
+        </script>
     </main>
 
     <div id="studentInfoModal" class="modal-container">
@@ -3837,6 +4050,35 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['get_feedback'])) {
         function closeFeedbackModal() {
             closeModal('feedbackModal');
         }
+
+        function createActionButtons(studentId, studentName) {
+            return `
+                <div class="button-group">
+                    <button class="feedback-button btn-sm" onclick="showFeedbackModal('${studentId}')">
+                        View Feedback
+                    </button>
+                    <button class="add-points-btn btn-sm" onclick="addPoints('${studentId}', '${studentName}')">
+                        Add Points
+                    </button>
+                </div>
+            `;
+        }
+
+        function createLabControls(labId) {
+            return `
+                <button class="manage-schedule-btn btn-sm" onclick="openScheduleModal('${labId}')">
+                    Manage Schedule
+                </button>
+            `;
+        }
+
+        // Export button in the header
+        document.getElementById('exportButton').innerHTML = `
+            <button class="export-btn btn-icon" onclick="showExportModal()">
+                <i class="fas fa-download"></i>
+                Export Data
+            </button>
+        `;
     </script>
 
     <script>
