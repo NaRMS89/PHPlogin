@@ -126,19 +126,21 @@ while ($row = mysqli_fetch_assoc($purposes_result)) {
                             <table id="sitinTable" class="table table-striped table-bordered">
                                 <thead>
                                     <tr>
-                                        <th onclick="sortTable('student_id', 'number')" style="cursor: pointer;" data-sort="desc">Student ID ↓</th>
+                                        <th onclick="sortTable('id_number', 'number')" style="cursor: pointer;">ID Number ↕</th>
                                         <th>Purpose</th>
-                                        <th onclick="sortTable('lab', 'number')" style="cursor: pointer;" data-sort="desc">Lab ↓</th>
-                                        <th onclick="sortTable('login_time', 'date')" style="cursor: pointer;" data-sort="desc">Login Time ↓</th>
-                                        <th onclick="sortTable('logout_time', 'date')" style="cursor: pointer;" data-sort="desc">Logout Time ↓</th>
-                                        <th onclick="sortTable('duration', 'number')" style="cursor: pointer;" data-sort="desc">Duration ↓</th>
+                                        <th>Lab</th>
+                                        <th onclick="sortTable('login_time', 'date')" style="cursor: pointer;">Login Time ↕</th>
+                                        <th onclick="sortTable('logout_time', 'date')" style="cursor: pointer;">Logout Time ↕</th>
+                                        <th onclick="sortTable('duration', 'number')" style="cursor: pointer;">Duration ↕</th>
+                                        <th>Status</th>
                                         <th>Feedback</th>
+                                        <th onclick="sortTable('feedback_date', 'date')" style="cursor: pointer;">Feedback Date ↕</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <?php
                                     // Fetch sit-in data with feedback
-                                    $query = "SELECT sr.*, f.feedback_text 
+                                    $query = "SELECT sr.*, f.feedback_text, f.feedback_date 
                                              FROM sitin_report sr 
                                              LEFT JOIN feedback f ON sr.id = f.sitin_id 
                                              ORDER BY sr.logout_time DESC";
@@ -146,12 +148,13 @@ while ($row = mysqli_fetch_assoc($purposes_result)) {
                                     
                                     while ($row = mysqli_fetch_assoc($result)) {
                                         echo "<tr>";
-                                        echo "<td>" . htmlspecialchars($row['student_id']) . "</td>";
+                                        echo "<td>" . htmlspecialchars($row['id_number']) . "</td>";
                                         echo "<td>" . htmlspecialchars($row['purpose']) . "</td>";
                                         echo "<td>" . htmlspecialchars($row['lab']) . "</td>";
                                         echo "<td>" . htmlspecialchars($row['login_time']) . "</td>";
                                         echo "<td>" . htmlspecialchars($row['logout_time']) . "</td>";
                                         echo "<td>" . htmlspecialchars($row['duration']) . "</td>";
+                                        echo "<td>" . htmlspecialchars($row['status']) . "</td>";
                                         echo "<td>";
                                         if (!empty($row['feedback_text'])) {
                                             echo "<button class='btn btn-info' onclick='viewFeedback(" . $row['id'] . ")'>View Feedback</button>";
@@ -159,6 +162,7 @@ while ($row = mysqli_fetch_assoc($purposes_result)) {
                                             echo "No Feedback";
                                         }
                                         echo "</td>";
+                                        echo "<td>" . htmlspecialchars($row['feedback_date']) . "</td>";
                                         echo "</tr>";
                                     }
                                     ?>

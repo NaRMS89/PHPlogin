@@ -1534,7 +1534,7 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['get_feedback'])) {
                         <button onclick="showExportModal()" class="btn btn-primary">Export</button>
                     </div>
                 </div>
-                
+
                 <!-- Export Filter Modal -->
                 <div id="exportFilterModal" class="modal-container">
                     <div class="modal">
@@ -1603,7 +1603,7 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['get_feedback'])) {
                 <div class="search-control" style="margin: 20px 0;">
                     <input type="text" id="searchInput" placeholder="Search by ID, Name, Purpose, or Lab..." style="width: 100%; padding: 10px;">
                 </div>
-
+                
                 <div class="data-controls">
                     <div class="entries-display">
                         Displaying
@@ -1622,13 +1622,15 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['get_feedback'])) {
                     <table id="sitInDataTable" class="data-table">
                         <thead>
                             <tr>
-                                <th onclick="sortTable(0)">Student ID ↕</th>
-                                <th onclick="sortTable(1)">Purpose ↕</th>
-                                <th onclick="sortTable(2)">Lab ↕</th>
-                                <th onclick="sortTable(3)">Login Time ↕</th>
-                                <th onclick="sortTable(4)">Logout Time ↕</th>
-                                <th onclick="sortTable(5)">Duration ↕</th>
-                                <th>Feedback</th>
+                                <th onclick="sortTable(0, 'number')">ID Number ↕</th>
+                                <th onclick="sortTable(1, 'text')">Purpose ↕</th>
+                                <th onclick="sortTable(2, 'text')">Lab ↕</th>
+                                <th onclick="sortTable(3, 'date')">Login Time ↕</th>
+                                <th onclick="sortTable(4, 'date')">Logout Time ↕</th>
+                                <th onclick="sortTable(5, 'number')">Duration ↕</th>
+                                <th onclick="sortTable(6, 'text')">Status ↕</th>
+                                <th onclick="showFeedbackModal(this)">Feedback</th>
+                                <th onclick="sortTable(8, 'date')">Feedback Date ↕</th>
                             </tr>
                         </thead>
                         <tbody id="sitInDataBody"></tbody>
@@ -1636,12 +1638,36 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['get_feedback'])) {
                 </div>
 
                 <div class="pagination" style="text-align: center; margin-top: 20px;">
-                    <button onclick="goToFirstPage()"><<</button>
-                    <button onclick="goToPreviousPage()"><</button>
+                    <button onclick="goToFirstPage()" id="firstPageBtn"><<</button>
+                    <button onclick="goToPreviousPage()" id="prevPageBtn"><</button>
                     <span id="currentPage">1</span>
-                    <button onclick="goToNextPage()">></button>
-                    <button onclick="goToLastPage()">>></button>
+                    <button onclick="goToNextPage()" id="nextPageBtn">></button>
+                    <button onclick="goToLastPage()" id="lastPageBtn">>></button>
                 </div>
+
+                <div id="feedbackModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); justify-content: center; align-items: center;">
+                    <div style="background-color: white; padding: 20px; border-radius: 5px; width: 80%; max-width: 600px;">
+                        <h3>Feedback</h3>
+                        <p id="modalFeedbackText">No feedback available.</p>
+                        <button onclick="closeFeedbackModal()">Close</button>
+                    </div>
+                </div>
+
+                <style>
+                    .feedback-button {
+                        background: none;
+                        border: none;
+                        color: blue;
+                        text-decoration: underline;
+                        cursor: pointer;
+                        padding: 0;
+                        font-size: inherit;
+                    }
+                    .feedback-button:hover {
+                        color: darkblue;
+                    }
+                </style>
+                
             </div>
         </div>
     </main>
@@ -2647,11 +2673,11 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['get_feedback'])) {
                     <td>${record.login_time}</td>
                     <td>${record.logout_time}</td>
                     <td>${calculateDuration(record.login_time, record.logout_time)}</td>
+                    <td>${record.status}</td>
                     <td>
-                        ${record.feedback ? 
-                            `<button class="feedback-btn" onclick="viewFeedback('${record.id_number}', '${record.login_time}')">View Feedback</button>` : 
-                            'No Feedback'}
+                        <button class="feedback-button" onclick="showFeedbackModal('${record.id_number}')">View Feedback</button>
                     </td>
+                    <td>${record.feedback_date}</td>
                 `;
                 tbody.appendChild(row);
             });
@@ -3219,6 +3245,32 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['get_feedback'])) {
                 alert('Error submitting feedback');
             });
         });
+
+        function showFeedbackModal(idNumber) {
+            fetch(`get_feedback.php?id=${idNumber}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.feedback) {
+                        document.getElementById('modalFeedbackText').innerHTML = `
+                            <p><strong>Feedback:</strong> ${data.feedback}</p>
+                            <p><strong>Date:</strong> ${data.date}</p>
+                            <button onclick="closeFeedbackModal()">Close</button>
+                        `;
+                        openModal('feedbackModal');
+                    } else {
+                        document.getElementById('modalFeedbackText').innerHTML = 'No feedback available.';
+                        openModal('feedbackModal');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error loading feedback');
+                });
+        }
+
+        function closeFeedbackModal() {
+            closeModal('feedbackModal');
+        }
     </script>
 </body>
 </html>
