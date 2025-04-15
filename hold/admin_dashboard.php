@@ -1753,6 +1753,80 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['get_feedback'])) {
             border-color: var(--primary);
             color: var(--primary);
         }
+
+        /* Timeout Button Styles */
+        .timeout-btn {
+            padding: 0.6rem 1.2rem;
+            border: 1px solid var(--primary);
+            border-radius: 100rem;
+            background: transparent;
+            color: var(--primary);
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 100px;
+        }
+
+        .timeout-btn:hover:not(:disabled) {
+            background: var(--primary);
+            color: var(--light);
+            transform: translateY(-2px);
+            box-shadow: 0 0 15px var(--shadow-1);
+        }
+
+        .timeout-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            border-color: var(--border-color);
+            color: var(--border-color);
+        }
+
+        /* Pagination Styles */
+        .pagination, .sitin-pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.8rem;
+            margin-top: 2rem;
+            padding: 1rem;
+        }
+
+        .pagination button, .sitin-pagination button {
+            padding: 0.8rem 1.2rem;
+            border: 1px solid var(--border-color);
+            border-radius: 100rem;
+            background: transparent;
+            color: var(--light);
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .pagination button:hover:not(:disabled), .sitin-pagination button:hover:not(:disabled) {
+            background: var(--primary);
+            border-color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: 0 0 15px var(--shadow-1);
+        }
+
+        .pagination button:disabled, .sitin-pagination button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .pagination span, .sitin-pagination span {
+            color: var(--light);
+            font-size: 1.2rem;
+            padding: 0.8rem 1.2rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 100rem;
+            min-width: 40px;
+            text-align: center;
+        }
     </style>
 
 </head>
