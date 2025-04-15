@@ -1517,33 +1517,73 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['get_feedback'])) {
             padding: 2.5rem;
             border-radius: 0.8rem;
             width: 90%;
-            max-width: 500px;
+            max-width: 50rem;
             position: relative;
             color: var(--light);
         }
 
-        .feedback-content {
-            margin-top: 2rem;
+        .feedback-modal h2 {
+            font-size: 2rem;
+            margin-bottom: 2rem;
+            color: var(--primary);
         }
 
         .feedback-details {
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.05);
             padding: 2rem;
-            border-radius: 0.8rem;
-            margin-top: 1rem;
+            border-radius: 0.6rem;
+            margin-top: 1.5rem;
         }
 
         .feedback-details p {
-            margin: 1rem 0;
+            margin-bottom: 1rem;
+            font-size: 1.4rem;
             line-height: 1.6;
+        }
+
+        .feedback-details strong {
+            color: var(--primary);
+            font-weight: 500;
+        }
+
+        .feedback-text {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 1.5rem;
+            border-radius: 0.4rem;
+            margin-top: 1rem;
+            font-style: italic;
         }
 
         .no-feedback {
             text-align: center;
             padding: 2rem;
-            color: var(--light);
-            opacity: 0.7;
+            color: var(--border-color);
             font-style: italic;
+        }
+
+        .loading-feedback {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 3rem;
+            color: var(--border-color);
+        }
+
+        .loading-feedback:after {
+            content: '';
+            width: 2rem;
+            height: 2rem;
+            border: 2px solid var(--border-color);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            margin-left: 1rem;
+            animation: loading 0.8s linear infinite;
+        }
+
+        @keyframes loading {
+            to {
+                transform: rotate(360deg);
+            }
         }
 
         /* Loading Animation */
@@ -1826,6 +1866,118 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['get_feedback'])) {
             border-radius: 100rem;
             min-width: 40px;
             text-align: center;
+        }
+
+        /* Points Modal Styles */
+        .points-modal {
+            background: var(--background);
+            padding: 2rem;
+            border-radius: 0.8rem;
+            width: 90%;
+            max-width: 40rem;
+            position: relative;
+        }
+
+        .points-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .points-form .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .points-form label {
+            color: var(--light);
+            font-size: 1.4rem;
+        }
+
+        .points-form input[type="number"],
+        .points-form textarea {
+            width: 100%;
+            padding: 1rem 1.6rem;
+            border: 1px solid var(--border-color);
+            border-radius: 0.4rem;
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--light);
+            font-size: 1.4rem;
+            transition: all 0.3s ease;
+        }
+
+        .points-form input[type="number"]:focus,
+        .points-form textarea:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(var(--primary-rgb), 0.2);
+            outline: none;
+        }
+
+        .points-form textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .points-form .button-group {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+            margin-top: 2rem;
+        }
+
+        .points-form .modal-button {
+            padding: 1rem 2rem;
+            border: 1px solid var(--border-color);
+            border-radius: 0.4rem;
+            font-size: 1.4rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 120px;
+        }
+
+        .points-form .modal-button.primary {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: var(--light);
+        }
+
+        .points-form .modal-button.primary:hover {
+            background: transparent;
+            color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: 0 0 15px var(--shadow-1);
+        }
+
+        .points-form .modal-button.secondary {
+            background: transparent;
+            color: var(--light);
+        }
+
+        .points-form .modal-button.secondary:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        .add-points-btn {
+            padding: 0.6rem 1.2rem;
+            border: 1px solid var(--primary);
+            border-radius: 100rem;
+            background: transparent;
+            color: var(--primary);
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 100px;
+        }
+
+        .add-points-btn:hover {
+            background: var(--primary);
+            color: var(--light);
+            transform: translateY(-2px);
+            box-shadow: 0 0 15px var(--shadow-1);
         }
     </style>
 
@@ -2489,7 +2641,7 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['get_feedback'])) {
                         
                         // Show modal with loading state
                         modal.style.display = 'flex';
-                        modalContent.innerHTML = '<p class="no-feedback">Loading feedback...</p>';
+                        modalContent.innerHTML = '<div class="loading-feedback">Loading feedback data...</div>';
                         
                         // Fetch feedback data
                         fetch(`get_feedback_data.php?id=${idNumber}`)
@@ -2501,30 +2653,47 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['get_feedback'])) {
                                         <div class="feedback-details">
                                             <p><strong>Student ID:</strong> ${feedback.id_number}</p>
                                             <p><strong>Student Name:</strong> ${feedback.student_name}</p>
-                                            <p><strong>Lab:</strong> ${feedback.lab}</p>
-                                            <p><strong>Date:</strong> ${feedback.date}</p>
+                                            <p><strong>Lab:</strong> ${feedback.lab || 'N/A'}</p>
+                                            <p><strong>Date:</strong> ${new Date(feedback.date).toLocaleString()}</p>
                                             <p><strong>Feedback:</strong></p>
-                                            <p>${feedback.feedback_text}</p>
-                                            ${feedback.rating ? `<p><strong>Rating:</strong> ${feedback.rating}</p>` : ''}
+                                            <div class="feedback-text">${feedback.feedback_text}</div>
+                                            ${feedback.rating ? `
+                                                <p class="mt-3">
+                                                    <strong>Rating:</strong> 
+                                                    <span class="rating-stars">${'★'.repeat(parseInt(feedback.rating))}${'☆'.repeat(5-parseInt(feedback.rating))}</span>
+                                                </p>` : ''
+                                            }
                                         </div>
                                     `;
                                 } else {
-                                    feedbackContent.innerHTML = '<p class="no-feedback">No feedback</p>';
+                                    feedbackContent.innerHTML = `
+                                        <div class="no-feedback">
+                                            <i class="fas fa-comment-slash" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                                            <p>No feedback available for this student.</p>
+                                        </div>
+                                    `;
                                 }
                             })
                             .catch(error => {
                                 console.error('Error:', error);
-                                feedbackContent.innerHTML = '<p class="no-feedback text-danger">Error loading feedback. Please try again.</p>';
+                                feedbackContent.innerHTML = `
+                                    <div class="no-feedback text-danger">
+                                        <i class="fas fa-exclamation-circle" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                                        <p>Error loading feedback. Please try again.</p>
+                                    </div>
+                                `;
                             });
                     }
 
                     function closeFeedbackModal() {
-                        document.getElementById('feedbackModal').style.display = 'none';
+                        const modal = document.getElementById('feedbackModal');
+                        modal.style.display = 'none';
                     }
 
-                    // Add event listener to close modal when clicking outside
-                    document.getElementById('feedbackModal').addEventListener('click', function(event) {
-                        if (event.target === this) {
+                    // Close modal when clicking outside
+                    window.addEventListener('click', function(event) {
+                        const modal = document.getElementById('feedbackModal');
+                        if (event.target === modal) {
                             closeFeedbackModal();
                         }
                     });
@@ -2694,7 +2863,7 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['get_feedback'])) {
     <!-- Logout Modal -->
     <div id="logoutModal" class="modal-container">
         <div class="modal-content">
-            <span class="close" onclick="closeModal('logoutModal')">&times;</span>
+            
             <h2>Confirm Logout</h2>
             <p>Are you sure you want to logout?</p>
             <div class="button-group">
@@ -4099,27 +4268,27 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['get_feedback'])) {
         }
 
         function addPoints(studentId, studentName) {
-            // Open modal for adding points
             const modal = document.createElement('div');
             modal.className = 'modal-container show';
             modal.id = 'addPointsModal';
             modal.innerHTML = `
-                <div class="modal">
+                <div class="points-modal">
                     <span class="close" onclick="closeModal('addPointsModal')">&times;</span>
                     <h2 class="modal-title">Add Points for ${studentName}</h2>
-                    <form id="addPointsForm" onsubmit="submitPoints(event)">
+                    <form id="addPointsForm" class="points-form" onsubmit="submitPoints(event)">
                         <input type="hidden" name="student_id" value="${studentId}">
                         <div class="form-group">
-                            <label for="points">Points:</label>
-                            <input type="number" id="points" name="points" min="1" required class="form-control">
+                            <label for="points">Points to Add:</label>
+                            <input type="number" id="points" name="points" min="1" max="3" required>
+                            <small style="color: var(--light); opacity: 0.7;">When points reach 3, a session will be automatically added.</small>
                         </div>
                         <div class="form-group">
-                            <label for="reason">Reason:</label>
-                            <textarea id="reason" name="reason" required class="form-control"></textarea>
+                            <label for="reason">Reason for Points:</label>
+                            <textarea id="reason" name="reason" required placeholder="Enter the reason for adding points..."></textarea>
                         </div>
                         <div class="button-group">
-                            <button type="submit" class="modal-button primary">Add Points</button>
                             <button type="button" class="modal-button secondary" onclick="closeModal('addPointsModal')">Cancel</button>
+                            <button type="submit" class="modal-button primary">Add Points</button>
                         </div>
                     </form>
                 </div>
@@ -4132,6 +4301,11 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['get_feedback'])) {
             const form = event.target;
             const formData = new FormData(form);
 
+            // Disable submit button to prevent double submission
+            const submitButton = form.querySelector('button[type="submit"]');
+            submitButton.disabled = true;
+            submitButton.textContent = 'Adding...';
+
             fetch('add_points.php', {
                 method: 'POST',
                 body: formData
@@ -4141,7 +4315,8 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['get_feedback'])) {
                 if (data.success) {
                     alert(data.message);
                     closeModal('addPointsModal');
-                    loadStudentData(); // Reload the student list
+                    // Reload the student data to reflect the changes
+                    loadStudentData();
                 } else {
                     alert(data.message || 'Error adding points');
                 }
@@ -4149,6 +4324,11 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['get_feedback'])) {
             .catch(error => {
                 console.error('Error:', error);
                 alert('Error adding points. Please try again.');
+            })
+            .finally(() => {
+                // Re-enable submit button
+                submitButton.disabled = false;
+                submitButton.textContent = 'Add Points';
             });
         }
 
@@ -4228,7 +4408,7 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['get_feedback'])) {
             
             // Show modal with loading state
             modal.style.display = 'flex';
-            feedbackContent.innerHTML = '<p class="no-feedback">Loading feedback...</p>';
+            feedbackContent.innerHTML = '<div class="loading-feedback">Loading feedback data...</div>';
             
             // Fetch feedback data
             fetch(`get_feedback_data.php?id=${idNumber}`)
@@ -4240,25 +4420,41 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['get_feedback'])) {
                             <div class="feedback-details">
                                 <p><strong>Student ID:</strong> ${feedback.id_number}</p>
                                 <p><strong>Student Name:</strong> ${feedback.student_name}</p>
-                                <p><strong>Lab:</strong> ${feedback.lab}</p>
-                                <p><strong>Date:</strong> ${feedback.date}</p>
+                                <p><strong>Lab:</strong> ${feedback.lab || 'N/A'}</p>
+                                <p><strong>Date:</strong> ${new Date(feedback.date).toLocaleString()}</p>
                                 <p><strong>Feedback:</strong></p>
-                                <p>${feedback.feedback_text}</p>
-                                ${feedback.rating ? `<p><strong>Rating:</strong> ${feedback.rating}</p>` : ''}
+                                <div class="feedback-text">${feedback.feedback_text}</div>
+                                ${feedback.rating ? `
+                                    <p class="mt-3">
+                                        <strong>Rating:</strong> 
+                                        <span class="rating-stars">${'★'.repeat(parseInt(feedback.rating))}${'☆'.repeat(5-parseInt(feedback.rating))}</span>
+                                    </p>` : ''
+                                }
                             </div>
                         `;
                     } else {
-                        feedbackContent.innerHTML = '<p class="no-feedback">No feedback</p>';
+                        feedbackContent.innerHTML = `
+                            <div class="no-feedback">
+                                <i class="fas fa-comment-slash" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                                <p>No feedback available for this student.</p>
+                            </div>
+                        `;
                     }
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    feedbackContent.innerHTML = '<p class="no-feedback text-danger">Error loading feedback. Please try again.</p>';
+                    feedbackContent.innerHTML = `
+                        <div class="no-feedback text-danger">
+                            <i class="fas fa-exclamation-circle" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                            <p>Error loading feedback. Please try again.</p>
+                        </div>
+                    `;
                 });
         }
 
         function closeFeedbackModal() {
-            closeModal('feedbackModal');
+            const modal = document.getElementById('feedbackModal');
+            modal.style.display = 'none';
         }
 
         function createActionButtons(studentId, studentName) {
@@ -4298,7 +4494,7 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['get_feedback'])) {
             
             // Show modal with loading state
             modal.style.display = 'flex';
-            feedbackContent.innerHTML = '<p class="no-feedback">Loading feedback...</p>';
+            feedbackContent.innerHTML = '<div class="loading-feedback">Loading feedback data...</div>';
             
             // Fetch feedback data
             fetch(`get_feedback_data.php?id=${idNumber}`)
@@ -4310,20 +4506,35 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['get_feedback'])) {
                             <div class="feedback-details">
                                 <p><strong>Student ID:</strong> ${feedback.id_number}</p>
                                 <p><strong>Student Name:</strong> ${feedback.student_name}</p>
-                                <p><strong>Lab:</strong> ${feedback.lab}</p>
-                                <p><strong>Date:</strong> ${feedback.date}</p>
+                                <p><strong>Lab:</strong> ${feedback.lab || 'N/A'}</p>
+                                <p><strong>Date:</strong> ${new Date(feedback.date).toLocaleString()}</p>
                                 <p><strong>Feedback:</strong></p>
-                                <p>${feedback.feedback_text}</p>
-                                ${feedback.rating ? `<p><strong>Rating:</strong> ${feedback.rating}</p>` : ''}
+                                <div class="feedback-text">${feedback.feedback_text}</div>
+                                ${feedback.rating ? `
+                                    <p class="mt-3">
+                                        <strong>Rating:</strong> 
+                                        <span class="rating-stars">${'★'.repeat(parseInt(feedback.rating))}${'☆'.repeat(5-parseInt(feedback.rating))}</span>
+                                    </p>` : ''
+                                }
                             </div>
                         `;
                     } else {
-                        feedbackContent.innerHTML = '<p class="no-feedback">No feedback</p>';
+                        feedbackContent.innerHTML = `
+                            <div class="no-feedback">
+                                <i class="fas fa-comment-slash" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                                <p>No feedback available for this student.</p>
+                            </div>
+                        `;
                     }
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    feedbackContent.innerHTML = '<p class="no-feedback text-danger">Error loading feedback. Please try again.</p>';
+                    feedbackContent.innerHTML = `
+                        <div class="no-feedback text-danger">
+                            <i class="fas fa-exclamation-circle" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                            <p>Error loading feedback. Please try again.</p>
+                        </div>
+                    `;
                 });
         }
 
@@ -4331,9 +4542,10 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['get_feedback'])) {
             document.getElementById(modalId).style.display = 'none';
         }
 
-        // Add event listener to close modal when clicking outside
-        document.getElementById('feedbackModal').addEventListener('click', function(event) {
-            if (event.target === this) {
+        // Close modal when clicking outside
+        window.addEventListener('click', function(event) {
+            const modal = document.getElementById('feedbackModal');
+            if (event.target === modal) {
                 closeModal('feedbackModal');
             }
         });
