@@ -997,6 +997,30 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['get_feedback'])) {
         .student-list table tr:hover {
             background: rgba(255, 255, 255, 0.1);
         }
+
+        .data-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+        }
+
+        .data-table th {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+            cursor: pointer;
+        }
+
+        .data-table tbody tr:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
     </style>
 
 </head>
@@ -1628,9 +1652,7 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['get_feedback'])) {
                                 <th onclick="sortTable(3, 'date')">Login Time ↕</th>
                                 <th onclick="sortTable(4, 'date')">Logout Time ↕</th>
                                 <th onclick="sortTable(5, 'number')">Duration ↕</th>
-                                <th onclick="sortTable(6, 'text')">Status ↕</th>
-                                <th onclick="showFeedbackModal(this)">Feedback</th>
-                                <th onclick="sortTable(8, 'date')">Feedback Date ↕</th>
+                                <th>Feedback</th>
                             </tr>
                         </thead>
                         <tbody id="sitInDataBody"></tbody>
@@ -1647,27 +1669,95 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['get_feedback'])) {
 
                 <div id="feedbackModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); justify-content: center; align-items: center;">
                     <div style="background-color: white; padding: 20px; border-radius: 5px; width: 80%; max-width: 600px;">
-                        <h3>Feedback</h3>
-                        <p id="modalFeedbackText">No feedback available.</p>
-                        <button onclick="closeFeedbackModal()">Close</button>
+                        <span class="close" onclick="closeFeedbackModal()">&times;</span>
+                        <h3>Feedback Details</h3>
+                        <div id="modalFeedbackText"></div>
+                        <button onclick="closeFeedbackModal()" class="btn btn-secondary mt-3">Close</button>
                     </div>
                 </div>
 
-                <style>
-                    .feedback-button {
-                        background: none;
-                        border: none;
-                        color: blue;
-                        text-decoration: underline;
-                        cursor: pointer;
-                        padding: 0;
-                        font-size: inherit;
+                <script>
+                    function showFeedbackModal(idNumber) {
+                        const modal = document.getElementById('feedbackModal');
+                        const modalContent = document.getElementById('modalFeedbackText');
+                        
+                        // Show modal with loading state
+                        modal.style.display = 'flex';
+                        modalContent.innerHTML = 'Loading feedback...';
+                        
+                        // Fetch feedback data
+                        fetch(`get_feedback.php?id=${idNumber}`)
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data && data.feedback_text) {
+                                    modalContent.innerHTML = `
+                                        <div class="feedback-content">
+                                            <p><strong>Student ID:</strong> ${data.student_id}</p>
+                                            <p><strong>Feedback:</strong></p>
+                                            <p>${data.feedback_text}</p>
+                                            <p><strong>Date:</strong> ${data.feedback_date || 'N/A'}</p>
+                                        </div>
+                                    `;
+                                } else {
+                                    modalContent.innerHTML = '<p>No feedback available for this session.</p>';
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error:', error);
+                                modalContent.innerHTML = '<p class="text-danger">Error loading feedback. Please try again.</p>';
+                            });
                     }
-                    .feedback-button:hover {
-                        color: darkblue;
+
+                    function closeFeedbackModal() {
+                        document.getElementById('feedbackModal').style.display = 'none';
+                    }
+
+                    // Add event listener to close modal when clicking outside
+                    document.getElementById('feedbackModal').addEventListener('click', function(event) {
+                        if (event.target === this) {
+                            closeFeedbackModal();
+                        }
+                    });
+                </script>
+
+                <style>
+                    .feedback-content {
+                        margin: 15px 0;
+                    }
+                    .feedback-content p {
+                        margin: 8px 0;
+                    }
+                    #feedbackModal .close {
+                        position: absolute;
+                        right: 15px;
+                        top: 10px;
+                        font-size: 24px;
+                        cursor: pointer;
+                    }
+                    #modalFeedbackText {
+                        margin-top: 20px;
                     }
                 </style>
-                
+
+                <script>
+                    function loadSitInReportData() {
+                        const tbody = document.getElementById('sitInDataBody');
+                        // Example data row creation
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>\${record.id_number}</td>
+                            <td>\${record.purpose}</td>
+                            <td>\${record.lab}</td>
+                            <td>\${record.login_time}</td>
+                            <td>\${record.logout_time}</td>
+                            <td>\${calculateDuration(record.login_time, record.logout_time)}</td>
+                            <td>
+                                <button class="feedback-button" onclick="showFeedbackModal(this)">View Feedback</button>
+                            </td>
+                        `;
+                        tbody.appendChild(row);
+                    }
+                </script>
             </div>
         </div>
     </main>
@@ -2673,11 +2763,9 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['get_feedback'])) {
                     <td>${record.login_time}</td>
                     <td>${record.logout_time}</td>
                     <td>${calculateDuration(record.login_time, record.logout_time)}</td>
-                    <td>${record.status}</td>
                     <td>
                         <button class="feedback-button" onclick="showFeedbackModal('${record.id_number}')">View Feedback</button>
                     </td>
-                    <td>${record.feedback_date}</td>
                 `;
                 tbody.appendChild(row);
             });
