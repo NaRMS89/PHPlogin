@@ -2014,6 +2014,81 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['get_feedback'])) {
         .student-info p {
             margin: 5px 0;
         }
+
+        /* ... existing styles ... */
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1000;
+            width: 400px; /* Fixed width for more compact look */
+            background: none;
+        }
+
+        .modal-content {
+            background: #1a1b1e; /* Darker background */
+            padding: 1.5rem;
+            border-radius: 0.8rem;
+            width: 100%;
+            color: var(--light);
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal h2 {
+            color: #a495dd; /* Purple tint for the title */
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+            text-align: left;
+        }
+
+        .close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            font-size: 1.2rem;
+            color: #a495dd;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--light);
+        }
+
+        #feedbackForm textarea {
+            width: 100%;
+            padding: 0.8rem;
+            margin-bottom: 1rem;
+            background: #13151a; /* Darker input background */
+            border: 1px solid #2a2d35;
+            border-radius: 0.4rem;
+            color: var(--light);
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 0.8rem;
+            background: #a495dd; /* Purple button */
+            color: white;
+            border: none;
+            border-radius: 0.4rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .submit-btn:hover {
+            background: #8a7ac0;
+        }
+
+        /* ... existing styles ... */
     </style>
 
 </head>
