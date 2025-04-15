@@ -1979,6 +1979,41 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['get_feedback'])) {
             transform: translateY(-2px);
             box-shadow: 0 0 15px var(--shadow-1);
         }
+
+        .feedback-list {
+            margin-top: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .feedback-item {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .feedback-date {
+            color: var(--primary);
+            font-size: 0.9em;
+            margin-bottom: 8px;
+        }
+
+        .feedback-text {
+            white-space: pre-wrap;
+            line-height: 1.5;
+        }
+
+        .student-info {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .student-info p {
+            margin: 5px 0;
+        }
     </style>
 
 </head>
@@ -4550,6 +4585,114 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['get_feedback'])) {
             }
         });
     </script>
-</body>
+
+    <!-- Feedback Modal -->
+    <div id="feedbackModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeFeedbackModal()">&times;</span>
+            <h2>Student Feedback History</h2>
+            <div id="feedbackContent">
+                <div class="student-info">
+                    <p><strong>ID Number:</strong> <span id="feedbackStudentId"></span></p>
+                    <p><strong>Purpose:</strong> <span id="feedbackPurpose"></span></p>
+                    <p><strong>Lab:</strong> <span id="feedbackLab"></span></p>
+                </div>
+                <div class="feedback-list">
+                    <!-- Feedback items will be inserted here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // ... existing code ...
+
+    function showFeedbackModal(idNumber) {
+        fetch('get_feedback_data.php?id=' + idNumber)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.feedbacks.length > 0) {
+                    const feedback = data.feedbacks[0]; // Get the most recent feedback
+                    document.getElementById('feedbackStudentId').textContent = idNumber;
+                    document.getElementById('feedbackPurpose').textContent = feedback.purpose;
+                    document.getElementById('feedbackLab').textContent = feedback.lab;
+
+                    const feedbackList = document.querySelector('.feedback-list');
+                    feedbackList.innerHTML = data.feedbacks.map(f => `
+                        <div class="feedback-item">
+                            <p class="feedback-date">${new Date(f.feedback_date).toLocaleString()}</p>
+                            <p class="feedback-text">${f.feedback_text}</p>
+                        </div>
+                    `).join('');
+
+                    document.getElementById('feedbackModal').style.display = 'block';
+                } else {
+                    alert('No feedback found for this student.');
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching feedback:', error);
+                alert('Error fetching feedback. Please try again.');
+            });
+    }
+
+    function closeFeedbackModal() {
+        document.getElementById('feedbackModal').style.display = 'none';
+    }
+
+    // Close modal when clicking outside
+    window.onclick = function(event) {
+        const modal = document.getElementById('feedbackModal');
+        if (event.target === modal) {
+            closeFeedbackModal();
+        }
+    }
+
+    // ... existing code ...
+    </script>
+
+    <style>
+    /* ... existing styles ... */
+
+    .feedback-list {
+        margin-top: 20px;
+        max-height: 400px;
+        overflow-y: auto;
+    }
+
+    .feedback-item {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 15px;
+    }
+
+    .feedback-date {
+        color: var(--primary);
+        font-size: 0.9em;
+        margin-bottom: 8px;
+    }
+
+    .feedback-text {
+        white-space: pre-wrap;
+        line-height: 1.5;
+    }
+
+    .student-info {
+        background: rgba(255, 255, 255, 0.05);
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+    }
+
+    .student-info p {
+        margin: 5px 0;
+    }
+
+    /* ... existing styles ... */
+    </style>
+
+    // ... existing code ...
+    </body>
 </html>
 <?php if ($conn instanceof mysqli) { mysqli_close($conn); } ?>
