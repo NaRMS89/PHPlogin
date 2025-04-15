@@ -884,29 +884,63 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['get_feedback'])) {
             width: 100%;
             height: 100%;
             background: rgba(0, 0, 0, 0.8);
+            display: flex;
             justify-content: center;
             align-items: center;
         }
 
         #logoutModal .modal-content {
             background: var(--background);
-            padding: 3rem 2rem;
-            border-radius: 0.8rem;
-            color: var(--light);
-            box-shadow: 0.4rem 0.4rem 10.2rem 0.2rem var(--shadow-1);
-            text-align: center;
+            padding: 3rem;
+            border-radius: 1rem;
             width: 90%;
             max-width: 400px;
+            text-align: center;
+            position: relative;
         }
 
         #logoutModal p {
-            font-size: 1.8rem;
+            font-size: 1.6rem;
             margin-bottom: 2rem;
+            color: var(--light);
+        }
+
+        #logoutModal .button-group {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
         }
 
         #logoutModal button {
             min-width: 120px;
-            margin: 0 10px;
+            padding: 0.8rem 1.6rem;
+            border-radius: 0.4rem;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        #logoutModal button[name="logout"] {
+            background: var(--primary);
+            color: white;
+            border: 1px solid var(--primary);
+        }
+
+        #logoutModal button[name="logout"]:hover {
+            background: transparent;
+            color: var(--primary);
+            box-shadow: 0 0 15px var(--primary);
+        }
+
+        #logoutModal button[type="button"] {
+            background: transparent;
+            color: var(--light);
+            border: 1px solid var(--border-color);
+        }
+
+        #logoutModal button[type="button"]:hover {
+            border-color: var(--primary);
+            color: var(--primary);
         }
 
         /* Entries Display Styles */
@@ -1549,8 +1583,9 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['get_feedback'])) {
         }
 
         .btn-sm {
-            padding: 0.6rem 1.2rem;
-            font-size: 1.1rem;
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+            border-radius: 0.4rem;
         }
 
         .btn-primary:hover,
@@ -1614,6 +1649,178 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['get_feedback'])) {
 
         .btn-icon i {
             font-size: 1.4rem;
+        }
+
+        /* Modal Base Styles */
+        .modal-container {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal-container.active {
+            opacity: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: var(--background);
+            padding: 3rem;
+            border-radius: 1rem;
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+            position: relative;
+            transform: scale(0.7);
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .modal-container.active .modal-content {
+            transform: scale(1);
+            opacity: 1;
+        }
+
+        .modal-content h2 {
+            color: var(--light);
+            margin-bottom: 2rem;
+            font-size: 2rem;
+        }
+
+        .modal-content p {
+            font-size: 1.6rem;
+            margin-bottom: 2rem;
+            color: var(--light);
+        }
+
+        .modal-content .close {
+            position: absolute;
+            right: 2rem;
+            top: 2rem;
+            font-size: 2.4rem;
+            color: var(--light);
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .modal-content .close:hover {
+            color: var(--primary);
+        }
+
+        .button-group {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+        }
+
+        .button-group button {
+            min-width: 120px;
+            padding: 1rem 2rem;
+            border-radius: 0.4rem;
+            font-size: 1.4rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            border: 1px solid var(--primary);
+        }
+
+        .btn-primary:hover {
+            background: transparent;
+            color: var(--primary);
+            box-shadow: 0 0 15px var(--primary);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--light);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        /* Timeout Button Styles */
+        .timeout-btn {
+            background: var(--danger, #dc3545);
+            color: white;
+            border: 1px solid var(--danger, #dc3545);
+            padding: 0.5rem 1rem;
+            border-radius: 0.4rem;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .timeout-btn:hover {
+            background: transparent;
+            color: var(--danger, #dc3545);
+            box-shadow: 0 0 10px var(--danger, #dc3545);
+        }
+
+        .timeout-btn:disabled {
+            background: #666;
+            border-color: #666;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        /* Pagination Styles */
+        .sitin-pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 1rem;
+            margin-top: 2rem;
+            padding: 1rem;
+        }
+
+        .sitin-pagination button {
+            background: var(--background);
+            color: var(--light);
+            border: 1px solid var(--border-color);
+            padding: 0.5rem 1rem;
+            border-radius: 0.4rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 40px;
+        }
+
+        .sitin-pagination button:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .sitin-pagination button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            border-color: var(--border-color);
+            color: var(--light);
+        }
+
+        .sitin-pagination span {
+            color: var(--light);
+            font-size: 1.4rem;
+            padding: 0.5rem 1rem;
+            background: var(--primary);
+            border-radius: 0.4rem;
+            min-width: 40px;
+            display: inline-block;
+            text-align: center;
         }
     </style>
 
@@ -2481,14 +2688,16 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['get_feedback'])) {
 
     <!-- Logout Modal -->
     <div id="logoutModal" class="modal-container">
-        <div class="modal">
+        <div class="modal-content">
             <span class="close" onclick="closeModal('logoutModal')">&times;</span>
-            <h2 class="modal-title">Confirm Logout</h2>
+            <h2>Confirm Logout</h2>
             <p>Are you sure you want to logout?</p>
-            <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
-                <button type="submit" name="logout">Logout</button>
-                <button type="button" onclick="closeModal('logoutModal')">Cancel</button>
-            </form>
+            <div class="button-group">
+                <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
+                    <button type="submit" name="logout" class="btn-primary">Logout</button>
+                </form>
+                <button type="button" class="btn-secondary" onclick="closeModal('logoutModal')">Cancel</button>
+            </div>
         </div>
     </div>
 
@@ -3142,11 +3351,11 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['get_feedback'])) {
             const endIndex = startIndex + parseInt(entriesPerPage);
 
             let filteredData = currentSitInData.filter(item =>
-                (item.id_number && item.id_number.toLowerCase().includes(searchTerm)) ||
-                (item.first_name && item.first_name.toLowerCase().includes(searchTerm)) ||
-                (item.last_name && item.last_name.toLowerCase().includes(searchTerm)) ||
-                (item.purpose && item.purpose.toLowerCase().includes(searchTerm)) ||
-                (item.lab && item.lab.toLowerCase().includes(searchTerm))
+                (item.id_number && item.id_number.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                (item.first_name && item.first_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                (item.last_name && item.last_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                (item.purpose && item.purpose.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                (item.lab && item.lab.toLowerCase().includes(searchTerm.toLowerCase()))
             );
 
             const paginatedData = filteredData.slice(startIndex, endIndex);
@@ -3157,41 +3366,88 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['get_feedback'])) {
                         <td colspan="8" style="text-align: center;">No current sit-in records found</td>
                     </tr>
                 `;
-            } else {
-                paginatedData.forEach(sitin => {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${sitin.sitin_id || ''}</td>
-                        <td>${sitin.id_number || ''}</td>
-                        <td>${(sitin.first_name || '') + ' ' + (sitin.last_name || '')}</td>
-                        <td>${sitin.purpose || ''}</td>
-                        <td>${sitin.lab || ''}</td>
-                        <td>${sitin.sessions || ''}</td>
-                        <td>${sitin.status || ''}</td>
-                        <td>
-                            <button onclick="logoutSitIn('${sitin.id_number}')" 
-                                    class="timeout-btn"
-                                    ${sitin.status !== 'active' ? 'disabled' : ''}>
-                                Timeout
-                            </button>
-                        </td>
-                    `;
-                    sitinTableBody.appendChild(row);
-                });
+                return;
             }
+
+            paginatedData.forEach(sitin => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${sitin.sitin_id || ''}</td>
+                    <td>${sitin.id_number || ''}</td>
+                    <td>${(sitin.first_name || '') + ' ' + (sitin.last_name || '')}</td>
+                    <td>${sitin.purpose || ''}</td>
+                    <td>${sitin.lab || ''}</td>
+                    <td>${sitin.sessions || ''}</td>
+                    <td>${sitin.status || ''}</td>
+                    <td>
+                        <button onclick="logoutSitIn('${sitin.id_number}')" 
+                                class="timeout-btn"
+                                ${sitin.status !== 'active' ? 'disabled' : ''}>
+                            Timeout
+                        </button>
+                    </td>
+                `;
+                sitinTableBody.appendChild(row);
+            });
 
             updateCurrentSitInPagination(filteredData.length);
         }
 
         function updateCurrentSitInPagination(totalItems) {
             const totalPages = Math.ceil(totalItems / entriesPerPage);
-            document.getElementById('currentPage').textContent = currentPage;
+            const currentPageSpan = document.getElementById('currentPage');
+            const prevButton = document.querySelector('.sitin-pagination button:nth-child(2)');
+            const nextButton = document.querySelector('.sitin-pagination button:nth-child(4)');
+            const firstButton = document.querySelector('.sitin-pagination button:first-child');
+            const lastButton = document.querySelector('.sitin-pagination button:last-child');
+
+            currentPageSpan.textContent = `${currentPage} / ${totalPages}`;
+            
+            // Update button states
+            prevButton.disabled = currentPage === 1;
+            nextButton.disabled = currentPage === totalPages;
+            firstButton.disabled = currentPage === 1;
+            lastButton.disabled = currentPage === totalPages;
+        }
+
+        function goToFirstPage() {
+            if (currentPage !== 1) {
+                currentPage = 1;
+                loadSitInData();
+            }
+        }
+
+        function goToPreviousPage() {
+            if (currentPage > 1) {
+                currentPage--;
+                loadSitInData();
+            }
+        }
+
+        function goToNextPage() {
+            const totalPages = Math.ceil(currentSitInData.length / entriesPerPage);
+            if (currentPage < totalPages) {
+                currentPage++;
+                loadSitInData();
+            }
+        }
+
+        function goToLastPage() {
+            const totalPages = Math.ceil(currentSitInData.length / entriesPerPage);
+            if (currentPage !== totalPages) {
+                currentPage = totalPages;
+                loadSitInData();
+            }
         }
 
         function logoutSitIn(idNo) {
             if (!confirm('Are you sure you want to timeout this student?')) {
                 return;
             }
+
+            const button = event.target;
+            button.disabled = true;
+            button.textContent = 'Processing...';
 
             const formData = new FormData();
             formData.append('id_number', idNo);
@@ -3204,15 +3460,18 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['get_feedback'])) {
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    alert(data.message);
                     loadSitInData(); // Reload the current sit-in data
                     loadStudentData(); // Reload student data to update session counts
                 } else {
+                    button.disabled = false;
+                    button.textContent = 'Timeout';
                     alert(data.message || 'Error timing out student');
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
+                button.disabled = false;
+                button.textContent = 'Timeout';
                 alert('Error timing out student');
             });
         }
@@ -3310,38 +3569,34 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['get_feedback'])) {
         }
 
         function openModal(modalId) {
-            // Hide all modals first
-            document.querySelectorAll('.modal-container').forEach(modal => {
-                modal.style.display = "none";
-                modal.classList.remove('show');
-            });
-            
-            // Show the requested modal
             const modal = document.getElementById(modalId);
-            if (modal) {
-                modal.style.display = "flex";
-                modal.classList.add('show');
-            }
+            modal.style.display = 'flex';
+            // Force reflow
+            modal.offsetHeight;
+            modal.classList.add('active');
         }
 
         function closeModal(modalId) {
             const modal = document.getElementById(modalId);
-            if (modal) {
-                modal.style.display = "none";
-                modal.classList.remove('show');
-                
-                // Clear form messages if it's the add student modal
-                if (modalId === 'addStudentModal') {
-                    document.getElementById('form-message').innerHTML = '';
-                    document.getElementById('addStudentForm').reset();
-                }
-                
-                // Remove dynamically created modals from DOM
-                if (modalId === 'addPointsModal') {
-                    modal.remove();
-                }
-            }
+            modal.classList.remove('active');
+            setTimeout(() => {
+                modal.style.display = 'none';
+            }, 300); // Match the transition duration
         }
+
+        // Close modal if clicked outside
+        window.addEventListener('click', function(event) {
+            if (event.target.classList.contains('modal-container')) {
+                closeModal(event.target.id);
+            }
+        });
+
+        // Prevent modal close when clicking inside modal-content
+        document.querySelectorAll('.modal-content').forEach(content => {
+            content.addEventListener('click', function(event) {
+                event.stopPropagation();
+            });
+        });
 
         function addSitIn() {
             const idNumber = document.getElementById('studentIdNo').innerText;
