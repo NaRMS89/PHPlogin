@@ -1753,75 +1753,6 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['get_feedback'])) {
             border-color: var(--primary);
             color: var(--primary);
         }
-
-        /* Timeout Button Styles */
-        .timeout-btn {
-            background: var(--danger, #dc3545);
-            color: white;
-            border: 1px solid var(--danger, #dc3545);
-            padding: 0.5rem 1rem;
-            border-radius: 0.4rem;
-            font-size: 0.875rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .timeout-btn:hover {
-            background: transparent;
-            color: var(--danger, #dc3545);
-            box-shadow: 0 0 10px var(--danger, #dc3545);
-        }
-
-        .timeout-btn:disabled {
-            background: #666;
-            border-color: #666;
-            cursor: not-allowed;
-            opacity: 0.6;
-        }
-
-        /* Pagination Styles */
-        .sitin-pagination {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 1rem;
-            margin-top: 2rem;
-            padding: 1rem;
-        }
-
-        .sitin-pagination button {
-            background: var(--background);
-            color: var(--light);
-            border: 1px solid var(--border-color);
-            padding: 0.5rem 1rem;
-            border-radius: 0.4rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            min-width: 40px;
-        }
-
-        .sitin-pagination button:hover {
-            border-color: var(--primary);
-            color: var(--primary);
-        }
-
-        .sitin-pagination button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            border-color: var(--border-color);
-            color: var(--light);
-        }
-
-        .sitin-pagination span {
-            color: var(--light);
-            font-size: 1.4rem;
-            padding: 0.5rem 1rem;
-            background: var(--primary);
-            border-radius: 0.4rem;
-            min-width: 40px;
-            display: inline-block;
-            text-align: center;
-        }
     </style>
 
 </head>
@@ -2648,34 +2579,34 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['get_feedback'])) {
 
             <div class="form-group" style="margin-bottom: 20px;">
                 <label for="purpose" style="display: block; margin-bottom: 8px; color: var(--light); font-weight: bold;">Purpose:</label>
-                <select id="purpose" class="compact-select" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 5px; background: transparent; color: var(--light); font-size: 14px; appearance: none; -webkit-appearance: none; -moz-appearance: none; background-image: url('data:image/svg+xml;utf8,<svg fill="%23ffffff" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>'); background-repeat: no-repeat; background-position: right 10px center; padding-right: 30px;">
-                    <option value="" style="background: var(--background); color: var(--light);">Select Purpose</option>
-                    <option value="C Programming" style="background: var(--background); color: var(--light);">C Programming</option>
-                    <option value="Java Programming" style="background: var(--background); color: var(--light);">Java Programming</option>
-                    <option value="Python" style="background: var(--background); color: var(--light);">Python</option>
-                    <option value="C# Database" style="background: var(--background); color: var(--light);">C# Database</option>
-                    <option value="Digital Logic & Design" style="background: var(--background); color: var(--light);">Digital Logic & Design</option>
-                    <option value="Embedded Systems and IoT" style="background: var(--background); color: var(--light);">Embedded Systems and IoT</option>
-                    <option value="System Integration and Architecture" style="background: var(--background); color: var(--light);">System Integration and Architecture</option>
-                    <option value="Computer Application" style="background: var(--background); color: var(--light);">Computer Application</option>
-                    <option value="Project Management" style="background: var(--background); color: var(--light);">Project Management</option>
-                    <option value="IT Trend" style="background: var(--background); color: var(--light);">IT Trend</option>
-                    <option value="Technopreneurship" style="background: var(--background); color: var(--light);">Technopreneurship</option>
-                    <option value="Capstone" style="background: var(--background); color: var(--light);">Capstone</option>
+                <select id="purpose" class="compact-select" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 5px; background: #1a1a2e; color: var(--light); font-size: 14px; appearance: none; -webkit-appearance: none; -moz-appearance: none; background-image: url('data:image/svg+xml;utf8,<svg fill="%23ffffff" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>'); background-repeat: no-repeat; background-position: right 10px center; padding-right: 30px;">
+                    <option value="" style="background: #1a1a2e; color: var(--light);">Select Purpose</option>
+                    <option value="C Programming" style="background: #1a1a2e; color: var(--light);">C Programming</option>
+                    <option value="Java Programming" style="background: #1a1a2e; color: var(--light);">Java Programming</option>
+                    <option value="Python" style="background: #1a1a2e; color: var(--light);">Python</option>
+                    <option value="C# Database" style="background: #1a1a2e; color: var(--light);">C# Database</option>
+                    <option value="Digital Logic & Design" style="background: #1a1a2e; color: var(--light);">Digital Logic & Design</option>
+                    <option value="Embedded Systems and IoT" style="background: #1a1a2e; color: var(--light);">Embedded Systems and IoT</option>
+                    <option value="System Integration and Architecture" style="background: #1a1a2e; color: var(--light);">System Integration and Architecture</option>
+                    <option value="Computer Application" style="background: #1a1a2e; color: var(--light);">Computer Application</option>
+                    <option value="Project Management" style="background: #1a1a2e; color: var(--light);">Project Management</option>
+                    <option value="IT Trend" style="background: #1a1a2e; color: var(--light);">IT Trend</option>
+                    <option value="Technopreneurship" style="background: #1a1a2e; color: var(--light);">Technopreneurship</option>
+                    <option value="Capstone" style="background: #1a1a2e; color: var(--light);">Capstone</option>
                 </select>
             </div>
 
             <div class="form-group" style="margin-bottom: 25px;">
                 <label for="lab" style="display: block; margin-bottom: 8px; color: var(--light); font-weight: bold;">Lab:</label>
-                <select id="lab" class="compact-select" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 5px; background: transparent; color: var(--light); font-size: 14px; appearance: none; -webkit-appearance: none; -moz-appearance: none; background-image: url('data:image/svg+xml;utf8,<svg fill="%23ffffff" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>'); background-repeat: no-repeat; background-position: right 10px center; padding-right: 30px;">
-                    <option value="" style="background: var(--background); color: var(--light);">Select Lab Room</option>
-                    <option value="524" style="background: var(--background); color: var(--light);">Lab 524</option>
-                    <option value="526" style="background: var(--background); color: var(--light);">Lab 526</option>
-                    <option value="528" style="background: var(--background); color: var(--light);">Lab 528</option>
-                    <option value="530" style="background: var(--background); color: var(--light);">Lab 530</option>
-                    <option value="542" style="background: var(--background); color: var(--light);">Lab 542</option>
-                    <option value="544" style="background: var(--background); color: var(--light);">Lab 544</option>
-                    <option value="517" style="background: var(--background); color: var(--light);">Lab 517</option>
+                <select id="lab" class="compact-select" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 5px; background: #1a1a2e; color: var(--light); font-size: 14px; appearance: none; -webkit-appearance: none; -moz-appearance: none; background-image: url('data:image/svg+xml;utf8,<svg fill="%23ffffff" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>'); background-repeat: no-repeat; background-position: right 10px center; padding-right: 30px;">
+                    <option value="" style="background: #1a1a2e; color: var(--light);">Select Lab Room</option>
+                    <option value="524" style="background: #1a1a2e; color: var(--light);">Lab 524</option>
+                    <option value="526" style="background: #1a1a2e; color: var(--light);">Lab 526</option>
+                    <option value="528" style="background: #1a1a2e; color: var(--light);">Lab 528</option>
+                    <option value="530" style="background: #1a1a2e; color: var(--light);">Lab 530</option>
+                    <option value="542" style="background: #1a1a2e; color: var(--light);">Lab 542</option>
+                    <option value="544" style="background: #1a1a2e; color: var(--light);">Lab 544</option>
+                    <option value="517" style="background: #1a1a2e; color: var(--light);">Lab 517</option>
                 </select>
             </div>
 
@@ -3351,11 +3282,11 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['get_feedback'])) {
             const endIndex = startIndex + parseInt(entriesPerPage);
 
             let filteredData = currentSitInData.filter(item =>
-                (item.id_number && item.id_number.toLowerCase().includes(searchTerm.toLowerCase())) ||
-                (item.first_name && item.first_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
-                (item.last_name && item.last_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
-                (item.purpose && item.purpose.toLowerCase().includes(searchTerm.toLowerCase())) ||
-                (item.lab && item.lab.toLowerCase().includes(searchTerm.toLowerCase()))
+                (item.id_number && item.id_number.toLowerCase().includes(searchTerm)) ||
+                (item.first_name && item.first_name.toLowerCase().includes(searchTerm)) ||
+                (item.last_name && item.last_name.toLowerCase().includes(searchTerm)) ||
+                (item.purpose && item.purpose.toLowerCase().includes(searchTerm)) ||
+                (item.lab && item.lab.toLowerCase().includes(searchTerm))
             );
 
             const paginatedData = filteredData.slice(startIndex, endIndex);
@@ -3366,88 +3297,41 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['get_feedback'])) {
                         <td colspan="8" style="text-align: center;">No current sit-in records found</td>
                     </tr>
                 `;
-                return;
+            } else {
+                paginatedData.forEach(sitin => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${sitin.sitin_id || ''}</td>
+                        <td>${sitin.id_number || ''}</td>
+                        <td>${(sitin.first_name || '') + ' ' + (sitin.last_name || '')}</td>
+                        <td>${sitin.purpose || ''}</td>
+                        <td>${sitin.lab || ''}</td>
+                        <td>${sitin.sessions || ''}</td>
+                        <td>${sitin.status || ''}</td>
+                        <td>
+                            <button onclick="logoutSitIn('${sitin.id_number}')" 
+                                    class="timeout-btn"
+                                    ${sitin.status !== 'active' ? 'disabled' : ''}>
+                                Timeout
+                            </button>
+                        </td>
+                    `;
+                    sitinTableBody.appendChild(row);
+                });
             }
-
-            paginatedData.forEach(sitin => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${sitin.sitin_id || ''}</td>
-                    <td>${sitin.id_number || ''}</td>
-                    <td>${(sitin.first_name || '') + ' ' + (sitin.last_name || '')}</td>
-                    <td>${sitin.purpose || ''}</td>
-                    <td>${sitin.lab || ''}</td>
-                    <td>${sitin.sessions || ''}</td>
-                    <td>${sitin.status || ''}</td>
-                    <td>
-                        <button onclick="logoutSitIn('${sitin.id_number}')" 
-                                class="timeout-btn"
-                                ${sitin.status !== 'active' ? 'disabled' : ''}>
-                            Timeout
-                        </button>
-                    </td>
-                `;
-                sitinTableBody.appendChild(row);
-            });
 
             updateCurrentSitInPagination(filteredData.length);
         }
 
         function updateCurrentSitInPagination(totalItems) {
             const totalPages = Math.ceil(totalItems / entriesPerPage);
-            const currentPageSpan = document.getElementById('currentPage');
-            const prevButton = document.querySelector('.sitin-pagination button:nth-child(2)');
-            const nextButton = document.querySelector('.sitin-pagination button:nth-child(4)');
-            const firstButton = document.querySelector('.sitin-pagination button:first-child');
-            const lastButton = document.querySelector('.sitin-pagination button:last-child');
-
-            currentPageSpan.textContent = `${currentPage} / ${totalPages}`;
-            
-            // Update button states
-            prevButton.disabled = currentPage === 1;
-            nextButton.disabled = currentPage === totalPages;
-            firstButton.disabled = currentPage === 1;
-            lastButton.disabled = currentPage === totalPages;
-        }
-
-        function goToFirstPage() {
-            if (currentPage !== 1) {
-                currentPage = 1;
-                loadSitInData();
-            }
-        }
-
-        function goToPreviousPage() {
-            if (currentPage > 1) {
-                currentPage--;
-                loadSitInData();
-            }
-        }
-
-        function goToNextPage() {
-            const totalPages = Math.ceil(currentSitInData.length / entriesPerPage);
-            if (currentPage < totalPages) {
-                currentPage++;
-                loadSitInData();
-            }
-        }
-
-        function goToLastPage() {
-            const totalPages = Math.ceil(currentSitInData.length / entriesPerPage);
-            if (currentPage !== totalPages) {
-                currentPage = totalPages;
-                loadSitInData();
-            }
+            document.getElementById('currentPage').textContent = currentPage;
         }
 
         function logoutSitIn(idNo) {
             if (!confirm('Are you sure you want to timeout this student?')) {
                 return;
             }
-
-            const button = event.target;
-            button.disabled = true;
-            button.textContent = 'Processing...';
 
             const formData = new FormData();
             formData.append('id_number', idNo);
@@ -3460,18 +3344,15 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['get_feedback'])) {
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
+                    alert(data.message);
                     loadSitInData(); // Reload the current sit-in data
                     loadStudentData(); // Reload student data to update session counts
                 } else {
-                    button.disabled = false;
-                    button.textContent = 'Timeout';
                     alert(data.message || 'Error timing out student');
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                button.disabled = false;
-                button.textContent = 'Timeout';
                 alert('Error timing out student');
             });
         }
