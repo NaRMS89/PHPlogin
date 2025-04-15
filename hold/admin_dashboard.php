@@ -369,98 +369,30 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['get_feedback'])) {
             position: fixed;
             top: 0;
             left: 0;
-            z-index: 2000;
+            z-index: 10;
             display: none;
             justify-content: center;
-            align-items: flex-start; /* Changed from center to flex-start */
+            align-items: center;
             width: 100%;
             height: 100%;
             background: rgba(0, 0, 0, 0.8);
-            padding: 20px;
-            overflow-y: auto; /* Allow background scrolling */
-        }
-
-        .modal-container.show {
-            display: flex;
         }
 
         .modal {
-            width: 40rem;
-            max-height: 80vh; /* Limit height to 80% of viewport */
-            overflow-y: auto; /* Enable scrolling inside modal */
-            padding: 3rem 2rem;
-            border-radius: 0.8rem;
-            color: var(--light);
-            background: var(--background);
-            box-shadow: 0.4rem 0.4rem 10.2rem 0.2rem var(--shadow-1);
-            position: relative;
-            margin-top: 5vh; /* Add some space from top */
-        }
-
-        .modal::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        .modal::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 4px;
-        }
-
-        .modal::-webkit-scrollbar-thumb {
-            background: var(--primary);
-            border-radius: 4px;
-        }
-
-        .success {
-            color: #4CAF50;
-            padding: 10px;
-            margin: 10px 0;
-            border-radius: 4px;
-            background-color: rgba(76, 175, 80, 0.1);
-        }
-        .error {
-            color: #f44336;
-            padding: 10px;
-            margin: 10px 0;
-            border-radius: 4px;
-            background-color: rgba(244, 67, 54, 0.1);
-        }
-        input:invalid {
-            border-color: #f44336;
-        }
-        input:valid {
-            border-color: #4CAF50;
-        }
-
-        #addStudentForm {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        #addStudentForm input,
-        #addStudentForm select {
-            margin: 5px 0;
-        }
-
-        .form-group {
-            margin-bottom: 15px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-            color: var(--light);
-        }
-
-        .search-modal,
-        .history-modal {
-            width: 90%;
-            max-width: 800px;
+            width: 60rem;
             padding: 4rem 2rem;
-            border-radius: 0.8rem;
+            border-radius: .8rem;
+            color: var(--light);
             background: var(--background);
-            box-shadow: 0.4rem 0.4rem 10.2rem 0.2rem var(--shadow-1);
+            box-shadow: .4rem .4rem 10.2rem .2rem var(--shadow-1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .modal h2, .modal h3 {
+            font-size: 3.2rem;
+            color: var(--light);
+            margin-bottom: 2rem;
         }
 
         .close {
@@ -476,96 +408,130 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['get_feedback'])) {
             display: flex;
             justify-content: center;
             align-items: center;
-            transition: 0.2s;
             cursor: pointer;
+            transition: .2s;
         }
 
         .close:hover {
             background: var(--focus);
             border-color: var(--focus);
-            transform: translateY(-0.2rem);
+            transform: translateY(-.2rem);
         }
 
         /* Form Styles */
-        input[type="text"],
-        input[type="email"],
-        input[type="password"],
-        select,
-        textarea {
-            width: 100%;
-            padding: 1.4rem;
-            margin: 8px 0;
-            border: 1px solid var(--border-color);
-            border-radius: 5px;
-            background: transparent;
-            color: var(--light);
-            font-size: 1.4rem;
+        .modal form {
+            margin-top: 2rem;
         }
 
-        button {
+        .modal input[type="text"],
+        .modal input[type="email"],
+        .modal input[type="password"],
+        .modal select,
+        .modal textarea {
+            width: 100%;
+            padding: 1rem 1.6rem;
+            margin: 0.8rem 0 1.6rem;
+            border: 1px solid var(--border-color);
+            border-radius: 0.4rem;
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--light);
+            font-size: 1.4rem;
+            transition: .2s;
+        }
+
+        .modal input[type="text"]:focus,
+        .modal input[type="email"]:focus,
+        .modal input[type="password"]:focus,
+        .modal select:focus,
+        .modal textarea:focus {
+            border-color: var(--focus);
+            box-shadow: 0 0 0 2px var(--shadow-1);
+            outline: none;
+        }
+
+        .modal select option {
+            background: var(--global-background);
+            color: var(--light);
+        }
+
+        .modal input[type="submit"],
+        .modal button {
             padding: 1rem 1.6rem;
             border: 1px solid var(--border-color);
             border-radius: 100rem;
             color: var(--light);
             background: transparent;
             font-size: 1.4rem;
-            letter-spacing: 0.2rem;
-            transition: all 0.3s ease;
+            letter-spacing: .2rem;
+            transition: .2s;
             cursor: pointer;
-            position: relative;
-            overflow: hidden;
+            margin-top: 2rem;
         }
 
-        button:hover {
-            background: transparent;
-            border-color: var(--primary);
-            box-shadow: 0 0 15px var(--primary),
-                       0 0 30px var(--primary),
-                       0 0 45px var(--primary);
-            transform: translateY(-0.2rem);
-        }
-
-        button:active {
-            transform: translateY(0);
-        }
-
-        .sidebar-button:hover {
-            background: transparent;
-            border-color: var(--primary);
-            box-shadow: 0 0 15px var(--primary),
-                       0 0 30px var(--primary),
-                       0 0 45px var(--primary);
-            transform: translateX(5px);
-        }
-
-        .modal__btn:hover,
-        .modal__btn:focus {
-            background: transparent;
-            border-color: var(--primary);
-            box-shadow: 0 0 15px var(--primary),
-                       0 0 30px var(--primary),
-                       0 0 45px var(--primary);
+        .modal input[type="submit"]:hover,
+        .modal button:hover {
+            background: var(--focus);
+            border-color: var(--focus);
             transform: translateY(-.2rem);
         }
 
-        .link-1:hover,
-        .link-1:focus {
-            background: transparent;
-            border-color: var(--primary);
-            box-shadow: 0 0 15px var(--primary),
-                       0 0 30px var(--primary),
-                       0 0 45px var(--primary);
-            transform: translateY(-.2rem);
+        .feedback-content {
+            margin: 2rem 0;
+            font-size: 1.6rem;
+            line-height: 1.6;
         }
 
-        .link-2:hover,
-        .link-2:focus {
-            background: transparent;
-            border-color: var(--primary);
-            box-shadow: 0 0 15px var(--primary),
-                       0 0 30px var(--primary),
-                       0 0 45px var(--primary);
-            transform: translateY(-.2rem);
+        .feedback-details {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 2rem;
+            border-radius: 0.8rem;
+            margin-top: 1rem;
+        }
+
+        .feedback-details p {
+            margin: 1rem 0;
+        }
+
+        .no-feedback {
+            text-align: center;
+            padding: 2rem;
+            color: var(--light);
+            font-style: italic;
+            font-size: 1.6rem;
+        }
+
+        #courseFilter {
+            padding: 1rem 1.6rem;
+            border: 1px solid var(--border-color);
+            border-radius: 100rem;
+            color: var(--light);
+            background: rgba(255, 255, 255, 0.1);
+            font-size: 1.4rem;
+            margin: 1rem 0;
+            cursor: pointer;
+        }
+
+        #courseFilter:focus {
+            border-color: var(--focus);
+            outline: none;
+        }
+
+        /* Form Message Styles */
+        #form-message {
+            margin-top: 2rem;
+            padding: 1rem;
+            border-radius: 0.4rem;
+            font-size: 1.4rem;
+        }
+
+        #form-message.success {
+            background: rgba(40, 167, 69, 0.2);
+            border: 1px solid #28a745;
+        }
+
+        #form-message.error {
+            background: rgba(220, 53, 69, 0.2);
+            border: 1px solid #dc3545;
         }
 
         /* Table Styles */
@@ -809,9 +775,27 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['get_feedback'])) {
 
         /* Modal Form Styles */
         #addStudentForm {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+            padding: 2rem;
+        }
+
+        #addStudentForm > div {
             display: flex;
             flex-direction: column;
-            gap: 20px;
+        }
+
+        #addStudentForm label {
+            color: var(--light);
+            margin-bottom: 0.5rem;
+            font-size: 1.4rem;
+        }
+
+        #addStudentForm input[type="submit"] {
+            grid-column: span 2;
+            width: 50%;
+            margin: 2rem auto 0;
         }
 
         #addStudentForm input,
@@ -839,32 +823,6 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['get_feedback'])) {
 
         #addStudentForm input:not(:focus):not(:placeholder-shown):invalid {
             border-color: var(--border-color);
-        }
-
-        #addStudentForm button[type="submit"] {
-            padding: 12px 25px;
-            font-size: 1.1rem;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid var(--border-color);
-            color: var(--light);
-            border-radius: 5px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin-top: 10px;
-            width: 100%;
-        }
-
-        #addStudentForm button[type="submit"]:hover {
-            border-color: var(--primary);
-            box-shadow: 0 0 15px var(--primary);
-            transform: translateY(-2px);
-        }
-
-        .form-group label {
-            color: var(--light);
-            margin-bottom: 8px;
-            display: block;
-            font-size: 1rem;
         }
 
         /* Modal Header Style */
@@ -916,9 +874,28 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['get_feedback'])) {
         }
 
         /* Logout Modal Styles */
-        #logoutModal .modal {
-            text-align: center;
+        #logoutModal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            justify-content: center;
+            align-items: center;
+        }
+
+        #logoutModal .modal-content {
+            background: var(--background);
             padding: 3rem 2rem;
+            border-radius: 0.8rem;
+            color: var(--light);
+            box-shadow: 0.4rem 0.4rem 10.2rem 0.2rem var(--shadow-1);
+            text-align: center;
+            width: 90%;
+            max-width: 400px;
         }
 
         #logoutModal p {
@@ -1021,6 +998,463 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['get_feedback'])) {
         .data-table tbody tr:hover {
             background: rgba(255, 255, 255, 0.1);
         }
+
+        /* Feedback Modal Styles */
+        #feedbackModal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            justify-content: center;
+            align-items: center;
+        }
+
+        #feedbackModal .modal {
+            background: var(--background);
+            padding: 2rem;
+            border-radius: 0.8rem;
+            color: var(--light);
+            box-shadow: 0.4rem 0.4rem 10.2rem 0.2rem var(--shadow-1);
+            width: 90%;
+            max-width: 600px;
+            position: relative;
+        }
+
+        #feedbackModal .modal-title {
+            margin-top: 0;
+            color: var(--light);
+            font-size: 1.5rem;
+        }
+
+        #feedbackModal .close {
+            position: absolute;
+            right: 1rem;
+            top: 1rem;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--light);
+        }
+
+        .feedback-content {
+            margin: 1.5rem 0;
+            color: var(--light);
+        }
+
+        .feedback-details {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+        }
+
+        .feedback-details p {
+            margin: 0.8rem 0;
+            line-height: 1.5;
+        }
+
+        .no-feedback {
+            text-align: center;
+            padding: 2rem;
+            color: var(--light);
+            font-style: italic;
+        }
+
+        /* Form and Modal Specific Styles */
+        #addStudentForm {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+            padding: 2rem;
+        }
+
+        #addStudentForm > div {
+            display: flex;
+            flex-direction: column;
+        }
+
+        #addStudentForm label {
+            color: var(--light);
+            margin-bottom: 0.5rem;
+            font-size: 1.4rem;
+        }
+
+        #addStudentForm input[type="submit"] {
+            grid-column: span 2;
+            width: 50%;
+            margin: 2rem auto 0;
+        }
+
+        .search-modal {
+            background: var(--background);
+            padding: 2rem;
+            border-radius: 0.8rem;
+            width: 90%;
+            max-width: 50rem;
+            position: relative;
+            color: var(--light);
+        }
+
+        .search-form {
+            margin: 2rem 0;
+        }
+
+        .search-form input {
+            width: 100%;
+            padding: 1rem 1.6rem;
+            border: 1px solid var(--border-color);
+            border-radius: 100rem;
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--light);
+            font-size: 1.4rem;
+        }
+
+        .search-results {
+            max-height: 40vh;
+            overflow-y: auto;
+            padding: 1rem;
+        }
+
+        .search-result-item {
+            padding: 1rem;
+            margin: 0.5rem 0;
+            border-radius: 0.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .search-result-item:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        /* Table Buttons */
+        .action-button {
+            padding: 0.8rem 1.6rem;
+            border: 1px solid var(--border-color);
+            border-radius: 100rem;
+            background: transparent;
+            color: var(--light);
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 0.2rem;
+        }
+
+        .action-button:hover {
+            background: var(--focus);
+            border-color: var(--focus);
+            transform: translateY(-2px);
+            box-shadow: 0 0 15px var(--shadow-1);
+        }
+
+        /* Points Modal */
+        .points-modal {
+            background: var(--background);
+            padding: 2rem;
+            border-radius: 0.8rem;
+            width: 90%;
+            max-width: 40rem;
+            color: var(--light);
+        }
+
+        .points-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .points-form input[type="number"] {
+            width: 100%;
+            padding: 1rem 1.6rem;
+            border: 1px solid var(--border-color);
+            border-radius: 0.4rem;
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--light);
+            font-size: 1.4rem;
+        }
+
+        /* Scrollbar Styles */
+        .search-results::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .search-results::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+
+        .search-results::-webkit-scrollbar-thumb {
+            background: var(--primary);
+            border-radius: 4px;
+        }
+
+        /* Modal Close Button */
+        .modal .close {
+            position: absolute;
+            right: 1.5rem;
+            top: 1.5rem;
+            width: 3rem;
+            height: 3rem;
+            border: 1px solid var(--border-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            color: var(--light);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: transparent;
+        }
+
+        .modal .close:hover {
+            background: var(--focus);
+            border-color: var(--focus);
+            transform: translateY(-2px);
+        }
+
+        /* Form Grid Layout */
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            color: var(--light);
+            margin-bottom: 0.5rem;
+            font-size: 1.4rem;
+        }
+
+        /* Table and Action Buttons */
+        .table-button,
+        .action-button,
+        .view-button,
+        .edit-button,
+        .delete-button {
+            padding: 0.8rem 1.6rem;
+            border: 1px solid var(--border-color);
+            border-radius: 100rem;
+            background: transparent;
+            color: var(--light);
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 0.2rem;
+        }
+
+        .table-button:hover,
+        .action-button:hover,
+        .view-button:hover,
+        .edit-button:hover,
+        .delete-button:hover {
+            background: var(--focus);
+            border-color: var(--focus);
+            transform: translateY(-2px);
+            box-shadow: 0 0 15px var(--shadow-1);
+        }
+
+        .view-button {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .edit-button {
+            border-color: #28a745;
+            color: #28a745;
+        }
+
+        .delete-button {
+            border-color: #dc3545;
+            color: #dc3545;
+        }
+
+        .view-button:hover {
+            background: var(--primary);
+            color: var(--light);
+        }
+
+        .edit-button:hover {
+            background: #28a745;
+            color: var(--light);
+        }
+
+        .delete-button:hover {
+            background: #dc3545;
+            color: var(--light);
+        }
+
+        /* Points Modal Styles */
+        .points-modal .modal-content {
+            background: var(--background);
+            border: none;
+            color: var(--light);
+        }
+
+        .points-form input[type="number"] {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--border-color);
+            color: var(--light);
+        }
+
+        .points-form button {
+            margin-top: 2rem;
+        }
+
+        /* Announcement Button and Dropdown Styles */
+        .announcement-form textarea {
+            width: 100%;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--border-color);
+            border-radius: 0.8rem;
+            color: var(--light);
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .announcement-form button {
+            padding: 1rem 2rem;
+            border: 1px solid var(--border-color);
+            border-radius: 100rem;
+            background: transparent;
+            color: var(--light);
+            font-size: 1.4rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .announcement-form button:hover {
+            background: var(--focus);
+            border-color: var(--focus);
+            transform: translateY(-2px);
+            box-shadow: 0 0 15px var(--shadow-1);
+        }
+
+        /* Filter Dropdowns */
+        .filter-dropdown {
+            padding: 1rem 2rem;
+            border: 1px solid var(--border-color);
+            border-radius: 100rem;
+            background: transparent;
+            color: var(--light);
+            font-size: 1.4rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 150px;
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            background-size: 1em;
+        }
+
+        .filter-dropdown:hover {
+            border-color: var(--focus);
+        }
+
+        .filter-dropdown:focus {
+            outline: none;
+            border-color: var(--focus);
+            box-shadow: 0 0 0 2px var(--shadow-1);
+        }
+
+        .filter-dropdown option {
+            background: var(--global-background);
+            color: var(--light);
+            padding: 1rem;
+        }
+
+        /* View Feedback Button */
+        .view-feedback-btn {
+            padding: 0.8rem 1.6rem;
+            border: 1px solid var(--primary);
+            border-radius: 100rem;
+            background: transparent;
+            color: var(--primary);
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .view-feedback-btn:hover {
+            background: var(--primary);
+            color: var(--light);
+            transform: translateY(-2px);
+            box-shadow: 0 0 15px var(--shadow-1);
+        }
+
+        /* Add Points Button and Modal */
+        .add-points-btn {
+            padding: 0.8rem 1.6rem;
+            border: 1px solid #28a745;
+            border-radius: 100rem;
+            background: transparent;
+            color: #28a745;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .add-points-btn:hover {
+            background: #28a745;
+            color: var(--light);
+            transform: translateY(-2px);
+            box-shadow: 0 0 15px rgba(40, 167, 69, 0.4);
+        }
+
+        .points-modal {
+            background: var(--background);
+            padding: 2rem;
+            border-radius: 0.8rem;
+            color: var(--light);
+        }
+
+        .points-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .points-form input[type="number"] {
+            width: 100%;
+            padding: 1rem 1.6rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--border-color);
+            border-radius: 0.4rem;
+            color: var(--light);
+            font-size: 1.4rem;
+        }
+
+        .points-form button {
+            padding: 1rem 2rem;
+            border: 1px solid #28a745;
+            border-radius: 100rem;
+            background: transparent;
+            color: #28a745;
+            font-size: 1.4rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .points-form button:hover {
+            background: #28a745;
+            color: var(--light);
+            transform: translateY(-2px);
+            box-shadow: 0 0 15px rgba(40, 167, 69, 0.4);
+        }
     </style>
 
 </head>
@@ -1066,8 +1500,8 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['get_feedback'])) {
                     <div class="announcement-form">
                         <h3>Post Announcement</h3>
                         <form id="announcementForm">
-                            <textarea name="announcement" rows="4" required></textarea>
-                            <button type="submit">Submit</button>
+                            <textarea name="announcement" rows="4" required placeholder="Type your announcement here..."></textarea>
+                            <button type="submit" class="action-button">Post Announcement</button>
                         </form>
                     </div>
                     <!-- Right Side - Posted Announcements -->
@@ -1087,7 +1521,7 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['get_feedback'])) {
                         <input type="text" id="searchIdNo" placeholder="Enter ID Number or Name">
                     </div>
                     <div class="search-results" id="searchResults">
-                        <!-- Search results will be displayed here -->
+                        <!-- Search results will be dynamically added here -->
                     </div>
                 </div>
             </div>
@@ -1097,7 +1531,7 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['get_feedback'])) {
                 <div class="student-header">
                     <h2>Student List</h2>
                     <div class="filter-controls" style="display: flex; gap: 10px; margin-bottom: 15px;">
-                        <select id="courseFilter" onchange="filterStudents()">
+                        <select id="courseFilter" class="filter-dropdown" onchange="filterStudents()">
                             <option value="">All Courses</option>
                             <option value="BSIT">BSIT</option>
                             <option value="BSCS">BSCS</option>
@@ -1112,7 +1546,7 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['get_feedback'])) {
                             <option value="BSBIO">BSBIO</option>
                             <option value="BSMATH">BSMATH</option>
                         </select>
-                        <select id="yearFilter" onchange="filterStudents()">
+                        <select id="yearFilter" class="filter-dropdown" onchange="filterStudents()">
                             <option value="">All Year Levels</option>
                             <option value="1">1st Year</option>
                             <option value="2">2nd Year</option>
@@ -1683,28 +2117,32 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['get_feedback'])) {
                         
                         // Show modal with loading state
                         modal.style.display = 'flex';
-                        modalContent.innerHTML = 'Loading feedback...';
+                        modalContent.innerHTML = '<p class="no-feedback">Loading feedback...</p>';
                         
                         // Fetch feedback data
-                        fetch(`get_feedback.php?id=${idNumber}`)
+                        fetch(`get_feedback_data.php?id=${idNumber}`)
                             .then(response => response.json())
                             .then(data => {
-                                if (data && data.feedback_text) {
-                                    modalContent.innerHTML = `
-                                        <div class="feedback-content">
-                                            <p><strong>Student ID:</strong> ${data.student_id}</p>
+                                if (data && data.length > 0) {
+                                    const feedback = data[0]; // Get the most recent feedback
+                                    feedbackContent.innerHTML = `
+                                        <div class="feedback-details">
+                                            <p><strong>Student ID:</strong> ${feedback.id_number}</p>
+                                            <p><strong>Student Name:</strong> ${feedback.student_name}</p>
+                                            <p><strong>Lab:</strong> ${feedback.lab}</p>
+                                            <p><strong>Date:</strong> ${feedback.date}</p>
                                             <p><strong>Feedback:</strong></p>
-                                            <p>${data.feedback_text}</p>
-                                            <p><strong>Date:</strong> ${data.feedback_date || 'N/A'}</p>
+                                            <p>${feedback.feedback_text}</p>
+                                            ${feedback.rating ? `<p><strong>Rating:</strong> ${feedback.rating}</p>` : ''}
                                         </div>
                                     `;
                                 } else {
-                                    modalContent.innerHTML = '<p>No feedback available for this session.</p>';
+                                    feedbackContent.innerHTML = '<p class="no-feedback">No feedback</p>';
                                 }
                             })
                             .catch(error => {
                                 console.error('Error:', error);
-                                modalContent.innerHTML = '<p class="text-danger">Error loading feedback. Please try again.</p>';
+                                feedbackContent.innerHTML = '<p class="no-feedback text-danger">Error loading feedback. Please try again.</p>';
                             });
                     }
 
@@ -1758,6 +2196,20 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['get_feedback'])) {
                         tbody.appendChild(row);
                     }
                 </script>
+            </div>
+        </div>
+
+        <!-- Feedback Modal -->
+        <div id="feedbackModal" class="modal-container">
+            <div class="modal">
+                <span class="close" onclick="closeModal('feedbackModal')">&times;</span>
+                <h2 class="modal-title">Feedback Details</h2>
+                <div id="feedbackContent" class="feedback-content">
+                    <!-- Feedback content will be loaded here -->
+                </div>
+                <div class="button-group">
+                    <button class="modal-button secondary" onclick="closeModal('feedbackModal')">Close</button>
+                </div>
             </div>
         </div>
     </main>
@@ -1833,52 +2285,70 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['get_feedback'])) {
             <span class="close" id="closeAddStudentModal">&times;</span>
             <h2>Add Student</h2>
             <form id="addStudentForm">
-                ID Number: <br>
-                <input type="text" id="idno" name="idno" required><br>
+                <div class="form-group">
+                    <label for="idno">ID Number</label>
+                    <input type="text" id="idno" name="idno" required>
+                </div>
 
-                Last Name: <br>
-                <input type="text" id="lastname" name="lastname" required><br>
+                <div class="form-group">
+                    <label for="lastname">Last Name</label>
+                    <input type="text" id="lastname" name="lastname" required>
+                </div>
 
-                First Name: <br>
-                <input type="text" id="firstname" name="firstname" required><br>
+                <div class="form-group">
+                    <label for="firstname">First Name</label>
+                    <input type="text" id="firstname" name="firstname" required>
+                </div>
 
-                Middle Name: <br>
-                <input type="text" id="midname" name="midname" required><br>
+                <div class="form-group">
+                    <label for="midname">Middle Name</label>
+                    <input type="text" id="midname" name="midname" required>
+                </div>
 
-                Course: <br>
-                <select id="course" name="course" required>
-                    <option value="BSIT">BSIT</option>
-                    <option value="BSCS">BSCS</option>
-                    <option value="BSECE">BSECE</option>
-                    <option value="BSME">BSME</option>
-                    <option value="BSCE">BSCE</option>
-                    <option value="BSBA">BSBA</option>
-                    <option value="BSHRM">BSHRM</option>
-                    <option value="BSN">BSN</option>
-                    <option value="BSA">BSA</option>
-                    <option value="BSPSY">BSPSY</option>
-                    <option value="BSBIO">BSBIO</option>
-                    <option value="BSMATH">BSMATH</option>
-                </select><br>
+                <div class="form-group">
+                    <label for="course">Course</label>
+                    <select id="course" name="course" required>
+                        <option value="BSIT">BSIT</option>
+                        <option value="BSCS">BSCS</option>
+                        <option value="BSECE">BSECE</option>
+                        <option value="BSME">BSME</option>
+                        <option value="BSCE">BSCE</option>
+                        <option value="BSBA">BSBA</option>
+                        <option value="BSHRM">BSHRM</option>
+                        <option value="BSN">BSN</option>
+                        <option value="BSA">BSA</option>
+                        <option value="BSPSY">BSPSY</option>
+                        <option value="BSBIO">BSBIO</option>
+                        <option value="BSMATH">BSMATH</option>
+                    </select>
+                </div>
 
-                Year Level: <br>
-                <select id="yearlvl" name="yearlvl" required>
-                    <option value="1">1</option>
-                    <option value="2">2</option>
-                    <option value="3">3</option>
-                    <option value="4">4</option>
-                </select><br>
+                <div class="form-group">
+                    <label for="yearlvl">Year Level</label>
+                    <select id="yearlvl" name="yearlvl" required>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                    </select>
+                </div>
 
-                Email: <br>
-                <input type="email" id="email" name="email" required><br>
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
 
-                Username: <br>
-                <input type="text" id="username" name="username" required><br>
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" required>
+                </div>
 
-                Password: <br>
-                <input type="password" id="password" name="password" required><br>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
 
-                <input type="submit" value="Add Student">
+                <input type="submit" value="Add Student" class="action-button">
             </form>
             <div id="form-message"></div>
         </div>
@@ -1888,18 +2358,13 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['get_feedback'])) {
     <div id="feedbackModal" class="modal-container">
         <div class="modal">
             <span class="close" onclick="closeModal('feedbackModal')">&times;</span>
-            <h2 class="modal-title">Submit Feedback</h2>
-            <form id="feedbackForm">
-                <input type="hidden" id="sitInId" name="sit_in_id">
-                <div class="form-group">
-                    <label for="feedbackText">Feedback:</label>
-                    <textarea id="feedbackText" name="feedback_text" rows="4" required></textarea>
-                </div>
-                <div class="button-group">
-                    <button type="submit" class="modal-button primary">Submit</button>
-                    <button type="button" class="modal-button secondary" onclick="closeModal('feedbackModal')">Cancel</button>
-                </div>
-            </form>
+            <h2 class="modal-title">Feedback Details</h2>
+            <div id="feedbackContent" class="feedback-content">
+                <!-- Feedback content will be loaded here -->
+            </div>
+            <div class="button-group">
+                <button class="modal-button secondary" onclick="closeModal('feedbackModal')">Close</button>
+            </div>
         </div>
     </div>
 
@@ -3274,7 +3739,7 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['get_feedback'])) {
                             <p><strong>Student ID:</strong> ${data.id_number}</p>
                             <p><strong>Date:</strong> ${data.date}</p>
                             <p><strong>Feedback:</strong></p>
-                            <p>${data.feedback}</p>
+                            <p>${data.feedback_text}</p>
                         `;
                     } else {
                         feedbackText.innerHTML = '<p>No feedback available for this session.</p>';
@@ -3335,30 +3800,91 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['get_feedback'])) {
         });
 
         function showFeedbackModal(idNumber) {
-            fetch(`get_feedback.php?id=${idNumber}`)
+            const modal = document.getElementById('feedbackModal');
+            const feedbackContent = document.getElementById('feedbackContent');
+            
+            // Show modal with loading state
+            modal.style.display = 'flex';
+            feedbackContent.innerHTML = '<p class="no-feedback">Loading feedback...</p>';
+            
+            // Fetch feedback data
+            fetch(`get_feedback_data.php?id=${idNumber}`)
                 .then(response => response.json())
                 .then(data => {
-                    if (data.feedback) {
-                        document.getElementById('modalFeedbackText').innerHTML = `
-                            <p><strong>Feedback:</strong> ${data.feedback}</p>
-                            <p><strong>Date:</strong> ${data.date}</p>
-                            <button onclick="closeFeedbackModal()">Close</button>
+                    if (data && data.length > 0) {
+                        const feedback = data[0]; // Get the most recent feedback
+                        feedbackContent.innerHTML = `
+                            <div class="feedback-details">
+                                <p><strong>Student ID:</strong> ${feedback.id_number}</p>
+                                <p><strong>Student Name:</strong> ${feedback.student_name}</p>
+                                <p><strong>Lab:</strong> ${feedback.lab}</p>
+                                <p><strong>Date:</strong> ${feedback.date}</p>
+                                <p><strong>Feedback:</strong></p>
+                                <p>${feedback.feedback_text}</p>
+                                ${feedback.rating ? `<p><strong>Rating:</strong> ${feedback.rating}</p>` : ''}
+                            </div>
                         `;
-                        openModal('feedbackModal');
                     } else {
-                        document.getElementById('modalFeedbackText').innerHTML = 'No feedback available.';
-                        openModal('feedbackModal');
+                        feedbackContent.innerHTML = '<p class="no-feedback">No feedback</p>';
                     }
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    alert('Error loading feedback');
+                    feedbackContent.innerHTML = '<p class="no-feedback text-danger">Error loading feedback. Please try again.</p>';
                 });
         }
 
         function closeFeedbackModal() {
             closeModal('feedbackModal');
         }
+    </script>
+
+    <script>
+        function showFeedbackModal(idNumber) {
+            const modal = document.getElementById('feedbackModal');
+            const feedbackContent = document.getElementById('feedbackContent');
+            
+            // Show modal with loading state
+            modal.style.display = 'flex';
+            feedbackContent.innerHTML = '<p class="no-feedback">Loading feedback...</p>';
+            
+            // Fetch feedback data
+            fetch(`get_feedback_data.php?id=${idNumber}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data && data.length > 0) {
+                        const feedback = data[0]; // Get the most recent feedback
+                        feedbackContent.innerHTML = `
+                            <div class="feedback-details">
+                                <p><strong>Student ID:</strong> ${feedback.id_number}</p>
+                                <p><strong>Student Name:</strong> ${feedback.student_name}</p>
+                                <p><strong>Lab:</strong> ${feedback.lab}</p>
+                                <p><strong>Date:</strong> ${feedback.date}</p>
+                                <p><strong>Feedback:</strong></p>
+                                <p>${feedback.feedback_text}</p>
+                                ${feedback.rating ? `<p><strong>Rating:</strong> ${feedback.rating}</p>` : ''}
+                            </div>
+                        `;
+                    } else {
+                        feedbackContent.innerHTML = '<p class="no-feedback">No feedback</p>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    feedbackContent.innerHTML = '<p class="no-feedback text-danger">Error loading feedback. Please try again.</p>';
+                });
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        // Add event listener to close modal when clicking outside
+        document.getElementById('feedbackModal').addEventListener('click', function(event) {
+            if (event.target === this) {
+                closeModal('feedbackModal');
+            }
+        });
     </script>
 </body>
 </html>
