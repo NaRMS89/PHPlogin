@@ -158,19 +158,24 @@ $lab_rooms = ['524', '526', '528', '530', '542', 'Mac Lab'];
             max-width: 1400px;
             margin-left: auto;
             margin-right: auto;
+            width: 100%;
         }
 
         .three-column-layout {
             display: flex;
             gap: 2rem;
             margin-bottom: 2rem;
+            justify-content: center;
+            align-items: flex-start;
+            width: 100%;
         }
 
         .profile-column {
-            flex: 0 0 30%;
+            flex: 0 0 25%;
             background: rgba(255, 255, 255, 0.05);
             border-radius: 1rem;
             padding: 2rem;
+            min-width: 300px;
         }
 
         .announcement-column {
@@ -178,26 +183,69 @@ $lab_rooms = ['524', '526', '528', '530', '542', 'Mac Lab'];
             background: rgba(255, 255, 255, 0.05);
             border-radius: 1rem;
             padding: 2rem;
+            overflow-y: auto;
+            max-height: 80vh;
+            min-width: 400px;
         }
 
         .rules-column {
-            flex: 0 0 30%;
+            flex: 0 0 25%;
             background: rgba(255, 255, 255, 0.05);
             border-radius: 1rem;
             padding: 2rem;
             overflow-y: auto;
             max-height: 80vh;
+            min-width: 300px;
         }
 
-        @media (max-width: 1200px) {
+        .profile-info {
+            margin-bottom: 1.5rem;
+        }
+
+        .profile-picture-wrapper {
+            width: 150px;
+            height: 150px;
+            margin: 0 auto 1.5rem;
+            border-radius: 50%;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .profile-picture-main {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        @media (max-width: 1400px) {
+            .three-column-layout {
+                flex-wrap: wrap;
+            }
+
+            .profile-column,
+            .announcement-column,
+            .rules-column {
+                flex: 1 1 300px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .content-container {
+                padding: 1rem;
+            }
+
             .three-column-layout {
                 flex-direction: column;
             }
-            
+
             .profile-column,
             .announcement-column,
             .rules-column {
                 flex: 1 1 100%;
+                min-width: 100%;
+                max-height: none;
             }
         }
 
@@ -233,10 +281,33 @@ $lab_rooms = ['524', '526', '528', '530', '542', 'Mac Lab'];
         }
 
         .announcement-item {
-            background: rgba(0, 0, 0, 0.2);
+            background: rgba(255, 255, 255, 0.05);
             border-radius: 0.5rem;
             padding: 1rem;
             margin-bottom: 1rem;
+            transition: transform 0.2s ease;
+        }
+
+        .announcement-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .announcement-text {
+            color: var(--light);
+            margin-bottom: 0.5rem;
+            line-height: 1.5;
+        }
+
+        .announcement-date {
+            color: var(--border-color);
+            font-size: 0.9rem;
+        }
+
+        .no-announcements {
+            color: var(--border-color);
+            text-align: center;
+            padding: 1rem;
         }
 
         #rulesContent ol {
@@ -309,6 +380,28 @@ $lab_rooms = ['524', '526', '528', '530', '542', 'Mac Lab'];
             border: 1px solid var(--border-color);
             border-radius: 0.5rem;
             color: var(--light);
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--focus);
+            box-shadow: 0 0 0 2px var(--shadow-1);
+        }
+
+        .btn-submit {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-submit:hover {
+            background: var(--focus);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px var(--shadow-1);
         }
 
         /* Reservation Content Styles */
@@ -453,12 +546,14 @@ $lab_rooms = ['524', '526', '528', '530', '542', 'Mac Lab'];
                     <h2>Announcements</h2>
                     <div id="announcementList" class="announcement-list">
                         <?php
-                        if (!empty($announcements)) {
-                            foreach ($announcements as $announcement) {
+                        $sql = "SELECT * FROM announcements ORDER BY date_posted DESC";
+                        $result = mysqli_query($conn, $sql);
+                        
+                        if ($result && mysqli_num_rows($result) > 0) {
+                            while ($row = mysqli_fetch_assoc($result)) {
                                 echo '<div class="announcement-item">';
-                                echo '<h3>' . htmlspecialchars($announcement['title']) . '</h3>';
-                                echo '<p>' . nl2br(htmlspecialchars($announcement['message'])) . '</p>';
-                                echo '<span class="announcement-date">' . date("F j, Y", strtotime($announcement['date'])) . '</span>';
+                                echo '<div class="announcement-text">' . htmlspecialchars($row['announcement_text']) . '</div>';
+                                echo '<div class="announcement-date">Posted on ' . date("F j, Y", strtotime($row['date_posted'])) . '</div>';
                                 echo '</div>';
                             }
                         } else {
@@ -722,20 +817,37 @@ $lab_rooms = ['524', '526', '528', '530', '542', 'Mac Lab'];
             announcementList.innerHTML = '';
 
             fetch('../ADMIN/get_announcements.php')
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
             .then(data => {
-                data.slice(0, 5).forEach(announcement => {
-                    announcementList.innerHTML += `
-                        <div class="announcement-item">
-                            <div class="date">${announcement.admin_name} - ${announcement.date_posted}</div>
-                            <div class="content">${announcement.announcement_text.replace('undefined', 'CSS ADMIN')}</div>
-                        </div>
-                    `;
-                });
+                if (data && data.length > 0) {
+                    data.forEach(announcement => {
+                        const date = new Date(announcement.date_posted);
+                        const formattedDate = date.toLocaleDateString('en-US', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric'
+                        });
+
+                        const announcementItem = document.createElement('div');
+                        announcementItem.className = 'announcement-item';
+                        announcementItem.innerHTML = `
+                            <div class="announcement-text">${announcement.announcement_text}</div>
+                            <div class="announcement-date">Posted on ${formattedDate}</div>
+                        `;
+                        announcementList.appendChild(announcementItem);
+                    });
+                } else {
+                    announcementList.innerHTML = '<p class="no-announcements">No announcements available at the moment.</p>';
+                }
             })
             .catch(error => {
                 console.error('Error:', error);
-                announcementList.innerHTML = '<div class="announcement-item">Error loading announcements.</div>';
+                announcementList.innerHTML = '<p class="no-announcements">Unable to load announcements. Please try again later.</p>';
             });
         }
 
@@ -767,9 +879,10 @@ $lab_rooms = ['524', '526', '528', '530', '542', 'Mac Lab'];
             }
         }
 
-        // Load announcements when page loads
+        // Load announcements when page loads and refresh every 5 minutes
         document.addEventListener('DOMContentLoaded', function() {
             loadAnnouncements();
+            setInterval(loadAnnouncements, 300000); // 5 minutes
         });
 
         document.getElementById('userInfoForm').addEventListener('submit', function(e) {

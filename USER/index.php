@@ -11,7 +11,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $password = filter_input(INPUT_POST, "password", FILTER_SANITIZE_SPECIAL_CHARS);
     $remember_me = isset($_POST['remember_me']);
 
-    if ($idno === "99999999" && $password === "123") {
+    if ($idno === "9999999" && $password === "123") {
         $_SESSION['admin_logged_in'] = true;
         if ($remember_me) {
             setcookie("admin_logged_in", true, time() + (86400 * 30), "/");
@@ -396,4 +396,3 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     </div>
 </body>
 </html>
-<?php if ($conn instanceof mysqli) { mysqli_close($conn); } ?>
