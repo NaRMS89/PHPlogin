@@ -126,12 +126,12 @@ while ($row = mysqli_fetch_assoc($purposes_result)) {
                             <table id="sitinTable" class="table table-striped table-bordered">
                                 <thead>
                                     <tr>
-                                        <th>Student ID</th>
+                                        <th onclick="sortTable('student_id', 'number')" style="cursor: pointer;" data-sort="desc">Student ID ↓</th>
                                         <th>Purpose</th>
-                                        <th>Lab</th>
-                                        <th>Login Time</th>
-                                        <th>Logout Time</th>
-                                        <th>Duration</th>
+                                        <th onclick="sortTable('lab', 'number')" style="cursor: pointer;" data-sort="desc">Lab ↓</th>
+                                        <th onclick="sortTable('login_time', 'date')" style="cursor: pointer;" data-sort="desc">Login Time ↓</th>
+                                        <th onclick="sortTable('logout_time', 'date')" style="cursor: pointer;" data-sort="desc">Logout Time ↓</th>
+                                        <th onclick="sortTable('duration', 'number')" style="cursor: pointer;" data-sort="desc">Duration ↓</th>
                                         <th>Feedback</th>
                                     </tr>
                                 </thead>
@@ -197,11 +197,18 @@ while ($row = mysqli_fetch_assoc($purposes_result)) {
                         <label>Purpose:</label>
                         <select id="exportPurpose" class="form-control">
                             <option value="">All Purposes</option>
-                            <?php foreach ($purposes as $purpose): ?>
-                                <option value="<?php echo htmlspecialchars($purpose); ?>">
-                                    <?php echo htmlspecialchars($purpose); ?>
-                                </option>
-                            <?php endforeach; ?>
+                            <option value="C Programming">C Programming</option>
+                            <option value="Java Programming">Java Programming</option>
+                            <option value="Python">Python</option>
+                            <option value="C# Database">C# Database</option>
+                            <option value="Digital Logic & Design">Digital Logic & Design</option>
+                            <option value="Embedded Systems and IoT">Embedded Systems and IoT</option>
+                            <option value="System Integration and Architecture">System Integration and Architecture</option>
+                            <option value="Computer Application">Computer Application</option>
+                            <option value="Project Management">Project Management</option>
+                            <option value="IT Trend">IT Trend</option>
+                            <option value="Technopreneurship">Technopreneurship</option>
+                            <option value="Capstone">Capstone</option>
                         </select>
                     </div>
                     <div class="filter-section">
@@ -305,6 +312,46 @@ while ($row = mysqli_fetch_assoc($purposes_result)) {
 
         function closeModal(modalId) {
             document.getElementById(modalId).style.display = 'none';
+        }
+
+        function sortTable(column, type) {
+            const table = document.getElementById('sitinTable');
+            const tbody = table.getElementsByTagName('tbody')[0];
+            const rows = Array.from(tbody.getElementsByTagName('tr'));
+            const header = table.querySelector(`th[onclick*="${column}"]`);
+            const currentSort = header.getAttribute('data-sort') || 'desc';
+            const newSort = currentSort === 'asc' ? 'desc' : 'asc';
+            
+            // Reset all headers
+            table.querySelectorAll('th[onclick]').forEach(th => {
+                const text = th.textContent;
+                th.textContent = text.replace(' ↑', ' ↓').replace(' ↓', ' ↓');
+            });
+            
+            // Update current header
+            header.textContent = header.textContent.replace(' ↓', newSort === 'asc' ? ' ↑' : ' ↓');
+            header.setAttribute('data-sort', newSort);
+
+            rows.sort((a, b) => {
+                let aValue = a.cells[Array.from(a.parentNode.parentNode.getElementsByTagName('th')).findIndex(th => th.getAttribute('onclick')?.includes(column))].textContent.trim();
+                let bValue = b.cells[Array.from(b.parentNode.parentNode.getElementsByTagName('th')).findIndex(th => th.getAttribute('onclick')?.includes(column))].textContent.trim();
+
+                if (type === 'number') {
+                    aValue = parseFloat(aValue) || 0;
+                    bValue = parseFloat(bValue) || 0;
+                } else if (type === 'date') {
+                    aValue = new Date(aValue).getTime();
+                    bValue = new Date(bValue).getTime();
+                }
+
+                if (newSort === 'asc') {
+                    return aValue > bValue ? 1 : -1;
+                } else {
+                    return aValue < bValue ? 1 : -1;
+                }
+            });
+
+            rows.forEach(row => tbody.appendChild(row));
         }
     </script>
 </body>

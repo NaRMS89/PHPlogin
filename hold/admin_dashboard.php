@@ -32,9 +32,10 @@ function getAllStudents($conn) {
 
 function getCurrentSitInStudents($conn) {
     $sql = "SELECT s.id as sitin_id, s.id_number, s.purpose, s.lab, s.status, 
-            i.first_name, i.last_name, i.sessions 
+            i.first_name, i.last_name, i.sessions, f.feedback_text, f.feedback_date
             FROM sitin s 
             JOIN info i ON s.id_number = i.id_number 
+            LEFT JOIN feedback f ON s.id = f.sit_in_id
             WHERE s.status = 'active' 
             ORDER BY s.id DESC";
     $result = mysqli_query($conn, $sql);
@@ -197,6 +198,87 @@ if ($conn instanceof mysqli) {
 } else {
     error_log("Database connection failed.");
     die("Could not connect to the database.");
+}
+
+if (isset($_POST['export_excel'])) {
+    $start_date = $_POST['start_date'];
+    $end_date = $_POST['end_date'];
+    
+    // Set headers for CSV download
+    header('Content-Type: text/csv');
+    header('Content-Disposition: attachment;filename="sit_in_report.csv"');
+    
+    // Create output stream
+    $output = fopen('php://output', 'w');
+    
+    // Add CSV headers
+    fputcsv($output, array('ID Number', 'Student Name', 'Lab Room', 'Purpose', 'Login Time', 'Logout Time', 'Duration', 'Feedback'));
+    
+    // Fetch data from database
+    $query = "SELECT sr.*, i.name 
+              FROM sitin_report sr 
+              JOIN info i ON sr.id_number = i.id_number 
+              WHERE sr.login_time BETWEEN ? AND ? 
+              ORDER BY sr.login_time DESC";
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param("ss", $start_date, $end_date);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    
+    // Add data rows
+    while ($data = $result->fetch_assoc()) {
+        $row = array(
+            $data['id_number'],
+            $data['name'],
+            $data['lab'],
+            $data['purpose'],
+            $data['login_time'],
+            $data['logout_time'],
+            $data['duration'],
+            $data['feedback']
+        );
+        fputcsv($output, $row);
+    }
+    
+    fclose($output);
+    exit;
+}
+
+function addFeedback($sitInId, $feedbackText, $conn) {
+    $sql = "INSERT INTO feedback (sit_in_id, feedback_text, feedback_date) VALUES (?, ?, NOW())";
+    $stmt = mysqli_prepare($conn, $sql);
+    mysqli_stmt_bind_param($stmt, "is", $sitInId, $feedbackText);
+    return mysqli_stmt_execute($stmt);
+}
+
+function getFeedback($sitInId, $conn) {
+    $sql = "SELECT * FROM feedback WHERE sit_in_id = ?";
+    $stmt = mysqli_prepare($conn, $sql);
+    mysqli_stmt_bind_param($stmt, "i", $sitInId);
+    mysqli_stmt_execute($stmt);
+    $result = mysqli_stmt_get_result($stmt);
+    return mysqli_fetch_assoc($result);
+}
+
+// Handle feedback submission
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit_feedback'])) {
+    $sitInId = $_POST['sit_in_id'];
+    $feedbackText = $_POST['feedback_text'];
+    
+    if (addFeedback($sitInId, $feedbackText, $conn)) {
+        echo json_encode(['success' => true, 'message' => 'Feedback submitted successfully']);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Error submitting feedback']);
+    }
+    exit();
+}
+
+// Handle feedback retrieval
+if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['get_feedback'])) {
+    $sitInId = $_GET['sit_in_id'];
+    $feedback = getFeedback($sitInId, $conn);
+    echo json_encode($feedback);
+    exit();
 }
 ?>
 <!DOCTYPE html>
@@ -569,75 +651,60 @@ if ($conn instanceof mysqli) {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 20px;
-            margin-top: 30px;
+            margin: 30px auto;
             background: var(--background);
             padding: 20px;
             border-radius: 10px;
             box-shadow: 0.4rem 0.4rem 2.4rem 0.2rem var(--shadow-1);
+            width: 100%;
+            max-width: 1200px;
         }
 
         .announcement-form {
             padding: 20px;
-        }
-
-        .announcement-form h3,
-        .announcement-list h3 {
-            color: var(--light);
-            margin-bottom: 15px;
-            font-size: 1.8rem;
-        }
-
-        .announcement-form textarea {
-            width: 100%;
-            padding: 15px;
-            border: 1px solid var(--border-color);
-            border-radius: 5px;
-            background: transparent;
-            color: var(--light);
-            margin-bottom: 15px;
-            resize: vertical;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            border-right: 1px solid var(--border-color);
         }
 
         .announcement-list {
             padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
         }
 
         .announcement-scroll {
             height: 300px;
             overflow-y: auto;
             padding-right: 10px;
-        }
-
-        .announcement-scroll::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        .announcement-scroll::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 4px;
-        }
-
-        .announcement-scroll::-webkit-scrollbar-thumb {
-            background: var(--primary);
-            border-radius: 4px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
         }
 
         .announcement-item {
             background: rgba(255, 255, 255, 0.05);
             padding: 15px;
             border-radius: 8px;
-            margin-bottom: 15px;
             border: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            transition: transform 0.2s ease;
         }
 
-        .announcement-item:last-child {
-            margin-bottom: 0;
+        .announcement-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
 
         .announcement-text {
             color: var(--light);
-            margin-bottom: 10px;
             font-size: 1.4rem;
+            word-wrap: break-word;
+            line-height: 1.5;
         }
 
         .announcement-date {
@@ -645,6 +712,20 @@ if ($conn instanceof mysqli) {
             font-size: 1.2rem;
             text-align: right;
             font-style: italic;
+            margin-top: auto;
+        }
+
+        /* Responsive styles for announcements */
+        @media (max-width: 768px) {
+            .announcement-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .announcement-form {
+                border-right: none;
+                border-bottom: 1px solid var(--border-color);
+                padding-bottom: 20px;
+            }
         }
 
         /* Filter and Header Styles */
@@ -1069,10 +1150,33 @@ if ($conn instanceof mysqli) {
                                 <th>Sit-in Lab</th>
                                 <th>Session</th>
                                 <th>Status</th>
+                                
                                 <th>Action</th>
                             </tr>
                         </thead>
-                        <tbody id="sitinTableBody"></tbody>
+                        <tbody id="sitinTableBody">
+                            <?php foreach ($currentSitInStudents as $student): ?>
+                            <tr>
+                                <td><?php echo $student['sitin_id']; ?></td>
+                                <td><?php echo $student['id_number']; ?></td>
+                                <td><?php echo $student['first_name'] . ' ' . $student['last_name']; ?></td>
+                                <td><?php echo $student['purpose']; ?></td>
+                                <td><?php echo $student['lab']; ?></td>
+                                <td><?php echo $student['sessions']; ?></td>
+                                <td><?php echo $student['status']; ?></td>
+                                <td>
+                                    <?php if (empty($student['feedback_text'])): ?>
+                                        <button onclick="openFeedbackModal(<?php echo $student['sitin_id']; ?>)">Give Feedback</button>
+                                    <?php else: ?>
+                                        <button onclick="viewFeedback(<?php echo $student['sitin_id']; ?>)">View Feedback</button>
+                                    <?php endif; ?>
+                                </td>
+                                <td>
+                                    <button onclick="logoutSitIn('<?php echo $student['id_number']; ?>')">Logout</button>
+                                </td>
+                            </tr>
+                            <?php endforeach; ?>
+                        </tbody>
                     </table>
                 </div>
                 <div class="sitin-pagination" style="text-align: center;">
@@ -1308,7 +1412,7 @@ if ($conn instanceof mysqli) {
                                 <tbody>
                                     <?php
                                     // Lab rooms
-                                    $lab_rooms = ['524', '526', '528', '530', '542', 'Mac Lab'];
+                                    $lab_rooms = ['524', '526', '528', '530', '542', '544', '517'];
                                     
                                     foreach ($lab_rooms as $room) {
                                         // Get current occupancy
@@ -1454,7 +1558,8 @@ if ($conn instanceof mysqli) {
                                 <option value="528">528</option>
                                 <option value="530">530</option>
                                 <option value="542">542</option>
-                                <option value="Mac Lab">Mac Lab</option>
+                                <option value="544">544</option>
+                                <option value="517">517</option>
                             </select>
                         </div>
                         <div class="form-group">
@@ -1463,9 +1568,16 @@ if ($conn instanceof mysqli) {
                                 <option value="">All Purposes</option>
                                 <option value="C Programming">C Programming</option>
                                 <option value="Java Programming">Java Programming</option>
-                                <option value="C# Programming">C# Programming</option>
-                                <option value="PHP Programming">PHP Programming</option>
-                                <option value="ASP.NET Programming">ASP.NET Programming</option>
+                                <option value="Python">Python</option>
+                                <option value="C# Database">C# Database</option>
+                                <option value="Digital Logic & Design">Digital Logic & Design</option>
+                                <option value="Embedded Systems and IoT">Embedded Systems and IoT</option>
+                                <option value="System Integration and Architecture">System Integration and Architecture</option>
+                                <option value="Computer Application">Computer Application</option>
+                                <option value="Project Management">Project Management</option>
+                                <option value="IT Trends">IT Trends</option>
+                                <option value="Technopreneurship">Technopreneurship</option>
+                                <option value="Capstone">Capstone</option>
                             </select>
                         </div>
                         <div class="button-group">
@@ -1475,9 +1587,7 @@ if ($conn instanceof mysqli) {
                     </div>
                 </div>
                 
-                <div class="search-control" style="margin: 20px 0;">
-                    <input type="text" id="searchInput" placeholder="Search by ID, Name, Purpose, or Lab..." style="width: 100%; padding: 10px;">
-                </div>
+
 
                 <div class="charts-container">
                     <div class="chart-box">
@@ -1488,6 +1598,10 @@ if ($conn instanceof mysqli) {
                         <h3>Lab Usage Distribution</h3>
                         <canvas id="labPieChart"></canvas>
                     </div>
+                </div>
+                
+                <div class="search-control" style="margin: 20px 0;">
+                    <input type="text" id="searchInput" placeholder="Search by ID, Name, Purpose, or Lab..." style="width: 100%; padding: 10px;">
                 </div>
 
                 <div class="data-controls">
@@ -1533,42 +1647,53 @@ if ($conn instanceof mysqli) {
     </main>
 
     <div id="studentInfoModal" class="modal-container">
-        <div class="modal">
-            <span class="close" onclick="closeModal('studentInfoModal')">&times;</span>
+        <div class="modal" style="background: var(--background); border-radius: 10px; padding: 25px; max-width: 500px; margin: 50px auto; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
             
-            <h2 class="modal-title">Sit-in Form</h2>
-            <div class="form-group">
-                <p><b>ID Number:</b> <span id="studentIdNo"></span></p>
-                <p><b>Student Name:</b> <span id="studentName"></span></p>
-                <p><b>Remaining Sessions:</b> <span id="remainingSessions"></span></p>
+            
+            <h2 class="modal-title" style="color: var(--light); margin-bottom: 20px; font-size: 24px; text-align: center;">Sit-in Form</h2>
+            
+            <div class="form-group" style="background: rgba(255, 255, 255, 0.05); padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid var(--border-color);">
+                <p style="margin: 8px 0;"><b style="color: var(--light);">ID Number:</b> <span id="studentIdNo" style="color: var(--light);">2000</span></p>
+                <p style="margin: 8px 0;"><b style="color: var(--light);">Student Name:</b> <span id="studentName" style="color: var(--light);">Maria Reyes</span></p>
+                <p style="margin: 8px 0;"><b style="color: var(--light);">Remaining Sessions:</b> <span id="remainingSessions" style="color: var(--light);">29</span></p>
             </div>
 
-            <div class="form-group">
-                <label for="purpose"><b>Purpose:</b></label>
-                <select id="purpose" class="compact-select">
-                    <option value="C Programming">C Programming</option>
-                    <option value="Java Programming">Java Programming</option>
-                    <option value="C# Programming">C# Programming</option>
-                    <option value="PHP Programming">PHP Programming</option>
-                    <option value="ASP.NET Programming">ASP.NET Programming</option>
+            <div class="form-group" style="margin-bottom: 20px;">
+                <label for="purpose" style="display: block; margin-bottom: 8px; color: var(--light); font-weight: bold;">Purpose:</label>
+                <select id="purpose" class="compact-select" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 5px; background: transparent; color: var(--light); font-size: 14px; appearance: none; -webkit-appearance: none; -moz-appearance: none; background-image: url('data:image/svg+xml;utf8,<svg fill="%23ffffff" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>'); background-repeat: no-repeat; background-position: right 10px center; padding-right: 30px;">
+                    <option value="" style="background: var(--background); color: var(--light);">Select Purpose</option>
+                    <option value="C Programming" style="background: var(--background); color: var(--light);">C Programming</option>
+                    <option value="Java Programming" style="background: var(--background); color: var(--light);">Java Programming</option>
+                    <option value="Python" style="background: var(--background); color: var(--light);">Python</option>
+                    <option value="C# Database" style="background: var(--background); color: var(--light);">C# Database</option>
+                    <option value="Digital Logic & Design" style="background: var(--background); color: var(--light);">Digital Logic & Design</option>
+                    <option value="Embedded Systems and IoT" style="background: var(--background); color: var(--light);">Embedded Systems and IoT</option>
+                    <option value="System Integration and Architecture" style="background: var(--background); color: var(--light);">System Integration and Architecture</option>
+                    <option value="Computer Application" style="background: var(--background); color: var(--light);">Computer Application</option>
+                    <option value="Project Management" style="background: var(--background); color: var(--light);">Project Management</option>
+                    <option value="IT Trend" style="background: var(--background); color: var(--light);">IT Trend</option>
+                    <option value="Technopreneurship" style="background: var(--background); color: var(--light);">Technopreneurship</option>
+                    <option value="Capstone" style="background: var(--background); color: var(--light);">Capstone</option>
                 </select>
             </div>
 
-            <div class="form-group">
-                <label for="lab"><b>Lab:</b></label>
-                <select id="lab" class="compact-select">
-                    <option value="524">524</option>
-                    <option value="526">526</option>
-                    <option value="528">528</option>
-                    <option value="530">530</option>
-                    <option value="542">542</option>
-                    <option value="Mac Lab">Mac Lab</option>
+            <div class="form-group" style="margin-bottom: 25px;">
+                <label for="lab" style="display: block; margin-bottom: 8px; color: var(--light); font-weight: bold;">Lab:</label>
+                <select id="lab" class="compact-select" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 5px; background: transparent; color: var(--light); font-size: 14px; appearance: none; -webkit-appearance: none; -moz-appearance: none; background-image: url('data:image/svg+xml;utf8,<svg fill="%23ffffff" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>'); background-repeat: no-repeat; background-position: right 10px center; padding-right: 30px;">
+                    <option value="" style="background: var(--background); color: var(--light);">Select Lab Room</option>
+                    <option value="524" style="background: var(--background); color: var(--light);">Lab 524</option>
+                    <option value="526" style="background: var(--background); color: var(--light);">Lab 526</option>
+                    <option value="528" style="background: var(--background); color: var(--light);">Lab 528</option>
+                    <option value="530" style="background: var(--background); color: var(--light);">Lab 530</option>
+                    <option value="542" style="background: var(--background); color: var(--light);">Lab 542</option>
+                    <option value="544" style="background: var(--background); color: var(--light);">Lab 544</option>
+                    <option value="517" style="background: var(--background); color: var(--light);">Lab 517</option>
                 </select>
             </div>
 
-            <div class="button-group">
-                <button class="modal-button primary" onclick="addSitIn()">Sit-in</button>
-                <button class="modal-button secondary" onclick="closeModal('studentInfoModal')">Close</button>
+            <div class="button-group" style="display: flex; gap: 10px; justify-content: flex-end;">
+                <button class="modal-button primary" onclick="addSitIn()" style="padding: 10px 20px; background: transparent; color: var(--light); border: 1px solid var(--border-color); border-radius: 5px; cursor: pointer; font-weight: bold; transition: all 0.3s ease;">Sit-in</button>
+                <button class="modal-button secondary" onclick="closeModal('studentInfoModal')" style="padding: 10px 20px; background: transparent; color: var(--light); border: 1px solid var(--border-color); border-radius: 5px; cursor: pointer; font-weight: bold; transition: all 0.3s ease;">Close</button>
             </div>
         </div>
     </div>
@@ -1647,9 +1772,31 @@ if ($conn instanceof mysqli) {
     <div id="feedbackModal" class="modal-container">
         <div class="modal">
             <span class="close" onclick="closeModal('feedbackModal')">&times;</span>
-            <h2 class="modal-title">Student Feedback</h2>
-            <div class="feedback-content">
-                <div id="feedbackText"></div>
+            <h2 class="modal-title">Submit Feedback</h2>
+            <form id="feedbackForm">
+                <input type="hidden" id="sitInId" name="sit_in_id">
+                <div class="form-group">
+                    <label for="feedbackText">Feedback:</label>
+                    <textarea id="feedbackText" name="feedback_text" rows="4" required></textarea>
+                </div>
+                <div class="button-group">
+                    <button type="submit" class="modal-button primary">Submit</button>
+                    <button type="button" class="modal-button secondary" onclick="closeModal('feedbackModal')">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- View Feedback Modal -->
+    <div id="viewFeedbackModal" class="modal-container">
+        <div class="modal">
+            <span class="close" onclick="closeModal('viewFeedbackModal')">&times;</span>
+            <h2 class="modal-title">Feedback</h2>
+            <div id="feedbackContent" class="feedback-content">
+                <!-- Feedback content will be loaded here -->
+            </div>
+            <div class="button-group">
+                <button class="modal-button secondary" onclick="closeModal('viewFeedbackModal')">Close</button>
             </div>
         </div>
     </div>
@@ -3025,6 +3172,53 @@ if ($conn instanceof mysqli) {
                     alert('Error loading feedback. Please try again.');
                 });
         }
+
+        function openFeedbackModal(sitInId) {
+            document.getElementById('sitInId').value = sitInId;
+            openModal('feedbackModal');
+        }
+
+        function viewFeedback(sitInId) {
+            fetch(`?get_feedback=1&sit_in_id=${sitInId}`)
+                .then(response => response.json())
+                .then(data => {
+                    const feedbackContent = document.getElementById('feedbackContent');
+                    feedbackContent.innerHTML = `
+                        <p><strong>Feedback:</strong> ${data.feedback_text}</p>
+                        <p><strong>Date:</strong> ${data.feedback_date}</p>
+                    `;
+                    openModal('viewFeedbackModal');
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error loading feedback');
+                });
+        }
+
+        document.getElementById('feedbackForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            formData.append('submit_feedback', '1');
+
+            fetch('', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Feedback submitted successfully');
+                    closeModal('feedbackModal');
+                    location.reload();
+                } else {
+                    alert('Error submitting feedback');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error submitting feedback');
+            });
+        });
     </script>
 </body>
 </html>
