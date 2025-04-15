@@ -164,8 +164,12 @@ CREATE TABLE `sitin_report` (
   `purpose` varchar(255) NOT NULL,
   `lab` varchar(255) NOT NULL,
   `login_time` timestamp NOT NULL DEFAULT current_timestamp(),
-  `logout_time` timestamp NULL DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+  `logout_time` timestamp NULL DEFAULT NULL,
+  `duration` int(11) DEFAULT NULL,
+  `status` enum('active','inactive','timeout') NOT NULL DEFAULT 'active',
+  `feedback` text DEFAULT NULL,
+  `feedback_date` timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci; 
 
 --
 -- Dumping data for table `sitin_report`
@@ -192,6 +196,88 @@ CREATE TABLE `sit_in_history` (
   `status` enum('active','inactive','timeout') NOT NULL DEFAULT 'active',
   `admin_id` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Create views for common queries
+--
+
+CREATE OR REPLACE VIEW `v_active_sitins` AS
+SELECT s.*, i.first_name, i.last_name
+FROM sitin s
+JOIN info i ON s.id_number = i.id_number
+WHERE s.status = 'active';
+
+CREATE OR REPLACE VIEW `v_daily_stats` AS
+SELECT 
+    DATE(login_time) as date,
+    COUNT(*) as total_sitins,
+    COUNT(DISTINCT id_number) as active_users,
+    MAX(CASE WHEN lab_count = max_lab_count THEN lab ELSE NULL END) as most_used_lab,
+    MAX(CASE WHEN purpose_count = max_purpose_count THEN purpose ELSE NULL END) as most_used_purpose,
+    AVG(TIMESTAMPDIFF(MINUTE, login_time, logout_time)) as avg_duration
+FROM (
+    SELECT 
+        s.*,
+        COUNT(*) OVER (PARTITION BY DATE(login_time), lab) as lab_count,
+        MAX(COUNT(*)) OVER (PARTITION BY DATE(login_time)) as max_lab_count,
+        COUNT(*) OVER (PARTITION BY DATE(login_time), purpose) as purpose_count,
+        MAX(COUNT(*)) OVER (PARTITION BY DATE(login_time)) as max_purpose_count
+    FROM sitin_report s
+) as subquery
+GROUP BY DATE(login_time);
+
+-- --------------------------------------------------------
+
+--
+-- Add triggers for automatic updates
+--
+
+DELIMITER //
+
+CREATE TRIGGER `trg_update_sit_in_duration`
+BEFORE UPDATE ON `sitin_report`
+FOR EACH ROW
+BEGIN
+    IF NEW.logout_time IS NOT NULL AND OLD.logout_time IS NULL THEN
+        SET NEW.duration = TIMESTAMPDIFF(MINUTE, NEW.login_time, NEW.logout_time);
+    END IF;
+END//
+
+DELIMITER ;
+
+-- --------------------------------------------------------
+
+--
+-- Add stored procedures for common operations
+--
+
+DELIMITER //
+
+CREATE PROCEDURE `sp_get_student_stats`(IN p_id_number VARCHAR(20))
+BEGIN
+    SELECT 
+        COUNT(*) as total_sitins,
+        AVG(TIMESTAMPDIFF(MINUTE, login_time, logout_time)) as avg_duration,
+        COUNT(DISTINCT lab) as labs_used,
+        COUNT(DISTINCT purpose) as purposes_used
+    FROM sitin_report
+    WHERE id_number = p_id_number;
+END//
+
+CREATE PROCEDURE `sp_get_lab_stats`(IN p_lab VARCHAR(50))
+BEGIN
+    SELECT 
+        COUNT(*) as total_sitins,
+        COUNT(DISTINCT id_number) as unique_students,
+        AVG(TIMESTAMPDIFF(MINUTE, login_time, logout_time)) as avg_duration,
+        COUNT(DISTINCT purpose) as purposes_used
+    FROM sitin_report
+    WHERE lab = p_lab;
+END//
+
+DELIMITER ;
 
 --
 -- Indexes for dumped tables
