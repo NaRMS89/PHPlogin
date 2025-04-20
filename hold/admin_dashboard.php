@@ -260,6 +260,50 @@ function getFeedback($sitInId, $conn) {
     return mysqli_fetch_assoc($result);
 }
 
+// Add this function for exporting Sit-in Data to PDF
+function exportSitInDataToPDF($data) {
+    require_once __DIR__ . '/vendor/autoload.php'; // Adjust the path if necessary
+    $pdf = new \TCPDF();
+
+    // Set document information
+    $pdf->SetCreator('Admin Dashboard');
+    $pdf->SetAuthor('System Admin');
+    $pdf->SetTitle('Sit-in Data Report');
+    $pdf->SetSubject('Sit-in Data');
+    $pdf->SetKeywords('Sit-in, Report, PDF');
+
+    // Add a page
+    $pdf->AddPage();
+
+    // Set header
+    $pdf->SetFont('helvetica', 'B', 14);
+    $pdf->Cell(0, 10, 'Sit-in Data Report', 0, 1, 'C');
+
+    // Add table header
+    $pdf->SetFont('helvetica', 'B', 10);
+    $pdf->SetFillColor(240, 240, 240);
+    $pdf->Cell(30, 7, 'ID Number', 1, 0, 'C', 1);
+    $pdf->Cell(40, 7, 'Purpose', 1, 0, 'C', 1);
+    $pdf->Cell(30, 7, 'Lab', 1, 0, 'C', 1);
+    $pdf->Cell(40, 7, 'Login Time', 1, 0, 'C', 1);
+    $pdf->Cell(40, 7, 'Logout Time', 1, 0, 'C', 1);
+    $pdf->Cell(20, 7, 'Duration', 1, 1, 'C', 1);
+
+    // Add table rows
+    $pdf->SetFont('helvetica', '', 10);
+    foreach ($data as $row) {
+        $pdf->Cell(30, 7, $row['id_number'], 1);
+        $pdf->Cell(40, 7, $row['purpose'], 1);
+        $pdf->Cell(30, 7, $row['lab'], 1);
+        $pdf->Cell(40, 7, $row['login_time'], 1);
+        $pdf->Cell(40, 7, $row['logout_time'], 1);
+        $pdf->Cell(20, 7, $row['duration'], 1, 1);
+    }
+
+    // Output PDF
+    $pdf->Output('sit_in_data_report.pdf', 'D');
+}
+
 // Handle feedback submission
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit_feedback'])) {
     $sitInId = $_POST['sit_in_id'];
@@ -279,6 +323,14 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['get_feedback'])) {
     $feedback = getFeedback($sitInId, $conn);
     echo json_encode($feedback);
     exit();
+}
+
+// Handle export request
+if (isset($_POST['export_sitindata_pdf'])) {
+    // Fetch data for export
+    $sitInData = []; // Replace with actual data fetching logic
+    exportSitInDataToPDF($sitInData);
+    exit;
 }
 ?>
 <!DOCTYPE html>
@@ -2211,6 +2263,9 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['get_feedback'])) {
                         <tbody id="studentTableBody"></tbody>
                     </table>
                 </div>
+                <div class="export-buttons">
+                    <button onclick="exportStudentDataToPDF()" class="btn btn-primary">Export to PDF</button>
+                </div>
             </div>
 
             <!-- Current Sit-in Content -->
@@ -2918,16 +2973,14 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['get_feedback'])) {
         </script>
     </main>
 
-    <div id="studentInfoModal" class="modal-container" style="display: none;">
-        <div class="modal" style="background: var(--background); border-radius: 10px; padding: 25px; max-width: 500px; margin: 50px auto; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
+    <div id="studentInfoModal" class="modal-container active" style="display: flex; align-items: center; justify-content: center; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5);">
+        <div class="modal" style="background: var(--background); border-radius: 10px; padding: 25px; max-width: 500px; margin: auto; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
             <h2 class="modal-title" style="color: var(--light); margin-bottom: 20px; font-size: 24px; text-align: center;">Sit-in Form</h2>
-            
             <div class="form-group" style="background: rgba(255, 255, 255, 0.05); padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid var(--border-color);">
-                <p style="margin: 8px 0;"><b style="color: var(--light);">ID Number:</b> <span id="studentIdNo" style="color: var(--light);">N/A</span></p>
-                <p style="margin: 8px 0;"><b style="color: var(--light);">Student Name:</b> <span id="studentName" style="color: var(--light);">N/A</span></p>
-                <p style="margin: 8px 0;"><b style="color: var(--light);">Remaining Sessions:</b> <span id="remainingSessions" style="color: var(--light);">0</span></p>
+                <p style="margin: 8px 0;"><b style="color: var(--light);">ID Number:</b> <span id="studentIdNo" style="color: var(--light);">5000</span></p>
+                <p style="margin: 8px 0;"><b style="color: var(--light);">Student Name:</b> <span id="studentName" style="color: var(--light);">Juan Dela Cruz</span></p>
+                <p style="margin: 8px 0;"><b style="color: var(--light);">Remaining Sessions:</b> <span id="remainingSessions" style="color: var(--light);">undefined</span></p>
             </div>
-
             <div class="form-group" style="margin-bottom: 20px;">
                 <label for="purpose" style="display: block; margin-bottom: 8px; color: var(--light); font-weight: bold;">Purpose:</label>
                 <select id="purpose" class="compact-select" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 5px; background: #1a1a2e; color: var(--light); font-size: 14px;">
@@ -2936,7 +2989,7 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['get_feedback'])) {
                     <option value="Java Programming">Java Programming</option>
                     <option value="Python">Python</option>
                     <option value="C# Database">C# Database</option>
-                    <option value="Digital Logic & Design">Digital Logic & Design</option>
+                    <option value="Digital Logic &amp; Design">Digital Logic &amp; Design</option>
                     <option value="Embedded Systems and IoT">Embedded Systems and IoT</option>
                     <option value="System Integration and Architecture">System Integration and Architecture</option>
                     <option value="Computer Application">Computer Application</option>
@@ -2946,7 +2999,6 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['get_feedback'])) {
                     <option value="Capstone">Capstone</option>
                 </select>
             </div>
-
             <div class="form-group" style="margin-bottom: 25px;">
                 <label for="lab" style="display: block; margin-bottom: 8px; color: var(--light); font-weight: bold;">Lab:</label>
                 <select id="lab" class="compact-select" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 5px; background: #1a1a2e; color: var(--light); font-size: 14px;">
@@ -2960,7 +3012,6 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['get_feedback'])) {
                     <option value="517">Lab 517</option>
                 </select>
             </div>
-
             <div class="button-group" style="display: flex; gap: 10px; justify-content: flex-end;">
                 <button class="modal-button primary" onclick="addSitIn()" style="padding: 10px 20px; background: transparent; color: var(--light); border: 1px solid var(--border-color); border-radius: 5px; cursor: pointer; font-weight: bold; transition: all 0.3s ease;">Sit-in</button>
                 <button class="modal-button secondary" onclick="closeModal('studentInfoModal')" style="padding: 10px 20px; background: transparent; color: var(--light); border: 1px solid var(--border-color); border-radius: 5px; cursor: pointer; font-weight: bold; transition: all 0.3s ease;">Close</button>
@@ -3096,6 +3147,11 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['get_feedback'])) {
         let entriesPerPage = 10;
 
         document.addEventListener('DOMContentLoaded', function() {
+            // Ensure all modals are hidden by default
+            document.querySelectorAll('.modal-container').forEach(modal => {
+                modal.style.display = 'none';
+            });
+
             // Sidebar button click handlers
             document.querySelectorAll('.sidebar button').forEach(button => {
                 button.addEventListener('click', function() {
@@ -3485,8 +3541,8 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['get_feedback'])) {
                                 backgroundColor: [
                                     'hsla(350, 100%, 70%, 0.7)',  // Red
                                     'hsla(200, 100%, 70%, 0.7)',  // Blue
+                                    'hsla(200, 100%, 70%, 0.7)',  // Blue
                                     'hsla(145, 100%, 70%, 0.7)',  // Green
-                                    'hsla(45, 100%, 70%, 0.7)',   // Yellow
                                     'hsla(280, 100%, 70%, 0.7)',  // Purple
                                 ],
                                 borderColor: [
@@ -3775,25 +3831,29 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['get_feedback'])) {
 
         function openModal(modalId) {
             const modal = document.getElementById(modalId);
-            modal.style.display = 'flex';
-            // Force reflow
-            modal.offsetHeight;
-            modal.classList.add('active');
+            if (modal) {
+                modal.style.display = 'flex';
+                modal.classList.add('active');
+            }
         }
 
         function closeModal(modalId) {
             const modal = document.getElementById(modalId);
-            modal.classList.remove('active');
-            setTimeout(() => {
-                modal.style.display = 'none';
-            }, 300); // Match the transition duration
+            if (modal) {
+                modal.classList.remove('active');
+                setTimeout(() => {
+                    modal.style.display = 'none';
+                }, 300); // Match the transition duration
+            }
         }
 
         // Close modal if clicked outside
         window.addEventListener('click', function(event) {
-            if (event.target.classList.contains('modal-container')) {
-                closeModal(event.target.id);
-            }
+            document.querySelectorAll('.modal-container').forEach(modal => {
+                if (event.target === modal) {
+                    closeModal(modal.id);
+                }
+            });
         });
 
         // Prevent modal close when clicking inside modal-content
@@ -4566,6 +4626,10 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['get_feedback'])) {
                 Export Data
             </button>
         `;
+
+        function exportStudentDataToPDF() {
+            window.location.href = 'export_students_pdf.php';
+        }
     </script>
 
     <script>
