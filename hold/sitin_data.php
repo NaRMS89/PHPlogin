@@ -73,6 +73,68 @@ while ($row = mysqli_fetch_assoc($purposes_result)) {
             font-weight: bold;
             margin-bottom: 5px;
         }
+        .export-buttons .btn-group {
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .export-buttons .dropdown-menu {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .export-buttons .dropdown-item {
+            padding: 0.5rem 1.5rem;
+        }
+        .export-buttons .dropdown-item i {
+            margin-right: 8px;
+            width: 16px;
+            text-align: center;
+        }
+        .table thead th {
+            position: relative;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .table thead th.sortable:hover {
+            background-color: #f8f9fa;
+        }
+        .table thead th i {
+            margin-left: 5px;
+            color: #6c757d;
+        }
+        .table tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+        .table td {
+            vertical-align: middle;
+        }
+        @media (max-width: 768px) {
+            .table-responsive {
+                border: 0;
+            }
+            .table thead {
+                display: none;
+            }
+            .table tbody tr {
+                display: block;
+                margin-bottom: 1rem;
+                border: 1px solid #dee2e6;
+                border-radius: 4px;
+            }
+            .table tbody td {
+                display: block;
+                text-align: right;
+                padding-left: 50%;
+                position: relative;
+                border-bottom: 1px solid #dee2e6;
+            }
+            .table tbody td:before {
+                content: attr(data-label);
+                position: absolute;
+                left: 0;
+                width: 50%;
+                padding-left: 1rem;
+                font-weight: bold;
+                text-align: left;
+            }
+        }
     </style>
 </head>
 <body>
@@ -93,18 +155,26 @@ while ($row = mysqli_fetch_assoc($purposes_result)) {
 
                         <!-- Export Buttons -->
                         <div class="export-buttons mb-3">
-                            <button class="btn btn-primary" onclick="openExportModal('pdf')">
-                                <i class="fas fa-file-pdf"></i> Export PDF
-                            </button>
-                            <button class="btn btn-success" onclick="openExportModal('excel')">
-                                <i class="fas fa-file-excel"></i> Export Excel
-                            </button>
-                            <button class="btn btn-info" onclick="openExportModal('csv')">
-                                <i class="fas fa-file-csv"></i> Export CSV
-                            </button>
-                            <button class="btn btn-secondary" onclick="window.print()">
-                                <i class="fas fa-print"></i> Print
-                            </button>
+                            <div class="btn-group">
+                                <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    <i class="fas fa-download"></i> Export Data
+                                </button>
+                                <div class="dropdown-menu">
+                                    <a class="dropdown-item" href="#" onclick="openExportModal('pdf')">
+                                        <i class="fas fa-file-pdf text-danger"></i> Export as PDF
+                                    </a>
+                                    <a class="dropdown-item" href="#" onclick="openExportModal('excel')">
+                                        <i class="fas fa-file-excel text-success"></i> Export as Excel
+                                    </a>
+                                    <a class="dropdown-item" href="#" onclick="openExportModal('csv')">
+                                        <i class="fas fa-file-csv text-info"></i> Export as CSV
+                                    </a>
+                                    <div class="dropdown-divider"></div>
+                                    <a class="dropdown-item" href="#" onclick="window.print()">
+                                        <i class="fas fa-print text-secondary"></i> Print
+                                    </a>
+                                </div>
+                            </div>
                         </div>
 
                         <!-- Date Filter -->
@@ -123,18 +193,18 @@ while ($row = mysqli_fetch_assoc($purposes_result)) {
 
                         <!-- Data Table -->
                         <div class="table-responsive">
-                            <table id="sitinTable" class="table table-striped table-bordered">
-                                <thead>
+                            <table id="sitinTable" class="table table-hover table-bordered">
+                                <thead class="thead-light">
                                     <tr>
-                                        <th onclick="sortTable('id_number', 'number')" style="cursor: pointer;">ID Number ↕</th>
-                                        <th>Purpose</th>
-                                        <th>Lab</th>
-                                        <th onclick="sortTable('login_time', 'date')" style="cursor: pointer;">Login Time ↕</th>
-                                        <th onclick="sortTable('logout_time', 'date')" style="cursor: pointer;">Logout Time ↕</th>
-                                        <th onclick="sortTable('duration', 'number')" style="cursor: pointer;">Duration ↕</th>
-                                        <th>Status</th>
+                                        <th data-sort="id_number" class="sortable">ID Number <i class="fas fa-sort"></i></th>
+                                        <th data-sort="purpose" class="sortable">Purpose <i class="fas fa-sort"></i></th>
+                                        <th data-sort="lab" class="sortable">Lab <i class="fas fa-sort"></i></th>
+                                        <th data-sort="login_time" class="sortable">Login Time <i class="fas fa-sort"></i></th>
+                                        <th data-sort="logout_time" class="sortable">Logout Time <i class="fas fa-sort"></i></th>
+                                        <th data-sort="duration" class="sortable">Duration <i class="fas fa-sort"></i></th>
+                                        <th data-sort="status" class="sortable">Status <i class="fas fa-sort"></i></th>
                                         <th>Feedback</th>
-                                        <th onclick="sortTable('feedback_date', 'date')" style="cursor: pointer;">Feedback Date ↕</th>
+                                        <th data-sort="feedback_date" class="sortable">Feedback Date <i class="fas fa-sort"></i></th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -253,11 +323,25 @@ while ($row = mysqli_fetch_assoc($purposes_result)) {
         let exportType = '';
 
         $(document).ready(function() {
-            // Initialize DataTable
+            // Initialize DataTable with enhanced options
             sitinTable = $('#sitinTable').DataTable({
                 order: [[4, 'desc']], // Sort by login time by default
                 pageLength: 25,
-                dom: '<"top"f>rt<"bottom"lip><"clear">'
+                dom: '<"top"f>rt<"bottom"lip><"clear">',
+                language: {
+                    search: "Search records:",
+                    lengthMenu: "Show _MENU_ entries",
+                    info: "Showing _START_ to _END_ of _TOTAL_ entries",
+                    infoEmpty: "Showing 0 to 0 of 0 entries",
+                    infoFiltered: "(filtered from _MAX_ total entries)"
+                },
+                responsive: true
+            });
+
+            // Add data-label attributes for mobile view
+            $('#sitinTable thead th').each(function() {
+                var title = $(this).text().trim();
+                $('#sitinTable tbody td').eq($(this).index()).attr('data-label', title);
             });
 
             // Search functionality
