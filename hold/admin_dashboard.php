@@ -2918,48 +2918,46 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['get_feedback'])) {
         </script>
     </main>
 
-    <div id="studentInfoModal" class="modal-container">
+    <div id="studentInfoModal" class="modal-container" style="display: none;">
         <div class="modal" style="background: var(--background); border-radius: 10px; padding: 25px; max-width: 500px; margin: 50px auto; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
-            
-            
             <h2 class="modal-title" style="color: var(--light); margin-bottom: 20px; font-size: 24px; text-align: center;">Sit-in Form</h2>
             
             <div class="form-group" style="background: rgba(255, 255, 255, 0.05); padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid var(--border-color);">
-                <p style="margin: 8px 0;"><b style="color: var(--light);">ID Number:</b> <span id="studentIdNo" style="color: var(--light);">2000</span></p>
-                <p style="margin: 8px 0;"><b style="color: var(--light);">Student Name:</b> <span id="studentName" style="color: var(--light);">Maria Reyes</span></p>
-                <p style="margin: 8px 0;"><b style="color: var(--light);">Remaining Sessions:</b> <span id="remainingSessions" style="color: var(--light);">29</span></p>
+                <p style="margin: 8px 0;"><b style="color: var(--light);">ID Number:</b> <span id="studentIdNo" style="color: var(--light);">N/A</span></p>
+                <p style="margin: 8px 0;"><b style="color: var(--light);">Student Name:</b> <span id="studentName" style="color: var(--light);">N/A</span></p>
+                <p style="margin: 8px 0;"><b style="color: var(--light);">Remaining Sessions:</b> <span id="remainingSessions" style="color: var(--light);">0</span></p>
             </div>
 
             <div class="form-group" style="margin-bottom: 20px;">
                 <label for="purpose" style="display: block; margin-bottom: 8px; color: var(--light); font-weight: bold;">Purpose:</label>
-                <select id="purpose" class="compact-select" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 5px; background: #1a1a2e; color: var(--light); font-size: 14px; appearance: none; -webkit-appearance: none; -moz-appearance: none; background-image: url('data:image/svg+xml;utf8,<svg fill="%23ffffff" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>'); background-repeat: no-repeat; background-position: right 10px center; padding-right: 30px;">
+                <select id="purpose" class="compact-select" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 5px; background: #1a1a2e; color: var(--light); font-size: 14px;">
                     <option value="" style="background: #1a1a2e; color: var(--light);">Select Purpose</option>
-                    <option value="C Programming" style="background: #1a1a2e; color: var(--light);">C Programming</option>
-                    <option value="Java Programming" style="background: #1a1a2e; color: var(--light);">Java Programming</option>
-                    <option value="Python" style="background: #1a1a2e; color: var(--light);">Python</option>
-                    <option value="C# Database" style="background: #1a1a2e; color: var(--light);">C# Database</option>
-                    <option value="Digital Logic & Design" style="background: #1a1a2e; color: var(--light);">Digital Logic & Design</option>
-                    <option value="Embedded Systems and IoT" style="background: #1a1a2e; color: var(--light);">Embedded Systems and IoT</option>
-                    <option value="System Integration and Architecture" style="background: #1a1a2e; color: var(--light);">System Integration and Architecture</option>
-                    <option value="Computer Application" style="background: #1a1a2e; color: var(--light);">Computer Application</option>
-                    <option value="Project Management" style="background: #1a1a2e; color: var(--light);">Project Management</option>
-                    <option value="IT Trend" style="background: #1a1a2e; color: var(--light);">IT Trend</option>
-                    <option value="Technopreneurship" style="background: #1a1a2e; color: var(--light);">Technopreneurship</option>
-                    <option value="Capstone" style="background: #1a1a2e; color: var(--light);">Capstone</option>
+                    <option value="C Programming">C Programming</option>
+                    <option value="Java Programming">Java Programming</option>
+                    <option value="Python">Python</option>
+                    <option value="C# Database">C# Database</option>
+                    <option value="Digital Logic & Design">Digital Logic & Design</option>
+                    <option value="Embedded Systems and IoT">Embedded Systems and IoT</option>
+                    <option value="System Integration and Architecture">System Integration and Architecture</option>
+                    <option value="Computer Application">Computer Application</option>
+                    <option value="Project Management">Project Management</option>
+                    <option value="IT Trend">IT Trend</option>
+                    <option value="Technopreneurship">Technopreneurship</option>
+                    <option value="Capstone">Capstone</option>
                 </select>
             </div>
 
             <div class="form-group" style="margin-bottom: 25px;">
                 <label for="lab" style="display: block; margin-bottom: 8px; color: var(--light); font-weight: bold;">Lab:</label>
-                <select id="lab" class="compact-select" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 5px; background: #1a1a2e; color: var(--light); font-size: 14px; appearance: none; -webkit-appearance: none; -moz-appearance: none; background-image: url('data:image/svg+xml;utf8,<svg fill="%23ffffff" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>'); background-repeat: no-repeat; background-position: right 10px center; padding-right: 30px;">
+                <select id="lab" class="compact-select" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 5px; background: #1a1a2e; color: var(--light); font-size: 14px;">
                     <option value="" style="background: #1a1a2e; color: var(--light);">Select Lab Room</option>
-                    <option value="524" style="background: #1a1a2e; color: var(--light);">Lab 524</option>
-                    <option value="526" style="background: #1a1a2e; color: var(--light);">Lab 526</option>
-                    <option value="528" style="background: #1a1a2e; color: var(--light);">Lab 528</option>
-                    <option value="530" style="background: #1a1a2e; color: var(--light);">Lab 530</option>
-                    <option value="542" style="background: #1a1a2e; color: var(--light);">Lab 542</option>
-                    <option value="544" style="background: #1a1a2e; color: var(--light);">Lab 544</option>
-                    <option value="517" style="background: #1a1a2e; color: var(--light);">Lab 517</option>
+                    <option value="524">Lab 524</option>
+                    <option value="526">Lab 526</option>
+                    <option value="528">Lab 528</option>
+                    <option value="530">Lab 530</option>
+                    <option value="542">Lab 542</option>
+                    <option value="544">Lab 544</option>
+                    <option value="517">Lab 517</option>
                 </select>
             </div>
 
@@ -3743,7 +3741,7 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['get_feedback'])) {
                             let resultItem = document.createElement('div');
                             resultItem.className = 'search-result-item';
                             resultItem.innerHTML = `
-                                <div onclick="selectStudent('${student.id_number}')">
+                                <div onclick="selectStudent('${student.id_number}', '${student.first_name} ${student.last_name}', '${student.sessions}')">
                                     <strong>${student.first_name} ${student.last_name}</strong><br>
                                     ID: ${student.id_number}<br>
                                     Course: ${student.course}
@@ -3761,45 +3759,18 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['get_feedback'])) {
                 });
         }
 
-        function selectStudent(idNo) {
-            document.getElementById('searchIdNo').value = idNo;
-            searchResults.innerHTML = '';
-            
-            // First check if student is already in sit-in
-            fetch(`check_existing_sitin.php?id=${idNo}`)
-            .then(response => response.json())
-            .then(data => {
-                if (data.exists) {
-                    alert('This student is already in sit-in.');
-                    return;
-                }
-                
-                // If not in sit-in, proceed with fetching student data
-                fetch('get_student_data.php?id=' + idNo)
-                .then(response => response.json())
-                .then(student => {
-                    if (student) {
-                        if (student.sessions <= 0) {
-                            alert('This student has no remaining sessions.');
-                            return;
-                        }
-                        
-                        document.getElementById('studentName').innerText = student.first_name + ' ' + student.last_name;
-                        document.getElementById('studentIdNo').innerText = student.id_number;
-                        document.getElementById('remainingSessions').innerText = student.sessions;
-                        closeModal('searchModal');
-                        openModal('studentInfoModal');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('Error fetching student data. Please try again.');
-                });
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Error checking student status. Please try again.');
-            });
+        // Add event listener for selecting a student in the search modal
+        function selectStudent(idNo, studentName, remainingSessions) {
+            // Close the search modal
+            closeModal('searchModal');
+
+            // Populate the Sit-in Form modal with the selected student's data
+            document.getElementById('studentIdNo').textContent = idNo;
+            document.getElementById('studentName').textContent = studentName;
+            document.getElementById('remainingSessions').textContent = remainingSessions || '0'; // Default to '0' if undefined
+
+            // Open the Sit-in Form modal
+            openModal('studentInfoModal');
         }
 
         function openModal(modalId) {
