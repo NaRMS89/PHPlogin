@@ -447,24 +447,107 @@ $lab_rooms = ['524', '526', '528', '530', '542', 'Mac Lab'];
             background: rgba(255, 255, 255, 0.05);
             border-radius: 1rem;
             padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .history-card h2 {
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+            font-size: 1.5rem;
+        }
+
+        .history-filters {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .search-box, .date-filter {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .history-table-container {
+            overflow-x: auto;
+            margin-bottom: 1.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 0.5rem;
+            padding: 1rem;
         }
 
         .history-table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 1.5rem;
-        }
-
-        .history-table th,
-        .history-table td {
-            padding: 1rem;
-            text-align: left;
-            border-bottom: 1px solid var(--border-color);
+            color: var(--light);
         }
 
         .history-table th {
-            color: var(--primary);
+            background: rgba(255, 255, 255, 0.1);
+            padding: 1rem;
+            text-align: left;
             font-weight: 500;
+            color: var(--primary);
+        }
+
+        .history-table td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .history-table tr:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .pagination button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        #pageInfo {
+            color: var(--light);
+            font-size: 0.9rem;
+        }
+
+        .status-badge {
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            text-transform: capitalize;
+            display: inline-block;
+        }
+
+        .status-badge.pending {
+            background: rgba(255, 193, 7, 0.1);
+            color: #ffc107;
+        }
+
+        .status-badge.approved {
+            background: rgba(40, 167, 69, 0.1);
+            color: #28a745;
+        }
+
+        .status-badge.rejected {
+            background: rgba(220, 53, 69, 0.1);
+            color: #dc3545;
+        }
+
+        .status-badge.cancelled {
+            background: rgba(108, 117, 125, 0.1);
+            color: #6c757d;
+        }
+
+        .text-center {
+            text-align: center;
         }
 
         /* Navigation Buttons */
@@ -505,6 +588,89 @@ $lab_rooms = ['524', '526', '528', '530', '542', 'Mac Lab'];
             .dynamic-content {
                 padding: 1rem;
             }
+
+            .history-table {
+                display: block;
+                overflow-x: auto;
+            }
+
+            .history-table th,
+            .history-table td {
+                padding: 0.75rem;
+                font-size: 0.875rem;
+            }
+
+            .status-badge {
+                padding: 0.25rem 0.5rem;
+                font-size: 0.75rem;
+            }
+        }
+
+        .feedback-text {
+            color: var(--light);
+            font-style: italic;
+        }
+
+        .btn-feedback {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-feedback:hover {
+            background: var(--focus);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px var(--shadow-1);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: var(--global-background);
+            margin: 15% auto;
+            padding: 2rem;
+            border-radius: 1rem;
+            width: 90%;
+            max-width: 500px;
+            position: relative;
+        }
+
+        .close {
+            position: absolute;
+            right: 1rem;
+            top: 1rem;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--light);
+        }
+
+        #feedbackForm textarea {
+            width: 100%;
+            padding: 0.8rem;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            color: var(--light);
+            margin-bottom: 1rem;
+        }
+
+        #feedbackForm textarea:focus {
+            outline: none;
+            border-color: var(--focus);
+            box-shadow: 0 0 0 2px var(--shadow-1);
         }
     </style>
 </head>
@@ -700,21 +866,26 @@ $lab_rooms = ['524', '526', '528', '530', '542', 'Mac Lab'];
         <!-- History Content -->
         <div id="historyContent" class="dynamic-content">
             <div class="history-card">
-                <h2>Reservation History</h2>
-                <table class="history-table">
-                    <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>Lab Room</th>
-                            <th>Time</th>
-                            <th>Status</th>
-                            <th>Purpose</th>
-                        </tr>
-                    </thead>
-                    <tbody id="historyTableBody">
-                        <!-- History data will be loaded here -->
-                    </tbody>
-                </table>
+                <h2>Sit-in History</h2>
+                <div class="history-table-container">
+                    <table class="history-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Time</th>
+                                <th>Lab</th>
+                                <th>Purpose</th>
+                                <th>Duration</th>
+                                <th>Feedback</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historyTableBody">
+                            <tr>
+                                <td colspan="6" class="text-center">Loading history...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
@@ -765,103 +936,177 @@ $lab_rooms = ['524', '526', '528', '530', '542', 'Mac Lab'];
         </div>
     </div>
 
+    <!-- Feedback Modal -->
+    <div id="feedbackModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Submit Feedback</h2>
+            <form id="feedbackForm">
+                <input type="hidden" id="sitInId" name="sit_in_id">
+                <div class="form-group">
+                    <label for="feedbackText">Your Feedback:</label>
+                    <textarea id="feedbackText" name="feedback" rows="4" required></textarea>
+                </div>
+                <button type="submit" class="btn-submit">Submit Feedback</button>
+            </form>
+        </div>
+    </div>
+
     <script>
         function loadContent(contentId) {
-            // Hide the home content (three-column layout)
-            document.getElementById('homeContent').style.display = 'none';
+            // Hide all content sections
+            document.querySelectorAll('.dynamic-content').forEach(content => {
+                content.classList.remove('active');
+            });
             
-            // Hide other content sections
-            document.getElementById('historyContent').style.display = 'none';
-            document.getElementById('reservationContent').style.display = 'none';
-            
-            // Show the selected content
+            // Show selected content section
             const selectedContent = document.getElementById(contentId);
-            if (selectedContent) {
-                selectedContent.style.display = 'block';
-                
-                // Load data if needed
-                if (contentId === 'historyContent') {
-                    loadHistoryData();
-                }
+            selectedContent.classList.add('active');
+            
+            // Update active button state
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            button.classList.add('active');
+            
+            // Load specific content data if needed
+            if (contentId === 'historyContent') {
+                loadHistoryData();
+            } else if (contentId === 'homeContent') {
+                loadAnnouncements();
             }
         }
 
         function loadHistoryData() {
             const historyTableBody = document.getElementById('historyTableBody');
+            historyTableBody.innerHTML = '<tr><td colspan="6" class="text-center">Loading history...</td></tr>';
+
+            fetch('get_sitin_history.php')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.data.length > 0) {
+                        historyTableBody.innerHTML = '';
+                        data.data.forEach(record => {
+                            const row = document.createElement('tr');
+                            row.innerHTML = `
+                                <td>${record.date}</td>
+                                <td>${record.time}</td>
+                                <td>Lab ${record.lab}</td>
+                                <td>${record.purpose}</td>
+                                <td>${record.duration}</td>
+                                <td>
+                                    ${record.feedback ? 
+                                        `<span class="feedback-text">${record.feedback}</span>` : 
+                                        `<button class="btn-feedback" onclick="openFeedbackModal(${record.id})">Give Feedback</button>`
+                                    }
+                                </td>
+                            `;
+                            historyTableBody.appendChild(row);
+                        });
+                    } else {
+                        historyTableBody.innerHTML = '<tr><td colspan="6" class="text-center">No history records found</td></tr>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    historyTableBody.innerHTML = '<tr><td colspan="6" class="text-center">Error loading history data</td></tr>';
+                });
+        }
+
+        function openFeedbackModal(sitInId) {
+            const modal = document.getElementById('feedbackModal');
+            document.getElementById('sitInId').value = sitInId;
+            document.getElementById('feedbackText').value = '';
+            modal.style.display = 'block';
+        }
+
+        function closeFeedbackModal() {
+            const modal = document.getElementById('feedbackModal');
+            modal.style.display = 'none';
+        }
+
+        // Close modal when clicking the X button
+        document.querySelector('.close').addEventListener('click', closeFeedbackModal);
+
+        // Close modal when clicking outside
+        window.addEventListener('click', function(event) {
+            const modal = document.getElementById('feedbackModal');
+            if (event.target === modal) {
+                closeFeedbackModal();
+            }
+        });
+
+        // Handle feedback form submission
+        document.getElementById('feedbackForm').addEventListener('submit', function(e) {
+            e.preventDefault();
             
-            fetch('get_history_data.php')
+            const formData = new FormData(this);
+            
+            fetch('submit_feedback.php', {
+                method: 'POST',
+                body: formData
+            })
             .then(response => response.json())
             .then(data => {
-                historyTableBody.innerHTML = '';
-                data.forEach(record => {
-                    const row = `
-                        <tr>
-                            <td>${record.date}</td>
-                            <td>Lab ${record.lab_room}</td>
-                            <td>${record.start_time} - ${record.end_time}</td>
-                            <td><span class="status-badge ${record.status.toLowerCase()}">${record.status}</span></td>
-                            <td>${record.purpose}</td>
-                        </tr>
-                    `;
-                    historyTableBody.innerHTML += row;
-                });
+                if (data.success) {
+                    alert('Feedback submitted successfully!');
+                    closeFeedbackModal();
+                    loadHistoryData(); // Refresh the history table
+                } else {
+                    alert(data.error || 'Error submitting feedback');
+                }
             })
             .catch(error => {
                 console.error('Error:', error);
-                historyTableBody.innerHTML = '<tr><td colspan="5">Error loading history data</td></tr>';
+                alert('Error submitting feedback');
             });
-        }
+        });
 
         function loadAnnouncements() {
-            var announcementList = document.getElementById('announcementList');
-            announcementList.innerHTML = '';
-
-            fetch('../ADMIN/get_announcements.php')
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data && data.length > 0) {
-                    data.forEach(announcement => {
-                        const date = new Date(announcement.date_posted);
-                        const formattedDate = date.toLocaleDateString('en-US', {
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric'
+            const announcementList = document.getElementById('announcementList');
+            announcementList.innerHTML = '<div class="announcement-item"><p>Loading announcements...</p></div>';
+            
+            fetch('../hold/get_announcements.php')
+                .then(response => response.json())
+                .then(data => {
+                    if (data && data.length > 0) {
+                        announcementList.innerHTML = '';
+                        data.forEach(announcement => {
+                            const announcementItem = document.createElement('div');
+                            announcementItem.className = 'announcement-item';
+                            announcementItem.innerHTML = `
+                                <div class="announcement-text">${announcement.announcement_text}</div>
+                                <div class="announcement-date">Posted on ${new Date(announcement.date_posted).toLocaleDateString('en-US', { 
+                                    year: 'numeric', 
+                                    month: 'long', 
+                                    day: 'numeric' 
+                                })}</div>
+                            `;
+                            announcementList.appendChild(announcementItem);
                         });
-
-                        const announcementItem = document.createElement('div');
-                        announcementItem.className = 'announcement-item';
-                        announcementItem.innerHTML = `
-                            <div class="announcement-text">${announcement.announcement_text}</div>
-                            <div class="announcement-date">Posted on ${formattedDate}</div>
-                        `;
-                        announcementList.appendChild(announcementItem);
-                    });
-                } else {
-                    announcementList.innerHTML = '<p class="no-announcements">No announcements available at the moment.</p>';
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                announcementList.innerHTML = '<p class="no-announcements">Unable to load announcements. Please try again later.</p>';
-            });
+                    } else {
+                        announcementList.innerHTML = '<p class="no-announcements">No announcements available at the moment.</p>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    announcementList.innerHTML = '<p class="no-announcements">Error loading announcements. Please try again later.</p>';
+                });
         }
 
-        function showHome() {
-            // Hide other content sections
-            document.getElementById('historyContent').style.display = 'none';
-            document.getElementById('reservationContent').style.display = 'none';
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set home content and button as active by default
+            document.getElementById('homeContent').classList.add('active');
+            document.querySelector('button[onclick*="homeContent"]').classList.add('active');
             
-            // Show the three-column layout (profile, announcements, rules)
-            document.getElementById('homeContent').style.display = 'block';
-            
-            // Reload announcements
+            // Load initial data
             loadAnnouncements();
-        }
+            loadHistoryData();
+            
+            // Set up auto-refresh for announcements every 5 minutes
+            setInterval(loadAnnouncements, 300000);
+        });
 
         function openEditProfileModal() {
             document.getElementById('editProfileModal').style.display = 'block';
@@ -878,12 +1123,6 @@ $lab_rooms = ['524', '526', '528', '530', '542', 'Mac Lab'];
                 closeEditProfileModal();
             }
         }
-
-        // Load announcements when page loads and refresh every 5 minutes
-        document.addEventListener('DOMContentLoaded', function() {
-            loadAnnouncements();
-            setInterval(loadAnnouncements, 300000); // 5 minutes
-        });
 
         document.getElementById('userInfoForm').addEventListener('submit', function(e) {
             e.preventDefault();
@@ -1007,16 +1246,6 @@ $lab_rooms = ['524', '526', '528', '530', '542', 'Mac Lab'];
                 }
             }
         }
-
-        // Initialize the page
-        document.addEventListener('DOMContentLoaded', function() {
-            // Set home content and button as active by default
-            document.getElementById('homeContent').classList.add('active');
-            document.querySelector('button[onclick*="homeContent"]').classList.add('active');
-            
-            // Load initial data
-            loadAnnouncements();
-        });
 
         // Add styles for active button state
         const style = document.createElement('style');

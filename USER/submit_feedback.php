@@ -2,44 +2,48 @@
 session_start();
 include("../includes/database.php");
 
-if (!isset($_SESSION['user_id'])) {
+if (!isset($_SESSION['user_data'])) {
     header('Content-Type: application/json');
-    echo json_encode(['success' => false, 'message' => 'Not logged in']);
+    echo json_encode(['error' => 'Unauthorized access']);
     exit();
 }
 
+$response = array();
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $sitin_id = $_POST['sitin_id'];
-    $feedback = $_POST['feedback'];
-    $id_number = $_SESSION['user_id'];
-
-    // Verify that the sit-in belongs to the user
-    $verify_sql = "SELECT id FROM sitin_report WHERE id = ? AND id_number = ?";
-    $verify_stmt = mysqli_prepare($conn, $verify_sql);
-    mysqli_stmt_bind_param($verify_stmt, "ss", $sitin_id, $id_number);
-    mysqli_stmt_execute($verify_stmt);
-    $verify_result = mysqli_stmt_get_result($verify_stmt);
-
-    if (mysqli_num_rows($verify_result) === 0) {
-        header('Content-Type: application/json');
-        echo json_encode(['success' => false, 'message' => 'Invalid sit-in record']);
-        exit();
-    }
-
-    // Update the feedback
-    $sql = "UPDATE sitin_report SET feedback = ? WHERE id = ?";
-    $stmt = mysqli_prepare($conn, $sql);
-    mysqli_stmt_bind_param($stmt, "ss", $feedback, $sitin_id);
-
-    if (mysqli_stmt_execute($stmt)) {
-        header('Content-Type: application/json');
-        echo json_encode(['success' => true, 'message' => 'Feedback submitted successfully']);
+    $sit_in_id = isset($_POST['sit_in_id']) ? (int)$_POST['sit_in_id'] : 0;
+    $feedback = isset($_POST['feedback']) ? mysqli_real_escape_string($conn, $_POST['feedback']) : '';
+    
+    if ($sit_in_id > 0 && !empty($feedback)) {
+        $sql = "UPDATE sitin_report 
+                SET feedback = ?, feedback_date = CURRENT_TIMESTAMP 
+                WHERE id = ? AND id_number = ?";
+        
+        $stmt = mysqli_prepare($conn, $sql);
+        mysqli_stmt_bind_param($stmt, "sis", $feedback, $sit_in_id, $_SESSION['user_data']['id_number']);
+        
+        if (mysqli_stmt_execute($stmt)) {
+            $response['success'] = true;
+            $response['message'] = "Feedback submitted successfully";
+        } else {
+            $response['success'] = false;
+            $response['error'] = "Error submitting feedback: " . mysqli_error($conn);
+        }
+        
+        mysqli_stmt_close($stmt);
     } else {
-        header('Content-Type: application/json');
-        echo json_encode(['success' => false, 'message' => 'Error submitting feedback']);
+        $response['success'] = false;
+        $response['error'] = "Invalid feedback data";
     }
 } else {
-    header('Content-Type: application/json');
-    echo json_encode(['success' => false, 'message' => 'Invalid request method']);
+    $response['success'] = false;
+    $response['error'] = "Invalid request method";
+}
+
+header('Content-Type: application/json');
+echo json_encode($response);
+
+if ($conn instanceof mysqli) {
+    mysqli_close($conn);
 }
 ?> 
