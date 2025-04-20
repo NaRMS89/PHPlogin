@@ -246,56 +246,50 @@ while ($row = mysqli_fetch_assoc($purposes_result)) {
     </div>
 
     <!-- Export Modal -->
-    <div class="modal fade" id="exportModal" tabindex="-1">
-        <div class="modal-dialog">
+    <div class="modal fade" id="exportModal" tabindex="-1" role="dialog" aria-labelledby="exportModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Export Options</h5>
-                    <button type="button" class="close" data-dismiss="modal">
-                        <span>&times;</span>
+                    <h5 class="modal-title" id="exportModalLabel">Export Data</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
                 <div class="modal-body">
-                    <div class="filter-section">
-                        <label>Lab:</label>
-                        <select id="exportLab" class="form-control">
-                            <option value="">All Labs</option>
-                            <?php foreach ($labs as $lab): ?>
-                                <option value="<?php echo htmlspecialchars($lab); ?>">
-                                    <?php echo htmlspecialchars($lab); ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-                    <div class="filter-section">
-                        <label>Purpose:</label>
-                        <select id="exportPurpose" class="form-control">
-                            <option value="">All Purposes</option>
-                            <option value="C Programming">C Programming</option>
-                            <option value="Java Programming">Java Programming</option>
-                            <option value="Python">Python</option>
-                            <option value="C# Database">C# Database</option>
-                            <option value="Digital Logic & Design">Digital Logic & Design</option>
-                            <option value="Embedded Systems and IoT">Embedded Systems and IoT</option>
-                            <option value="System Integration and Architecture">System Integration and Architecture</option>
-                            <option value="Computer Application">Computer Application</option>
-                            <option value="Project Management">Project Management</option>
-                            <option value="IT Trend">IT Trend</option>
-                            <option value="Technopreneurship">Technopreneurship</option>
-                            <option value="Capstone">Capstone</option>
-                        </select>
-                    </div>
-                    <div class="filter-section">
-                        <label>Date Range:</label>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <input type="date" id="exportFromDate" class="form-control">
-                            </div>
-                            <div class="col-md-6">
-                                <input type="date" id="exportToDate" class="form-control">
-                            </div>
+                    <form id="exportForm">
+                        <div class="form-group">
+                            <label for="exportLab">Lab:</label>
+                            <select id="exportLab" class="form-control">
+                                <option value="">All Labs</option>
+                                <?php foreach ($labs as $lab): ?>
+                                    <option value="<?php echo htmlspecialchars($lab); ?>">
+                                        <?php echo htmlspecialchars($lab); ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
                         </div>
-                    </div>
+                        <div class="form-group">
+                            <label for="exportPurpose">Purpose:</label>
+                            <select id="exportPurpose" class="form-control">
+                                <option value="">All Purposes</option>
+                                <option value="C Programming">C Programming</option>
+                                <option value="Java Programming">Java Programming</option>
+                                <option value="Python">Python</option>
+                                <option value="C# Database">C# Database</option>
+                                <option value="Digital Logic & Design">Digital Logic & Design</option>
+                                <option value="Embedded Systems and IoT">Embedded Systems and IoT</option>
+                                <option value="System Integration and Architecture">System Integration and Architecture</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="exportFromDate">From Date:</label>
+                            <input type="date" id="exportFromDate" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label for="exportToDate">To Date:</label>
+                            <input type="date" id="exportToDate" class="form-control">
+                        </div>
+                    </form>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
@@ -361,16 +355,24 @@ while ($row = mysqli_fetch_assoc($purposes_result)) {
             const fromDate = $('#exportFromDate').val();
             const toDate = $('#exportToDate').val();
 
-            // Create the export URL with parameters
+            if (fromDate && toDate && new Date(fromDate) > new Date(toDate)) {
+                alert('End date must be after start date');
+                return;
+            }
+
             let exportUrl = `export_sitin_data.php?type=${exportType}`;
             if (lab) exportUrl += `&lab=${encodeURIComponent(lab)}`;
             if (purpose) exportUrl += `&purpose=${encodeURIComponent(purpose)}`;
             if (fromDate) exportUrl += `&fromDate=${encodeURIComponent(fromDate)}`;
             if (toDate) exportUrl += `&toDate=${encodeURIComponent(toDate)}`;
 
-            // Open in new window/tab
             window.open(exportUrl, '_blank');
             $('#exportModal').modal('hide');
+        });
+
+        // Reset form when modal is closed
+        $('#exportModal').on('hidden.bs.modal', function () {
+            $('#exportForm')[0].reset();
         });
 
         function applyDateFilter() {

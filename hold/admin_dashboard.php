@@ -2089,6 +2089,250 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['get_feedback'])) {
         }
 
         /* ... existing styles ... */
+
+        /* Modal Container Styles */
+        .modal-container {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal {
+            background: var(--background);
+            border-radius: 10px;
+            padding: 25px;
+            width: 90%;
+            max-width: 500px;
+            position: relative;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+
+        .modal-content {
+            background: var(--background);
+            padding: 2rem;
+            border-radius: 0.8rem;
+            width: 100%;
+            color: var(--light);
+        }
+
+        .close {
+            position: absolute;
+            right: 15px;
+            top: 15px;
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--light);
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .close:hover {
+            color: var(--primary);
+        }
+
+        /* Form Group Styles */
+        .form-group {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border-color);
+        }
+
+        .form-group p {
+            margin: 8px 0;
+            color: var(--light);
+        }
+
+        .form-group b {
+            color: var(--light);
+            margin-right: 8px;
+        }
+
+        /* Modal Title */
+        .modal-title {
+            color: var(--light);
+            margin-bottom: 20px;
+            font-size: 24px;
+            text-align: center;
+        }
+
+        /* Button Group */
+        .button-group {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+
+        .modal-button {
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .modal-button.primary {
+            background: var(--primary);
+            color: var(--light);
+            border: none;
+        }
+
+        .modal-button.secondary {
+            background: transparent;
+            color: var(--light);
+            border: 1px solid var(--border-color);
+        }
+
+        .modal-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+
+        /* Select Input Styles */
+        .compact-select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            background: var(--background);
+            color: var(--light);
+            font-size: 14px;
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background-image: url('data:image/svg+xml;utf8,<svg fill="%23ffffff" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>');
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            padding-right: 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .compact-select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 10px var(--primary);
+        }
+
+        .compact-select option {
+            background: var(--background);
+            color: var(--light);
+            padding: 10px;
+        }
+
+        /* Label Styles */
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--light);
+            font-weight: bold;
+        }
+
+        .modal-container {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal-container.active {
+            opacity: 1;
+        }
+
+        .modal {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 500px;
+            position: relative;
+            transform: translateY(-20px);
+            transition: transform 0.3s ease;
+        }
+
+        .modal-container.active .modal {
+            transform: translateY(0);
+        }
+
+        .modal .close {
+            position: absolute;
+            right: 15px;
+            top: 10px;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+        }
+
+        .modal-title {
+            margin-top: 0;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+        }
+
+        .compact-select, .compact-input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .modal-button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s;
+        }
+
+        .modal-button.primary {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .modal-button.secondary {
+            background-color: #f1f1f1;
+            color: #333;
+        }
+
+        .modal-button:hover {
+            opacity: 0.9;
+        }
     </style>
 
 </head>
@@ -2918,54 +3162,45 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['get_feedback'])) {
         </script>
     </main>
 
+    <!-- Student Info Modal -->
     <div id="studentInfoModal" class="modal-container">
-        <div class="modal" style="background: var(--background); border-radius: 10px; padding: 25px; max-width: 500px; margin: 50px auto; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
+        <div class="modal">
+            <span class="close" onclick="closeModal('studentInfoModal')">&times;</span>
+            <h2 class="modal-title">Sit-in Form</h2>
             
-            
-            <h2 class="modal-title" style="color: var(--light); margin-bottom: 20px; font-size: 24px; text-align: center;">Sit-in Form</h2>
-            
-            <div class="form-group" style="background: rgba(255, 255, 255, 0.05); padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid var(--border-color);">
-                <p style="margin: 8px 0;"><b style="color: var(--light);">ID Number:</b> <span id="studentIdNo" style="color: var(--light);">2000</span></p>
-                <p style="margin: 8px 0;"><b style="color: var(--light);">Student Name:</b> <span id="studentName" style="color: var(--light);">Maria Reyes</span></p>
-                <p style="margin: 8px 0;"><b style="color: var(--light);">Remaining Sessions:</b> <span id="remainingSessions" style="color: var(--light);">29</span></p>
+            <div class="form-group">
+                <p><b>ID Number:</b> <span id="studentIdNo"></span></p>
+                <p><b>Student Name:</b> <span id="studentName"></span></p>
+                <p><b>Remaining Sessions:</b> <span id="remainingSessions"></span></p>
             </div>
 
-            <div class="form-group" style="margin-bottom: 20px;">
-                <label for="purpose" style="display: block; margin-bottom: 8px; color: var(--light); font-weight: bold;">Purpose:</label>
-                <select id="purpose" class="compact-select" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 5px; background: #1a1a2e; color: var(--light); font-size: 14px; appearance: none; -webkit-appearance: none; -moz-appearance: none; background-image: url('data:image/svg+xml;utf8,<svg fill="%23ffffff" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>'); background-repeat: no-repeat; background-position: right 10px center; padding-right: 30px;">
-                    <option value="" style="background: #1a1a2e; color: var(--light);">Select Purpose</option>
-                    <option value="C Programming" style="background: #1a1a2e; color: var(--light);">C Programming</option>
-                    <option value="Java Programming" style="background: #1a1a2e; color: var(--light);">Java Programming</option>
-                    <option value="Python" style="background: #1a1a2e; color: var(--light);">Python</option>
-                    <option value="C# Database" style="background: #1a1a2e; color: var(--light);">C# Database</option>
-                    <option value="Digital Logic & Design" style="background: #1a1a2e; color: var(--light);">Digital Logic & Design</option>
-                    <option value="Embedded Systems and IoT" style="background: #1a1a2e; color: var(--light);">Embedded Systems and IoT</option>
-                    <option value="System Integration and Architecture" style="background: #1a1a2e; color: var(--light);">System Integration and Architecture</option>
-                    <option value="Computer Application" style="background: #1a1a2e; color: var(--light);">Computer Application</option>
-                    <option value="Project Management" style="background: #1a1a2e; color: var(--light);">Project Management</option>
-                    <option value="IT Trend" style="background: #1a1a2e; color: var(--light);">IT Trend</option>
-                    <option value="Technopreneurship" style="background: #1a1a2e; color: var(--light);">Technopreneurship</option>
-                    <option value="Capstone" style="background: #1a1a2e; color: var(--light);">Capstone</option>
+            <div class="form-group">
+                <label for="purpose"><b>Purpose:</b></label>
+                <select id="purpose" class="compact-select">
+                    <option value="C Programming">C Programming</option>
+                    <option value="Java Programming">Java Programming</option>
+                    <option value="C# Programming">C# Programming</option>
+                    <option value="PHP Programming">PHP Programming</option>
+                    <option value="ASP.NET Programming">ASP.NET Programming</option>
                 </select>
             </div>
 
-            <div class="form-group" style="margin-bottom: 25px;">
-                <label for="lab" style="display: block; margin-bottom: 8px; color: var(--light); font-weight: bold;">Lab:</label>
-                <select id="lab" class="compact-select" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 5px; background: #1a1a2e; color: var(--light); font-size: 14px; appearance: none; -webkit-appearance: none; -moz-appearance: none; background-image: url('data:image/svg+xml;utf8,<svg fill="%23ffffff" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>'); background-repeat: no-repeat; background-position: right 10px center; padding-right: 30px;">
-                    <option value="" style="background: #1a1a2e; color: var(--light);">Select Lab Room</option>
-                    <option value="524" style="background: #1a1a2e; color: var(--light);">Lab 524</option>
-                    <option value="526" style="background: #1a1a2e; color: var(--light);">Lab 526</option>
-                    <option value="528" style="background: #1a1a2e; color: var(--light);">Lab 528</option>
-                    <option value="530" style="background: #1a1a2e; color: var(--light);">Lab 530</option>
-                    <option value="542" style="background: #1a1a2e; color: var(--light);">Lab 542</option>
-                    <option value="544" style="background: #1a1a2e; color: var(--light);">Lab 544</option>
-                    <option value="517" style="background: #1a1a2e; color: var(--light);">Lab 517</option>
+            <div class="form-group">
+                <label for="lab"><b>Lab:</b></label>
+                <select id="lab" class="compact-select">
+                    <option value="524">Lab 524</option>
+                    <option value="526">Lab 526</option>
+                    <option value="528">Lab 528</option>
+                    <option value="530">Lab 530</option>
+                    <option value="542">Lab 542</option>
+                    <option value="544">Lab 544</option>
+                    <option value="517">Lab 517</option>
                 </select>
             </div>
 
-            <div class="button-group" style="display: flex; gap: 10px; justify-content: flex-end;">
-                <button class="modal-button primary" onclick="addSitIn()" style="padding: 10px 20px; background: transparent; color: var(--light); border: 1px solid var(--border-color); border-radius: 5px; cursor: pointer; font-weight: bold; transition: all 0.3s ease;">Sit-in</button>
-                <button class="modal-button secondary" onclick="closeModal('studentInfoModal')" style="padding: 10px 20px; background: transparent; color: var(--light); border: 1px solid var(--border-color); border-radius: 5px; cursor: pointer; font-weight: bold; transition: all 0.3s ease;">Close</button>
+            <div class="button-group">
+                <button class="modal-button primary" onclick="addSitIn()">Sit-in</button>
+                <button class="modal-button secondary" onclick="closeModal('studentInfoModal')">Close</button>
             </div>
         </div>
     </div>
@@ -3838,46 +4073,43 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['get_feedback'])) {
             const lab = document.getElementById('lab').value;
             const remainingSessions = parseInt(document.getElementById('remainingSessions').innerText);
 
+            if (!purpose || !lab) {
+                alert('Please select both purpose and lab');
+                return;
+            }
+
             if (remainingSessions <= 0) {
                 alert('No remaining sessions available.');
                 return;
             }
 
-            // Create form data
-            const formData = new FormData();
-            formData.append('id_number', idNumber);
-            formData.append('purpose', purpose);
-            formData.append('lab', lab);
-            formData.append('add_sitin', true);
-
-            // Send request to server
-            fetch('admin_dashboard.php', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Close the modal
-                    closeModal('studentInfoModal');
-                    
-                    // Reload sit-in data if we're on the sit-in page
-                    if (document.getElementById('sitinContent').style.display === 'block') {
-                        loadSitInData();
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', 'add_sitin.php', true);
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr.onload = function() {
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    const response = JSON.parse(xhr.responseText);
+                    if (response.success) {
+                        $('#studentInfoModal').modal('hide');
+                        loadContent('sitinContent');
+                        initSitInContent();
+                    } else {
+                        alert(response.message || 'Failed to add sit-in');
                     }
-                    
-                    // Show success message
-                    alert(data.message);
                 } else {
-                    // Show error message
-                    alert(data.message || 'Error adding student to sit-in.');
+                    alert('Request failed. Returned status of ' + xhr.status);
                 }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Error adding student to sit-in. Please try again.');
-            });
+            };
+            xhr.onerror = function() {
+                alert('Request failed. Please try again.');
+            };
+            xhr.send(`id_number=${idNumber}&purpose=${encodeURIComponent(purpose)}&lab=${encodeURIComponent(lab)}`);
         }
+
+        // Reset form when modal is closed
+        $('#studentInfoModal').on('hidden.bs.modal', function () {
+            $('#sitInForm')[0].reset();
+        });
 
         function searchStudentList() {
             const searchTerm = document.getElementById('studentSearch').value.toLowerCase();
