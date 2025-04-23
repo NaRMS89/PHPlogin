@@ -892,7 +892,7 @@ $lab_rooms = ['524', '526', '528', '530', '542', 'Mac Lab'];
 
     <!-- Edit Profile Modal -->
     <div id="editProfileModal" class="modal-container" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 1000; overflow-y: auto;">
-        <div class="modal" style="background: var(--global-background); padding: 2rem; border-radius: 1rem; width: 90%; max-width: 600px; margin: 2rem auto; display: flex; flex-direction: column; align-items: center;">
+        <div class="modal" style="background: var(--global-background); padding: 2rem; border-radius: 1rem; width: 90%; max-width: 600px; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center;">
             <h2 style="color: var(--primary); margin-bottom: 1.5rem;">Edit Profile</h2>
             
             <div class="profile-picture-container" style="position: relative; width: 150px; height: 150px; margin: 0 auto 2rem; cursor: pointer;" onclick="document.getElementById('profilePictureInput').click()">

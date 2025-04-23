@@ -1,3 +1,14 @@
+:root {
+    --light: hsl(220, 50%, 90%);
+    --primary: hsl(255, 30%, 55%);
+    --focus: hsl(210, 90%, 50%);
+    --border-color: hsla(0, 0%, 100%, .2);
+    --global-background: hsl(220, 25%, 10%);
+    --background: linear-gradient(to right, hsl(210, 30%, 20%), hsl(255, 30%, 25%));
+    --shadow-1: hsla(236, 50%, 50%, .3);
+    --shadow-2: hsla(236, 50%, 50%, .4);
+}
+
 /* Profile Section Improvements */
 .profile-info {
     font-size: 1.2rem;
@@ -81,13 +92,36 @@
 }
 
 .modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 1000;
+    display: flex;
+    justify-content: center; /* Centers the modal horizontally */
+    align-items: center; /* Centers the modal vertically */
+}
+
+.modal-content {
     background: var(--global-background);
     padding: 2rem;
     border-radius: 1rem;
     width: 90%;
-    max-width: 600px;
-    max-height: 90vh;
-    overflow-y: auto;
+    max-width: 500px;
+    position: relative;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.close {
+    position: absolute;
+    right: 1rem;
+    top: 1rem;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: var(--light);
 }
 
 .modal h2 {
@@ -110,4 +144,41 @@
 
 .modal .nav-btn {
     margin-right: 1rem;
+}
+
+#feedbackForm textarea {
+    width: 100%;
+    padding: 0.8rem;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--border-color);
+    border-radius: 0.5rem;
+    color: var(--light);
+    margin-bottom: 1rem;
+}
+
+#feedbackForm textarea:focus {
+    outline: none;
+    border-color: var(--focus);
+    box-shadow: 0 0 0 2px var(--shadow-1);
+}
+
+.feedback-text {
+    color: var(--light);
+    font-style: italic;
+}
+
+.btn-feedback {
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-feedback:hover {
+    background: var(--focus);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px var(--shadow-1);
 }
