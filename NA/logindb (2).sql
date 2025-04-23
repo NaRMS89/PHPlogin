@@ -49,6 +49,7 @@ INSERT INTO `announcements` (`announcement_id`, `announcement_text`, `date_poste
 CREATE TABLE `feedback` (
   `id` int(11) NOT NULL,
   `sit_in_id` int(11) NOT NULL,
+  `feedback_text` text NOT NULL,
   `student_id` varchar(255) NOT NULL,
   `admin_id` varchar(255) DEFAULT NULL,
   `message` text NOT NULL,
@@ -102,7 +103,7 @@ INSERT INTO `info` (`id_number`, `last_name`, `first_name`, `middle_name`, `cour
 
 CREATE TABLE `points_log` (
   `id` int(11) NOT NULL,
-  `id_number` varchar(20) NOT NULL,
+  `id_number` int(11) NOT NULL,
   `points_added` int(11) NOT NULL,
   `reason` text NOT NULL,
   `added_by` varchar(50) NOT NULL,
@@ -175,10 +176,10 @@ CREATE TABLE `sitin_report` (
 -- Dumping data for table `sitin_report`
 --
 
-INSERT INTO `sitin_report` (`id`, `id_number`, `purpose`, `lab`, `login_time`, `logout_time`) VALUES
-(151, '1000', 'C Programming', '524', '2025-04-01 09:45:29', '2025-04-01 10:01:43'),
-(152, '2000', 'C Programming', '524', '2025-04-01 10:03:22', '2025-04-01 11:40:11'),
-(153, '3000', 'Java Programming', '526', '2025-04-01 12:20:30', '2025-04-01 12:20:30');
+INSERT INTO `sitin_report` (`id`, `id_number`, `purpose`, `lab`, `login_time`, `logout_time`, `feedback`, `feedback_date`) VALUES
+(151, '1000', 'C Programming', '524', '2025-04-01 09:45:29', '2025-04-01 10:01:43', 'very cold', '2025-04-01 10:01:43'),
+(152, '2000', 'C Programming', '524', '2025-04-01 10:03:22', '2025-04-01 11:40:11', 'very hot', '2025-04-01 11:40:11'),
+(153, '3000', 'Java Programming', '526', '2025-04-01 12:20:30', '2025-04-01 12:20:30', 'broken mouse sensor', '2025-04-01 12:20:30');
 
 -- --------------------------------------------------------
 
@@ -399,7 +400,10 @@ ALTER TABLE `sit_in_history`
 -- Constraints for table `points_log`
 --
 ALTER TABLE `points_log`
-  ADD CONSTRAINT `points_log_ibfk_1` FOREIGN KEY (`id_number`) REFERENCES `info` (`id_number`);
+  MODIFY COLUMN `id_number` INT(11) NOT NULL;
+
+ALTER TABLE `points_log`
+  ADD CONSTRAINT `points_log_ibfk_1` FOREIGN KEY (`id_number`) REFERENCES `info` (`id_number`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 COMMIT;
 
