@@ -2714,7 +2714,8 @@ if (isset($_POST['export_sitindata_pdf'])) {
                                 <option value="C Programming">C Programming</option>
                                 <option value="Java Programming">Java Programming</option>
                                 <option value="Python">Python</option>
-                                <option value="C# Database">C# Database</option>
+                                <option value="C#">C#</option>
+                                <option value="Database">Database</option>
                                 <option value="Digital Logic & Design">Digital Logic & Design</option>
                                 <option value="Embedded Systems and IoT">Embedded Systems and IoT</option>
                                 <option value="System Integration and Architecture">System Integration and Architecture</option>
@@ -2985,7 +2986,8 @@ window.addEventListener('click', function(event) {
                     <option value="C Programming">C Programming</option>
                     <option value="Java Programming">Java Programming</option>
                     <option value="Python">Python</option>
-                    <option value="C# Database">C# Database</option>
+                    <option value="C#">C#</option>
+                    <option value="Database">Database</option>
                     <option value="Digital Logic &amp; Design">Digital Logic &amp; Design</option>
                     <option value="Embedded Systems and IoT">Embedded Systems and IoT</option>
                     <option value="System Integration and Architecture">System Integration and Architecture</option>
