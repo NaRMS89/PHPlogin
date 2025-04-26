@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Apr 01, 2025 at 02:27 PM
+-- Generation Time: Apr 26, 2025 at 12:32 PM
 -- Server version: 10.4.32-MariaDB
--- PHP Version: 8.2.12
+-- PHP Version: 8.0.30
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -20,6 +20,8 @@ SET time_zone = "+00:00";
 --
 -- Database: `logindb`
 --
+
+
 
 -- --------------------------------------------------------
 
@@ -38,7 +40,9 @@ CREATE TABLE `announcements` (
 --
 
 INSERT INTO `announcements` (`announcement_id`, `announcement_text`, `date_posted`) VALUES
-(21, 'test', '2025-04-01');
+(21, 'test', '2025-04-01'),
+(22, 'test', '2025-04-15'),
+(23, 'hi', '2025-04-15');
 
 -- --------------------------------------------------------
 
@@ -49,7 +53,6 @@ INSERT INTO `announcements` (`announcement_id`, `announcement_text`, `date_poste
 CREATE TABLE `feedback` (
   `id` int(11) NOT NULL,
   `sit_in_id` int(11) NOT NULL,
-  `feedback_text` text NOT NULL,
   `student_id` varchar(255) NOT NULL,
   `admin_id` varchar(255) DEFAULT NULL,
   `message` text NOT NULL,
@@ -75,9 +78,9 @@ CREATE TABLE `info` (
   `password` varchar(255) DEFAULT NULL,
   `sessions` int(11) NOT NULL DEFAULT 15,
   `points` int(11) NOT NULL DEFAULT 0,
+  `total_points` int(11) NOT NULL DEFAULT 0,
   `profile_picture` varchar(255) DEFAULT 'default.png'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
 --
 -- Dumping data for table `info`
 --
@@ -89,9 +92,9 @@ INSERT INTO `info` (`id_number`, `last_name`, `first_name`, `middle_name`, `cour
 (3000, 'Lim', 'Anna', 'Tan', 'BSIT', '3', '3000@gmail.com', 'alim1003', '123', 29, 0, '4OTdtjem_F_thumb_1200x630.jpg'),
 (4000, 'Cruz', 'Pedro', 'Reyes', 'BSME', '2', '4000@gmail.com', 'pcruz1004', '123', 15, 0, 'default.png'),
 (5000, ' Dela Cruz', 'Juan', 'Santos', 'BSIT', '2', '5000@gmail.com', 'juandc', '123', 30, 0, 'default.png'),
-(6000, 'Reyes', 'Maria', 'Lourdes', 'BSECE', '3', '6000@example.com', 'mariareyes', '123', 15, 0, 'default.png'),
+(6000, 'Reyes', 'Maria', 'Lourdes', 'BSECE', '3', '6000@example.com', 'mariareyes', '123', 13, 0, 'default.png'),
 (9000, 'test', 'test', 'test', 'BSBIO', '4', 'test@gmail.com', 'test', '123', 15, 0, 'default.png'),
-(10000, 'Doe', 'John', 'Michael', 'BSIT', '1', 'john.doe@example.com', 'johndoe', '123', 30, 0, 'default.png'),
+(10000, 'Doe', 'John', 'Michael', 'BSIT', '1', 'john.doe@example.com', 'johndoe', '123', 29, 0, 'default.png'),
 (11000, 'Specter', 'Mark', 'y', 'BSME', '2', 'mark@gmail.com', 'mark123', '123', 15, 0, 'default.png'),
 (20948048, 'Singco', 'Nathaniel Ron', 'M.', 'BSIT', '3', 'nathanielron09655524395@gmail.com', 'nrms', '123', 30, 0, 'default.png');
 
@@ -103,7 +106,7 @@ INSERT INTO `info` (`id_number`, `last_name`, `first_name`, `middle_name`, `cour
 
 CREATE TABLE `points_log` (
   `id` int(11) NOT NULL,
-  `id_number` int(11) NOT NULL,
+  `id_number` varchar(20) NOT NULL,
   `points_added` int(11) NOT NULL,
   `reason` text NOT NULL,
   `added_by` varchar(50) NOT NULL,
@@ -151,7 +154,32 @@ INSERT INTO `sitin` (`id`, `id_number`, `purpose`, `lab`, `status`, `login_time`
 (30, '1000', 'C Programming', '524', 'inactive', '2025-04-01 09:45:29'),
 (31, '2000', 'C Programming', '524', 'inactive', '2025-04-01 10:03:22'),
 (32, '1000', 'C Programming', '524', 'active', '2025-04-01 11:40:20'),
-(33, '3000', 'Java Programming', '526', 'inactive', '2025-04-01 12:20:16');
+(33, '3000', 'Java Programming', '526', 'inactive', '2025-04-01 12:20:16'),
+(34, '10000', 'Digital Logic & Design', '542', 'inactive', '2025-04-15 13:47:33'),
+(35, '11000', 'System Integration and Architecture', '526', 'active', '2025-04-15 13:47:52'),
+(36, '2000', 'Project Management', '524', 'active', '2025-04-15 13:48:10'),
+(37, '6000', 'Technopreneurship', '544', 'inactive', '2025-04-15 13:48:20'),
+(38, '4000', 'Python', '528', 'active', '2025-04-15 13:48:44'),
+(39, '6000', 'Capstone', '517', 'inactive', '2025-04-15 17:02:20');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `sitindata`
+--
+
+CREATE TABLE `sitindata` (
+  `id` int(11) NOT NULL,
+  `id_number` varchar(50) NOT NULL,
+  `purpose` varchar(255) NOT NULL,
+  `lab` varchar(50) NOT NULL,
+  `login_time` datetime NOT NULL,
+  `logout_time` datetime DEFAULT NULL,
+  `duration` varchar(50) DEFAULT NULL,
+  `status` varchar(20) DEFAULT 'Active',
+  `feedback` text DEFAULT NULL,
+  `feedback_date` datetime DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -170,16 +198,32 @@ CREATE TABLE `sitin_report` (
   `status` enum('active','inactive','timeout') NOT NULL DEFAULT 'active',
   `feedback` text DEFAULT NULL,
   `feedback_date` timestamp NULL DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci; 
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `sitin_report`
 --
 
-INSERT INTO `sitin_report` (`id`, `id_number`, `purpose`, `lab`, `login_time`, `logout_time`, `feedback`, `feedback_date`) VALUES
-(151, '1000', 'C Programming', '524', '2025-04-01 09:45:29', '2025-04-01 10:01:43', 'very cold', '2025-04-01 10:01:43'),
-(152, '2000', 'C Programming', '524', '2025-04-01 10:03:22', '2025-04-01 11:40:11', 'very hot', '2025-04-01 11:40:11'),
-(153, '3000', 'Java Programming', '526', '2025-04-01 12:20:30', '2025-04-01 12:20:30', 'broken mouse sensor', '2025-04-01 12:20:30');
+INSERT INTO `sitin_report` (`id`, `id_number`, `purpose`, `lab`, `login_time`, `logout_time`, `duration`, `status`, `feedback`, `feedback_date`) VALUES
+(151, '1000', 'C Programming', '524', '2025-04-01 09:45:29', '2025-04-01 10:01:43', NULL, 'active', 'testing 123 hihihi&#13;&#10;', '2025-04-15 11:20:15'),
+(152, '2000', 'C Programming', '524', '2025-04-01 10:03:22', '2025-04-01 11:40:11', NULL, 'active', NULL, NULL),
+(153, '3000', 'Java Programming', '526', '2025-04-01 12:20:30', '2025-04-01 12:20:30', NULL, 'active', NULL, NULL),
+(154, '6000', 'Technopreneurship', '544', '2025-04-15 16:57:21', '2025-04-15 16:57:21', NULL, 'active', 'The air was so init~~, me was dying~~', NULL),
+(155, '6000', 'Technopreneurship', '544', '2025-04-15 17:31:58', '2025-04-15 17:31:58', NULL, 'active', 'cold', NULL),
+(156, '6000', 'Capstone', '517', '2025-04-15 17:31:58', '2025-04-15 17:31:58', NULL, 'active', 'hott&#13;&#10;', NULL),
+(158, '10000', 'Digital Logic & Design', '542', '2025-04-15 17:32:01', '2025-04-15 17:32:01', NULL, 'active', NULL, NULL);
+
+--
+-- Triggers `sitin_report`
+--
+DELIMITER $$
+CREATE TRIGGER `trg_update_sit_in_duration` BEFORE UPDATE ON `sitin_report` FOR EACH ROW BEGIN
+    IF NEW.logout_time IS NOT NULL AND OLD.logout_time IS NULL THEN
+        SET NEW.duration = TIMESTAMPDIFF(MINUTE, NEW.login_time, NEW.logout_time);
+    END IF;
+END
+$$
+DELIMITER ;
 
 -- --------------------------------------------------------
 
@@ -201,84 +245,52 @@ CREATE TABLE `sit_in_history` (
 -- --------------------------------------------------------
 
 --
--- Create views for common queries
+-- Stand-in structure for view `v_active_sitins`
+-- (See below for the actual view)
 --
-
-CREATE OR REPLACE VIEW `v_active_sitins` AS
-SELECT s.*, i.first_name, i.last_name
-FROM sitin s
-JOIN info i ON s.id_number = i.id_number
-WHERE s.status = 'active';
-
-CREATE OR REPLACE VIEW `v_daily_stats` AS
-SELECT 
-    DATE(login_time) as date,
-    COUNT(*) as total_sitins,
-    COUNT(DISTINCT id_number) as active_users,
-    MAX(CASE WHEN lab_count = max_lab_count THEN lab ELSE NULL END) as most_used_lab,
-    MAX(CASE WHEN purpose_count = max_purpose_count THEN purpose ELSE NULL END) as most_used_purpose,
-    AVG(TIMESTAMPDIFF(MINUTE, login_time, logout_time)) as avg_duration
-FROM (
-    SELECT 
-        s.*,
-        COUNT(*) OVER (PARTITION BY DATE(login_time), lab) as lab_count,
-        MAX(COUNT(*)) OVER (PARTITION BY DATE(login_time)) as max_lab_count,
-        COUNT(*) OVER (PARTITION BY DATE(login_time), purpose) as purpose_count,
-        MAX(COUNT(*)) OVER (PARTITION BY DATE(login_time)) as max_purpose_count
-    FROM sitin_report s
-) as subquery
-GROUP BY DATE(login_time);
+CREATE TABLE `v_active_sitins` (
+`id` int(11)
+,`id_number` varchar(255)
+,`purpose` varchar(255)
+,`lab` varchar(255)
+,`status` enum('active','inactive')
+,`login_time` timestamp
+,`first_name` varchar(255)
+,`last_name` varchar(255)
+);
 
 -- --------------------------------------------------------
 
 --
--- Add triggers for automatic updates
+-- Stand-in structure for view `v_daily_stats`
+-- (See below for the actual view)
 --
-
-DELIMITER //
-
-CREATE TRIGGER `trg_update_sit_in_duration`
-BEFORE UPDATE ON `sitin_report`
-FOR EACH ROW
-BEGIN
-    IF NEW.logout_time IS NOT NULL AND OLD.logout_time IS NULL THEN
-        SET NEW.duration = TIMESTAMPDIFF(MINUTE, NEW.login_time, NEW.logout_time);
-    END IF;
-END//
-
-DELIMITER ;
+CREATE TABLE `v_daily_stats` (
+`date` date
+,`total_sitins` bigint(21)
+,`active_users` bigint(21)
+,`most_used_lab` varchar(255)
+,`most_used_purpose` varchar(255)
+,`avg_duration` decimal(24,4)
+);
 
 -- --------------------------------------------------------
 
 --
--- Add stored procedures for common operations
+-- Structure for view `v_active_sitins`
 --
+DROP TABLE IF EXISTS `v_active_sitins`;
 
-DELIMITER //
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `v_active_sitins`  AS SELECT `s`.`id` AS `id`, `s`.`id_number` AS `id_number`, `s`.`purpose` AS `purpose`, `s`.`lab` AS `lab`, `s`.`status` AS `status`, `s`.`login_time` AS `login_time`, `i`.`first_name` AS `first_name`, `i`.`last_name` AS `last_name` FROM (`sitin` `s` join `info` `i` on(`s`.`id_number` = `i`.`id_number`)) WHERE `s`.`status` = 'active' ;
 
-CREATE PROCEDURE `sp_get_student_stats`(IN p_id_number VARCHAR(20))
-BEGIN
-    SELECT 
-        COUNT(*) as total_sitins,
-        AVG(TIMESTAMPDIFF(MINUTE, login_time, logout_time)) as avg_duration,
-        COUNT(DISTINCT lab) as labs_used,
-        COUNT(DISTINCT purpose) as purposes_used
-    FROM sitin_report
-    WHERE id_number = p_id_number;
-END//
+-- --------------------------------------------------------
 
-CREATE PROCEDURE `sp_get_lab_stats`(IN p_lab VARCHAR(50))
-BEGIN
-    SELECT 
-        COUNT(*) as total_sitins,
-        COUNT(DISTINCT id_number) as unique_students,
-        AVG(TIMESTAMPDIFF(MINUTE, login_time, logout_time)) as avg_duration,
-        COUNT(DISTINCT purpose) as purposes_used
-    FROM sitin_report
-    WHERE lab = p_lab;
-END//
+--
+-- Structure for view `v_daily_stats`
+--
+DROP TABLE IF EXISTS `v_daily_stats`;
 
-DELIMITER ;
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `v_daily_stats`  AS SELECT cast(`subquery`.`login_time` as date) AS `date`, count(0) AS `total_sitins`, count(distinct `subquery`.`id_number`) AS `active_users`, max(case when `subquery`.`lab_count` = `subquery`.`max_lab_count` then `subquery`.`lab` else NULL end) AS `most_used_lab`, max(case when `subquery`.`purpose_count` = `subquery`.`max_purpose_count` then `subquery`.`purpose` else NULL end) AS `most_used_purpose`, avg(timestampdiff(MINUTE,`subquery`.`login_time`,`subquery`.`logout_time`)) AS `avg_duration` FROM (select `s`.`id` AS `id`,`s`.`id_number` AS `id_number`,`s`.`purpose` AS `purpose`,`s`.`lab` AS `lab`,`s`.`login_time` AS `login_time`,`s`.`logout_time` AS `logout_time`,`s`.`duration` AS `duration`,`s`.`status` AS `status`,`s`.`feedback` AS `feedback`,`s`.`feedback_date` AS `feedback_date`,count(0) over ( partition by cast(`s`.`login_time` as date),`s`.`lab`) AS `lab_count`,max(count(0)) over ( partition by cast(`s`.`login_time` as date)) AS `max_lab_count`,count(0) over ( partition by cast(`s`.`login_time` as date),`s`.`purpose`) AS `purpose_count`,max(count(0)) over ( partition by cast(`s`.`login_time` as date)) AS `max_purpose_count` from `sitin_report` `s`) AS `subquery` GROUP BY cast(`subquery`.`login_time` as date) ;
 
 --
 -- Indexes for dumped tables
@@ -327,6 +339,12 @@ ALTER TABLE `sitin`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Indexes for table `sitindata`
+--
+ALTER TABLE `sitindata`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Indexes for table `sitin_report`
 --
 ALTER TABLE `sitin_report`
@@ -348,7 +366,7 @@ ALTER TABLE `sit_in_history`
 -- AUTO_INCREMENT for table `announcements`
 --
 ALTER TABLE `announcements`
-  MODIFY `announcement_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
+  MODIFY `announcement_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
 
 --
 -- AUTO_INCREMENT for table `feedback`
@@ -378,33 +396,25 @@ ALTER TABLE `reservations`
 -- AUTO_INCREMENT for table `sitin`
 --
 ALTER TABLE `sitin`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=34;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=40;
+
+--
+-- AUTO_INCREMENT for table `sitindata`
+--
+ALTER TABLE `sitindata`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `sitin_report`
 --
 ALTER TABLE `sitin_report`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=154;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=159;
 
 --
 -- AUTO_INCREMENT for table `sit_in_history`
 --
 ALTER TABLE `sit_in_history`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-
---
--- Constraints for dumped tables
---
-
---
--- Constraints for table `points_log`
---
-ALTER TABLE `points_log`
-  MODIFY COLUMN `id_number` INT(11) NOT NULL;
-
-ALTER TABLE `points_log`
-  ADD CONSTRAINT `points_log_ibfk_1` FOREIGN KEY (`id_number`) REFERENCES `info` (`id_number`) ON DELETE CASCADE ON UPDATE CASCADE;
-
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

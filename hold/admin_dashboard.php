@@ -13,6 +13,30 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['logout'])) {
     header("Location: ../user/index.php");
     exit();
 }
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['give_point_and_timeout'])) {
+    $idNo = $_POST['id_number'];
+    $success = false;
+    $message = '';
+    if ($conn instanceof mysqli) {
+        // Add 1 point to both points and total_points
+        $update = mysqli_query($conn, "UPDATE info SET points = points + 1, total_points = total_points + 1 WHERE id_number = '" . mysqli_real_escape_string($conn, $idNo) . "'");
+        // Log the point award
+        $log = mysqli_query($conn, "INSERT INTO points_log (id_number, points_added, awarded_at) VALUES ('" . mysqli_real_escape_string($conn, $idNo) . "', 1, NOW())");
+        // Timeout (set sitin status to inactive)
+        $timeout = mysqli_query($conn, "UPDATE sitin SET status = 'inactive' WHERE id_number = '" . mysqli_real_escape_string($conn, $idNo) . "' AND status = 'active'");
+        if ($update && $log && $timeout) {
+            $success = true;
+            $message = 'Student awarded 1 point and timed out.';
+        } else {
+            $message = 'Error updating records.';
+        }
+    } else {
+        $message = 'DB connection error.';
+    }
+    header('Content-Type: application/json');
+    echo json_encode(['success' => $success, 'message' => $message]);
+    exit();
+}
 
 function getStudentData($idNo, $conn) {
     $sql = "SELECT * FROM info WHERE id_number = '$idNo'";
@@ -21,7 +45,7 @@ function getStudentData($idNo, $conn) {
 }
 
 function getAllStudents($conn) {
-    $sql = "SELECT * FROM info";
+    $sql = "SELECT id_number, first_name, last_name, course, year_level, sessions, points, total_points FROM info";
     $result = mysqli_query($conn, $sql);
     $students = [];
     while ($row = mysqli_fetch_assoc($result)) {
@@ -244,6 +268,12 @@ if (isset($_POST['export_excel'])) {
     exit;
 }
 
+function getPointsAwardedCount($idNo, $conn) {
+    $sql = "SELECT COUNT(*) as count FROM points_log WHERE id_number = '" . mysqli_real_escape_string($conn, $idNo) . "'";
+    $result = mysqli_query($conn, $sql);
+    $row = mysqli_fetch_assoc($result);
+    return $row ? $row['count'] : 0;
+}
 function addFeedback($sitInId, $feedbackText, $conn) {
     $sql = "INSERT INTO feedback (sit_in_id, feedback_text, feedback_date) VALUES (?, ?, NOW())";
     $stmt = mysqli_prepare($conn, $sql);
@@ -340,1839 +370,8 @@ if (isset($_POST['export_sitindata_pdf'])) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-
-    <link rel="stylesheet" href="../styles.css">
+    <link rel="stylesheet" href="admin_dashboard.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-    <style>
-        /* Base styles */
-        :root {
-            --light: hsl(220, 50%, 90%);
-            --primary: hsl(255, 30%, 55%);
-            --focus: hsl(210, 90%, 50%);
-            --border-color: hsla(0, 0%, 100%, .2);
-            --global-background: hsl(220, 25%, 10%);
-            --background: linear-gradient(to right, hsl(210, 30%, 20%), hsl(255, 30%, 25%));
-            --shadow-1: hsla(236, 50%, 50%, .3);
-            --shadow-2: hsla(236, 50%, 50%, .4);
-        }
-
-        *,
-        *::after,
-        *::before {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Open Sans', sans-serif;
-            color: var(--light);
-            background: var(--global-background);
-        }
-
-        /* Sidebar Styles */
-        .sidebar {
-            position: fixed;
-            left: 0;
-            top: 0;
-            height: 100%;
-            width: 250px;
-            background: var(--background);
-            padding: 20px 0;
-            z-index: 1000;
-            box-shadow: 4px 0 10px rgba(0,0,0,0.2);
-        }
-
-        .sidebar-button {
-            display: block;
-            width: 90%;
-            margin: 10px auto;
-            padding: 12px 20px;
-            background: transparent;
-            color: var(--light);
-            border: 1px solid var(--border-color);
-            border-radius: 100rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-align: left;
-            font-size: 1.4rem;
-            letter-spacing: 0.2rem;
-        }
-
-        .sidebar-button:hover {
-            background: transparent;
-            border-color: var(--primary);
-            box-shadow: 0 0 15px var(--primary),
-                       0 0 30px var(--primary),
-                       0 0 45px var(--primary);
-            transform: translateX(5px);
-        }
-
-        /* Main Content Styles */
-        main {
-            margin-left: 270px;
-            padding: 20px;
-            min-height: 100vh;
-            background: var(--global-background);
-        }
-
-        /* Modal Styles */
-        .modal-container {
-            position: fixed;
-            top: 0;
-            left: 0;
-            z-index: 10;
-            display: none;
-            justify-content: center;
-            align-items: center;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-        }
-
-        .modal {
-            width: 60rem;
-            padding: 4rem 2rem;
-            border-radius: .8rem;
-            color: var(--light);
-            background: var(--background);
-            box-shadow: .4rem .4rem 10.2rem .2rem var(--shadow-1);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .modal h2, .modal h3 {
-            font-size: 3.2rem;
-            color: var(--light);
-            margin-bottom: 2rem;
-        }
-
-        .close {
-            width: 4rem;
-            height: 4rem;
-            border: 1px solid var(--border-color);
-            border-radius: 100rem;
-            color: var(--light);
-            font-size: 2.2rem;
-            position: absolute;
-            top: 2rem;
-            right: 2rem;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            transition: .2s;
-        }
-
-        .close:hover {
-            background: var(--focus);
-            border-color: var(--focus);
-            transform: translateY(-.2rem);
-        }
-
-        /* Form Styles */
-        .modal form {
-            margin-top: 2rem;
-        }
-
-        .modal input[type="text"],
-        .modal input[type="email"],
-        .modal input[type="password"],
-        .modal select,
-        .modal textarea {
-            width: 100%;
-            padding: 1rem 1.6rem;
-            margin: 0.8rem 0 1.6rem;
-            border: 1px solid var(--border-color);
-            border-radius: 0.4rem;
-            background: rgba(255, 255, 255, 0.1);
-            color: var(--light);
-            font-size: 1.4rem;
-            transition: .2s;
-        }
-
-        .modal input[type="text"]:focus,
-        .modal input[type="email"]:focus,
-        .modal input[type="password"]:focus,
-        .modal select:focus,
-        .modal textarea:focus {
-            border-color: var(--focus);
-            box-shadow: 0 0 0 2px var(--shadow-1);
-            outline: none;
-        }
-
-        .modal select option {
-            background: var(--global-background);
-            color: var(--light);
-        }
-
-        .modal input[type="submit"],
-        .modal button {
-            padding: 1rem 1.6rem;
-            border: 1px solid var(--border-color);
-            border-radius: 100rem;
-            color: var(--light);
-            background: transparent;
-            font-size: 1.4rem;
-            letter-spacing: .2rem;
-            transition: .2s;
-            cursor: pointer;
-            margin-top: 2rem;
-        }
-
-        .modal input[type="submit"]:hover,
-        .modal button:hover {
-            background: var(--focus);
-            border-color: var(--focus);
-            transform: translateY(-.2rem);
-        }
-
-        .feedback-content {
-            margin: 2rem 0;
-            font-size: 1.6rem;
-            line-height: 1.6;
-        }
-
-        .feedback-details {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 2rem;
-            border-radius: 0.8rem;
-            margin-top: 1rem;
-        }
-
-        .feedback-details p {
-            margin: 1rem 0;
-        }
-
-        .no-feedback {
-            text-align: center;
-            padding: 2rem;
-            color: var(--light);
-            font-style: italic;
-            font-size: 1.6rem;
-        }
-
-        #courseFilter {
-            
-            border: 1px solid var(--border-color);
-            
-            color: var(--light);
-            background: rgba(255, 255, 255, 0.1);
-            
-            margin: 1rem 0;
-            cursor: pointer;
-        }
-
-        #courseFilter:focus {
-            border-color: var(--focus);
-            outline: none;
-        }
-
-        /* Form Message Styles */
-        #form-message {
-            margin-top: 2rem;
-            padding: 1rem;
-            border-radius: 0.4rem;
-            font-size: 1.4rem;
-        }
-
-        #form-message.success {
-            background: rgba(40, 167, 69, 0.2);
-            border: 1px solid #28a745;
-        }
-
-        #form-message.error {
-            background: rgba(220, 53, 69, 0.2);
-            border: 1px solid #dc3545;
-        }
-
-        /* Table Styles */
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-            background: var(--background);
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0.4rem 0.4rem 2.4rem 0.2rem var(--shadow-1);
-        }
-
-        th, td {
-            padding: 1.5rem;
-            text-align: left;
-            border-bottom: 1px solid var(--border-color);
-            color: var(--light);
-        }
-
-        th {
-            background: var(--primary);
-            color: var(--light);
-            font-weight: 600;
-            letter-spacing: 0.1rem;
-        }
-
-        tr:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        /* Search Results */
-        .search-result-item {
-            padding: 1.5rem;
-            border: 1px solid var(--border-color);
-            border-radius: 5px;
-            margin-bottom: 1rem;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-
-        .search-result-item:hover {
-            background: var(--focus);
-            transform: translateY(-0.2rem);
-        }
-
-        /* Stats Container */
-        .stats-container {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        .stat-box {
-            background: var(--background);
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0.4rem 0.4rem 2.4rem 0.2rem var(--shadow-1);
-            text-align: center;
-            color: var(--light);
-        }
-
-        .modal-title {
-            font-size: 2.4rem;
-            color: var(--light);
-            margin-bottom: 2rem;
-            text-align: center;
-        }
-
-        /* Chart Container */
-        .chart-container {
-            background: var(--background);
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0.4rem 0.4rem 2.4rem 0.2rem var(--shadow-1);
-            margin-bottom: 30px;
-            height: 400px;
-        }
-
-        /* Announcement Styles */
-        .announcement-container {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin: 30px auto;
-            background: var(--background);
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0.4rem 0.4rem 2.4rem 0.2rem var(--shadow-1);
-            width: 100%;
-            max-width: 1200px;
-        }
-
-        .announcement-form {
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            border-right: 1px solid var(--border-color);
-        }
-
-        .announcement-list {
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .announcement-scroll {
-            height: 300px;
-            overflow-y: auto;
-            padding-right: 10px;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .announcement-item {
-            background: rgba(255, 255, 255, 0.05);
-            padding: 15px;
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            transition: transform 0.2s ease;
-        }
-
-        .announcement-item:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        }
-
-        .announcement-text {
-            color: var(--light);
-            font-size: 1.4rem;
-            word-wrap: break-word;
-            line-height: 1.5;
-        }
-
-        .announcement-date {
-            color: rgba(255, 255, 255, 0.6);
-            font-size: 1.2rem;
-            text-align: right;
-            font-style: italic;
-            margin-top: auto;
-        }
-
-        /* Responsive styles for announcements */
-        @media (max-width: 768px) {
-            .announcement-container {
-                grid-template-columns: 1fr;
-            }
-            
-            .announcement-form {
-                border-right: none;
-                border-bottom: 1px solid var(--border-color);
-                padding-bottom: 20px;
-            }
-        }
-
-        /* Filter and Header Styles */
-        .student-header {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
-            align-items: center;
-            margin-bottom: 20px;
-            background: var(--background);
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-
-        .filter-controls {
-            display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-            align-items: center;
-            flex: 1;
-        }
-
-        .filter-controls select {
-            background: rgba(255, 255, 255, 0.1);
-            color: var(--light);
-            border: 1px solid var(--border-color);
-            padding: 10px 15px;
-            border-radius: 5px;
-            cursor: pointer;
-            min-width: 150px;
-            font-size: 1rem;
-        }
-
-        .filter-controls select:hover {
-            border-color: var(--primary);
-            box-shadow: 0 0 10px var(--primary);
-        }
-
-        .student-search-container {
-            flex: 2;
-            min-width: 300px;
-        }
-
-        .student-search-container input {
-            width: 100%;
-            padding: 10px 15px;
-            border: 1px solid var(--border-color);
-            border-radius: 5px;
-            background: rgba(255, 255, 255, 0.1);
-            color: var(--light);
-            font-size: 1rem;
-        }
-
-        .student-search-container input:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 10px var(--primary);
-        }
-
-        /* Button Styles */
-        #addStudentBtn, 
-        button[onclick="resetSessions()"] {
-            padding: 10px 20px;
-            font-size: 1rem;
-            min-width: 120px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid var(--border-color);
-            color: var(--light);
-            border-radius: 5px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        #addStudentBtn:hover, 
-        button[onclick="resetSessions()"]:hover {
-            border-color: var(--primary);
-            box-shadow: 0 0 15px var(--primary);
-            transform: translateY(-2px);
-        }
-
-        /* Modal Form Styles */
-        #addStudentForm {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 1.5rem;
-            padding: 2rem;
-        }
-
-        #addStudentForm > div {
-            display: flex;
-            flex-direction: column;
-        }
-
-        #addStudentForm label {
-            color: var(--light);
-            margin-bottom: 0.5rem;
-            font-size: 1.4rem;
-        }
-
-        #addStudentForm input[type="submit"] {
-            grid-column: span 2;
-            width: 50%;
-            margin: 2rem auto 0;
-        }
-
-        #addStudentForm input,
-        #addStudentForm select {
-            width: 100%;
-            padding: 12px 15px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid var(--border-color);
-            border-radius: 5px;
-            color: var(--light);
-            font-size: 1rem;
-            transition: all 0.3s ease;
-        }
-
-        #addStudentForm input:focus,
-        #addStudentForm select:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 10px var(--primary);
-        }
-
-        #addStudentForm input:not(:focus):not(:placeholder-shown):valid {
-            border-color: var(--border-color);
-        }
-
-        #addStudentForm input:not(:focus):not(:placeholder-shown):invalid {
-            border-color: var(--border-color);
-        }
-
-        /* Modal Header Style */
-        .modal h2 {
-            color: var(--light);
-            margin-bottom: 25px;
-            font-size: 1.5rem;
-            text-align: center;
-        }
-
-        /* Table Header Style */
-        .student-list table th {
-            background: rgba(255, 255, 255, 0.1);
-            color: var(--light);
-            padding: 15px;
-            font-size: 1rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        /* Logout Button Styles */
-        #logoutBtn {
-            margin-top: auto;
-            background: transparent;
-            border: 1px solid var(--border-color);
-            color: var(--light);
-            padding: 12px 20px;
-            border-radius: 100rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            width: 90%;
-            margin: 10px auto;
-            text-align: left;
-            font-size: 1.4rem;
-            letter-spacing: 0.2rem;
-        }
-
-        #logoutBtn:hover {
-            background: transparent;
-            border-color: var(--primary);
-            box-shadow: 0 0 15px var(--primary),
-                       0 0 30px var(--primary),
-                       0 0 45px var(--primary);
-            transform: translateX(5px);
-        }
-
-        #logoutBtn:active {
-            transform: translateX(0);
-        }
-
-        /* Logout Modal Styles */
-        #logoutModal {
-            display: none;
-            position: fixed;
-            z-index: 2000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        #logoutModal .modal-content {
-            background: var(--background);
-            padding: 3rem;
-            border-radius: 1rem;
-            width: 90%;
-            max-width: 400px;
-            text-align: center;
-            position: relative;
-        }
-
-        #logoutModal p {
-            font-size: 1.6rem;
-            margin-bottom: 2rem;
-            color: var(--light);
-        }
-
-        #logoutModal .button-group {
-            display: flex;
-            justify-content: center;
-            gap: 1rem;
-        }
-
-        #logoutModal button {
-            min-width: 120px;
-            padding: 0.8rem 1.6rem;
-            border-radius: 0.4rem;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        #logoutModal button[name="logout"] {
-            background: var(--primary);
-            color: white;
-            border: 1px solid var(--primary);
-        }
-
-        #logoutModal button[name="logout"]:hover {
-            background: transparent;
-            color: var(--primary);
-            box-shadow: 0 0 15px var(--primary);
-        }
-
-        #logoutModal button[type="button"] {
-            background: transparent;
-            color: var(--light);
-            border: 1px solid var(--border-color);
-        }
-
-        #logoutModal button[type="button"]:hover {
-            border-color: var(--primary);
-            color: var(--primary);
-        }
-
-        /* Entries Display Styles */
-        .entries-display {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-size: 1.4rem;
-            color: var(--light);
-        }
-
-        .entries-select {
-            width: 6rem;
-            padding: 0.4rem;
-            border: 1px solid var(--border-color);
-            border-radius: 0.4rem;
-            background: transparent;
-            color: var(--light);
-            font-size: 1.4rem;
-            cursor: pointer;
-        }
-
-        .charts-container {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 20px;
-            margin: 20px 0;
-        }
-
-        .chart-box {
-            background: var(--background);
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0.4rem 0.4rem 2.4rem 0.2rem var(--shadow-1);
-        }
-
-        .chart-box h3 {
-            color: var(--light);
-            text-align: center;
-            margin-bottom: 15px;
-            font-size: 1.6rem;
-        }
-
-        canvas {
-            width: 100% !important;
-            height: 300px !important;
-        }
-
-        .student-list table th {
-            background: var(--primary);
-            color: var(--light);
-            font-weight: 600;
-            letter-spacing: 0.1rem;
-            padding: 1.2rem 1.5rem;
-            text-transform: uppercase;
-            font-size: 0.9rem;
-            border-bottom: 2px solid var(--border-color);
-        }
-
-        .student-list table td {
-            padding: 1.2rem 1.5rem;
-            border-bottom: 1px solid var(--border-color);
-            font-size: 0.95rem;
-        }
-
-        .student-list table tr:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        .data-table td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .data-table {
-            width: 100%;
-            border-collapse: collapse;
-            background: rgba(255, 255, 255, 0.05);
-            color: white;
-        }
-
-        .data-table th {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
-            cursor: pointer;
-        }
-
-        .data-table tbody tr:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        /* Feedback Modal Styles */
-        #feedbackModal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            justify-content: center;
-            align-items: center;
-        }
-
-        #feedbackModal .modal {
-            background: var(--background);
-            padding: 2rem;
-            border-radius: 0.8rem;
-            color: var(--light);
-            box-shadow: 0.4rem 0.4rem 10.2rem 0.2rem var(--shadow-1);
-            width: 90%;
-            max-width: 600px;
-            position: relative;
-        }
-
-        #feedbackModal .modal-title {
-            margin-top: 0;
-            color: var(--light);
-            font-size: 1.5rem;
-        }
-
-        #feedbackModal .close {
-            position: absolute;
-            right: 1rem;
-            top: 1rem;
-            font-size: 1.5rem;
-            cursor: pointer;
-            color: var(--light);
-        }
-
-        .feedback-content {
-            margin: 1.5rem 0;
-            color: var(--light);
-        }
-
-        .feedback-details {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 1.5rem;
-            border-radius: 0.5rem;
-        }
-
-        .feedback-details p {
-            margin: 0.8rem 0;
-            line-height: 1.5;
-        }
-
-        .no-feedback {
-            text-align: center;
-            padding: 2rem;
-            color: var(--light);
-            font-style: italic;
-        }
-
-        /* Form and Modal Specific Styles */
-        #addStudentForm {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 1.5rem;
-            padding: 2rem;
-        }
-
-        #addStudentForm > div {
-            display: flex;
-            flex-direction: column;
-        }
-
-        #addStudentForm label {
-            color: var(--light);
-            margin-bottom: 0.5rem;
-            font-size: 1.4rem;
-        }
-
-        #addStudentForm input[type="submit"] {
-            grid-column: span 2;
-            width: 50%;
-            margin: 2rem auto 0;
-        }
-
-        .search-modal {
-            background: var(--background);
-            padding: 2rem;
-            border-radius: 0.8rem;
-            width: 90%;
-            max-width: 50rem;
-            position: relative;
-            color: var(--light);
-        }
-
-        .search-form {
-            margin: 2rem 0;
-        }
-
-        .search-form input {
-            width: 100%;
-            padding: 1rem 1.6rem;
-            border: 1px solid var(--border-color);
-            border-radius: 100rem;
-            background: rgba(255, 255, 255, 0.1);
-            color: var(--light);
-            font-size: 1.4rem;
-        }
-
-        .search-results {
-            max-height: 40vh;
-            overflow-y: auto;
-            padding: 1rem;
-        }
-
-        .search-result-item {
-            padding: 1rem;
-            margin: 0.5rem 0;
-            border-radius: 0.5rem;
-            background: rgba(255, 255, 255, 0.1);
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .search-result-item:hover {
-            background: rgba(255, 255, 255, 0.2);
-            transform: translateY(-2px);
-        }
-
-        /* Table Buttons */
-        .action-button {
-            padding: 0.8rem 1.6rem;
-            border: 1px solid var(--border-color);
-            border-radius: 100rem;
-            background: transparent;
-            color: var(--light);
-            font-size: 1.2rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin: 0.2rem;
-        }
-
-        .action-button:hover {
-            background: var(--focus);
-            border-color: var(--focus);
-            transform: translateY(-2px);
-            box-shadow: 0 0 15px var(--shadow-1);
-        }
-
-        /* Points Modal */
-        .points-modal {
-            background: var(--background);
-            padding: 2rem;
-            border-radius: 0.8rem;
-            width: 90%;
-            max-width: 40rem;
-            color: var(--light);
-        }
-
-        .points-form {
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
-            margin-top: 2rem;
-        }
-
-        .points-form input[type="number"] {
-            width: 100%;
-            padding: 1rem 1.6rem;
-            border: 1px solid var(--border-color);
-            border-radius: 0.4rem;
-            background: rgba(255, 255, 255, 0.1);
-            color: var(--light);
-            font-size: 1.4rem;
-        }
-
-        /* Scrollbar Styles */
-        .search-results::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        .search-results::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 4px;
-        }
-
-        .search-results::-webkit-scrollbar-thumb {
-            background: var(--primary);
-            border-radius: 4px;
-        }
-
-        /* Modal Close Button */
-        .modal .close {
-            position: absolute;
-            right: 1.5rem;
-            top: 1.5rem;
-            width: 3rem;
-            height: 3rem;
-            border: 1px solid var(--border-color);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2rem;
-            color: var(--light);
-            cursor: pointer;
-            transition: all 0.3s ease;
-            background: transparent;
-        }
-
-        .modal .close:hover {
-            background: var(--focus);
-            border-color: var(--focus);
-            transform: translateY(-2px);
-        }
-
-        /* Form Grid Layout */
-        .form-row {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 1.5rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .form-group label {
-            color: var(--light);
-            margin-bottom: 0.5rem;
-            font-size: 1.4rem;
-        }
-
-        /* Table and Action Buttons */
-        .table-button,
-        .action-button,
-        .view-button,
-        .edit-button,
-        .delete-button {
-            padding: 0.8rem 1.6rem;
-            border: 1px solid var(--border-color);
-            border-radius: 100rem;
-            background: transparent;
-            color: var(--light);
-            font-size: 1.2rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin: 0.2rem;
-        }
-
-        .table-button:hover,
-        .action-button:hover,
-        .view-button:hover,
-        .edit-button:hover,
-        .delete-button:hover {
-            background: var(--focus);
-            border-color: var(--focus);
-            transform: translateY(-2px);
-            box-shadow: 0 0 15px var(--shadow-1);
-        }
-
-        .view-button {
-            border-color: var(--primary);
-            color: var(--primary);
-        }
-
-        .edit-button {
-            border-color: #28a745;
-            color: #28a745;
-        }
-
-        .delete-button {
-            border-color: #dc3545;
-            color: #dc3545;
-        }
-
-        .view-button:hover {
-            background: var(--primary);
-            color: var(--light);
-        }
-
-        .edit-button:hover {
-            background: #28a745;
-            color: var(--light);
-        }
-
-        .delete-button:hover {
-            background: #dc3545;
-            color: var(--light);
-        }
-
-        /* Points Modal Styles */
-        .points-modal .modal-content {
-            background: var(--background);
-            border: none;
-            color: var(--light);
-        }
-
-        .points-form input[type="number"] {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid var(--border-color);
-            color: var(--light);
-        }
-
-        .points-form button {
-            margin-top: 2rem;
-        }
-
-        /* Announcement Button and Dropdown Styles */
-        .announcement-form textarea {
-            width: 100%;
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid var(--border-color);
-            border-radius: 0.8rem;
-            color: var(--light);
-            resize: vertical;
-            min-height: 100px;
-        }
-
-        .announcement-form button {
-            padding: 1rem 2rem;
-            border: 1px solid var(--border-color);
-            border-radius: 100rem;
-            background: transparent;
-            color: var(--light);
-            font-size: 1.4rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .announcement-form button:hover {
-            background: var(--focus);
-            border-color: var(--focus);
-            transform: translateY(-2px);
-            box-shadow: 0 0 15px var(--shadow-1);
-        }
-
-        /* Filter Dropdowns */
-        .filter-dropdown {
-            padding: 1rem 2rem;
-            border: 1px solid var(--border-color);
-            border-radius: 100rem;
-            background: transparent;
-            color: var(--light);
-            font-size: 1.4rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            min-width: 150px;
-            appearance: none;
-            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-            background-repeat: no-repeat;
-            background-position: right 1rem center;
-            background-size: 1em;
-        }
-
-        .filter-dropdown:hover {
-            border-color: var(--focus);
-        }
-
-        .filter-dropdown:focus {
-            outline: none;
-            border-color: var(--focus);
-            box-shadow: 0 0 0 2px var(--shadow-1);
-        }
-
-        .filter-dropdown option {
-            background: var(--global-background);
-            color: var(--light);
-            padding: 1rem;
-        }
-
-        /* View Feedback Button */
-        .view-feedback-btn {
-            padding: 0.8rem 1.6rem;
-            border: 1px solid var(--primary);
-            border-radius: 100rem;
-            background: transparent;
-            color: var(--primary);
-            font-size: 1.2rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .view-feedback-btn:hover {
-            background: var(--primary);
-            color: var(--light);
-            transform: translateY(-2px);
-            box-shadow: 0 0 15px var(--shadow-1);
-        }
-
-        /* Add Points Button and Modal */
-        .add-points-btn {
-            padding: 0.8rem 1.6rem;
-            border: 1px solid #28a745;
-            border-radius: 100rem;
-            background: transparent;
-            color: #28a745;
-            font-size: 1.2rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .add-points-btn:hover {
-            background: #28a745;
-            color: var(--light);
-            transform: translateY(-2px);
-            box-shadow: 0 0 15px rgba(40, 167, 69, 0.4);
-        }
-
-        .points-modal {
-            background: var(--background);
-            padding: 2rem;
-            border-radius: 0.8rem;
-            color: var(--light);
-        }
-
-        .points-form {
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
-        }
-
-        .points-form input[type="number"] {
-            width: 100%;
-            padding: 1rem 1.6rem;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid var(--border-color);
-            border-radius: 0.4rem;
-            color: var(--light);
-            font-size: 1.4rem;
-        }
-
-        .points-form button {
-            padding: 1rem 2rem;
-            border: 1px solid #28a745;
-            border-radius: 100rem;
-            background: transparent;
-            color: #28a745;
-            font-size: 1.4rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .points-form button:hover {
-            background: #28a745;
-            color: var(--light);
-            transform: translateY(-2px);
-            box-shadow: 0 0 15px rgba(40, 167, 69, 0.4);
-        }
-
-        /* Feedback Button and Modal Styles */
-        .feedback-btn {
-            padding: 0.6rem 1.2rem;
-            border: 1px solid var(--primary);
-            border-radius: 100rem;
-            background: transparent;
-            color: var(--primary);
-            font-size: 1.2rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            display: inline-block;
-        }
-
-        .feedback-btn:hover {
-            background: var(--primary);
-            color: var(--light);
-            transform: translateY(-2px);
-            box-shadow: 0 0 15px var(--shadow-1);
-        }
-
-        .feedback-modal {
-            background: var(--background);
-            padding: 2.5rem;
-            border-radius: 0.8rem;
-            width: 90%;
-            max-width: 50rem;
-            position: relative;
-            color: var(--light);
-        }
-
-        .feedback-modal h2 {
-            font-size: 2rem;
-            margin-bottom: 2rem;
-            color: var(--primary);
-        }
-
-        .feedback-details {
-            background: rgba(255, 255, 255, 0.05);
-            padding: 2rem;
-            border-radius: 0.6rem;
-            margin-top: 1.5rem;
-        }
-
-        .feedback-details p {
-            margin-bottom: 1rem;
-            font-size: 1.4rem;
-            line-height: 1.6;
-        }
-
-        .feedback-details strong {
-            color: var(--primary);
-            font-weight: 500;
-        }
-
-        .feedback-text {
-            background: rgba(255, 255, 255, 0.03);
-            padding: 1.5rem;
-            border-radius: 0.4rem;
-            margin-top: 1rem;
-            font-style: italic;
-        }
-
-        .no-feedback {
-            text-align: center;
-            padding: 2rem;
-            color: var(--border-color);
-            font-style: italic;
-        }
-
-        .loading-feedback {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 3rem;
-            color: var(--border-color);
-        }
-
-        .loading-feedback:after {
-            content: '';
-            width: 2rem;
-            height: 2rem;
-            border: 2px solid var(--border-color);
-            border-top-color: var(--primary);
-            border-radius: 50%;
-            margin-left: 1rem;
-            animation: loading 0.8s linear infinite;
-        }
-
-        @keyframes loading {
-            to {
-                transform: rotate(360deg);
-            }
-        }
-
-        /* Loading Animation */
-        .loading {
-            text-align: center;
-            padding: 2rem;
-            color: var(--light);
-        }
-
-        .loading:after {
-            content: '.';
-            animation: dots 1.5s steps(5, end) infinite;
-        }
-
-        @keyframes dots {
-            0%, 20% { content: '.'; }
-            40% { content: '..'; }
-            60% { content: '...'; }
-            80%, 100% { content: ''; }
-        }
-
-        /* Button Styles */
-        .btn-primary,
-        .feedback-button,
-        .action-btn {
-            padding: 0.8rem 1.6rem;
-            border: 1px solid var(--primary);
-            border-radius: 100rem;
-            background: transparent;
-            color: var(--primary);
-            font-size: 1.2rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            display: inline-block;
-            margin: 0.2rem;
-        }
-
-        .btn-sm {
-            padding: 0.5rem 1rem;
-            font-size: 0.875rem;
-            border-radius: 0.4rem;
-        }
-
-        .btn-primary:hover,
-        .feedback-button:hover,
-        .action-btn:hover {
-            background: var(--primary);
-            color: var(--light);
-            transform: translateY(-2px);
-            box-shadow: 0 0 15px var(--shadow-1);
-        }
-
-        /* Specific Button Styles */
-        .manage-schedule-btn {
-            border-color: #4CAF50;
-            color: #4CAF50;
-        }
-
-        .manage-schedule-btn:hover {
-            background: #4CAF50;
-            color: var(--light);
-            box-shadow: 0 0 15px rgba(76, 175, 80, 0.4);
-        }
-
-        .add-points-btn {
-            border-color: #2196F3;
-            color: #2196F3;
-        }
-
-        .add-points-btn:hover {
-            background: #2196F3;
-            color: var(--light);
-            box-shadow: 0 0 15px rgba(33, 150, 243, 0.4);
-        }
-
-        .export-btn {
-            border-color: #9C27B0;
-            color: #9C27B0;
-        }
-
-        .export-btn:hover {
-            background: #9C27B0;
-            color: var(--light);
-            box-shadow: 0 0 15px rgba(156, 39, 176, 0.4);
-        }
-
-        /* Button Group Styles */
-        .button-group {
-            display: flex;
-            gap: 0.8rem;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-
-        /* Icon Button Styles */
-        .btn-icon {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-        }
-
-        .btn-icon i {
-            font-size: 1.4rem;
-        }
-
-        /* Modal Base Styles */
-        .modal-container {
-            display: none;
-            position: fixed;
-            z-index: 2000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-
-        .modal-container.active {
-            opacity: 1;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .modal-content {
-            background: var(--background);
-            padding: 3rem;
-            border-radius: 1rem;
-            width: 90%;
-            max-width: 400px;
-            text-align: center;
-            position: relative;
-            transform: scale(0.7);
-            opacity: 0;
-            transition: all 0.3s ease;
-        }
-
-        .modal-container.active .modal-content {
-            transform: scale(1);
-            opacity: 1;
-        }
-
-        .modal-content h2 {
-            color: var(--light);
-            margin-bottom: 2rem;
-            font-size: 2rem;
-        }
-
-        .modal-content p {
-            font-size: 1.6rem;
-            margin-bottom: 2rem;
-            color: var(--light);
-        }
-
-        .modal-content .close {
-            position: absolute;
-            right: 2rem;
-            top: 2rem;
-            font-size: 2.4rem;
-            color: var(--light);
-            cursor: pointer;
-            transition: color 0.3s ease;
-        }
-
-        .modal-content .close:hover {
-            color: var(--primary);
-        }
-
-        .button-group {
-            display: flex;
-            justify-content: center;
-            gap: 1.5rem;
-        }
-
-        .button-group button {
-            min-width: 120px;
-            padding: 1rem 2rem;
-            border-radius: 0.4rem;
-            font-size: 1.4rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .btn-primary {
-            background: var(--primary);
-            color: white;
-            border: 1px solid var(--primary);
-        }
-
-        .btn-primary:hover {
-            background: transparent;
-            color: var(--primary);
-            box-shadow: 0 0 15px var(--primary);
-        }
-
-        .btn-secondary {
-            background: transparent;
-            color: var(--light);
-            border: 1px solid var(--border-color);
-        }
-
-        .btn-secondary:hover {
-            border-color: var(--primary);
-            color: var(--primary);
-        }
-
-        /* Timeout Button Styles */
-        .timeout-btn {
-            padding: 0.6rem 1.2rem;
-            border: 1px solid var(--primary);
-            border-radius: 100rem;
-            background: transparent;
-            color: var(--primary);
-            font-size: 1.2rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            min-width: 100px;
-        }
-
-        .timeout-btn:hover:not(:disabled) {
-            background: var(--primary);
-            color: var(--light);
-            transform: translateY(-2px);
-            box-shadow: 0 0 15px var(--shadow-1);
-        }
-
-        .timeout-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            border-color: var(--border-color);
-            color: var(--border-color);
-        }
-
-        /* Pagination Styles */
-        .pagination, .sitin-pagination {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 0.8rem;
-            margin-top: 2rem;
-            padding: 1rem;
-        }
-
-        .pagination button, .sitin-pagination button {
-            padding: 0.8rem 1.2rem;
-            border: 1px solid var(--border-color);
-            border-radius: 100rem;
-            background: transparent;
-            color: var(--light);
-            font-size: 1.2rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            min-width: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .pagination button:hover:not(:disabled), .sitin-pagination button:hover:not(:disabled) {
-            background: var(--primary);
-            border-color: var(--primary);
-            transform: translateY(-2px);
-            box-shadow: 0 0 15px var(--shadow-1);
-        }
-
-        .pagination button:disabled, .sitin-pagination button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .pagination span, .sitin-pagination span {
-            color: var(--light);
-            font-size: 1.2rem;
-            padding: 0.8rem 1.2rem;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 100rem;
-            min-width: 40px;
-            text-align: center;
-        }
-
-        /* Points Modal Styles */
-        .points-modal {
-            background: var(--background);
-            padding: 2rem;
-            border-radius: 0.8rem;
-            width: 90%;
-            max-width: 40rem;
-            position: relative;
-        }
-
-        .points-form {
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
-            margin-top: 2rem;
-        }
-
-        .points-form .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-
-        .points-form label {
-            color: var(--light);
-            font-size: 1.4rem;
-        }
-
-        .points-form input[type="number"],
-        .points-form textarea {
-            width: 100%;
-            padding: 1rem 1.6rem;
-            border: 1px solid var(--border-color);
-            border-radius: 0.4rem;
-            background: rgba(255, 255, 255, 0.1);
-            color: var(--light);
-            font-size: 1.4rem;
-            transition: all 0.3s ease;
-        }
-
-        .points-form input[type="number"]:focus,
-        .points-form textarea:focus {
-            border-color: var(--primary);
-            box-shadow: 0 0 0 2px rgba(var(--primary-rgb), 0.2);
-            outline: none;
-        }
-
-        .points-form textarea {
-            min-height: 100px;
-            resize: vertical;
-        }
-
-        .points-form .button-group {
-            display: flex;
-            gap: 1rem;
-            justify-content: flex-end;
-            margin-top: 2rem;
-        }
-
-        .points-form .modal-button {
-            padding: 1rem 2rem;
-            border: 1px solid var(--border-color);
-            border-radius: 0.4rem;
-            font-size: 1.4rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            min-width: 120px;
-        }
-
-        .points-form .modal-button.primary {
-            background: var(--primary);
-            border-color: var(--primary);
-            color: var(--light);
-        }
-
-        .points-form .modal-button.primary:hover {
-            background: transparent;
-            color: var(--primary);
-            transform: translateY(-2px);
-            box-shadow: 0 0 15px var(--shadow-1);
-        }
-
-        .points-form .modal-button.secondary {
-            background: transparent;
-            color: var(--light);
-        }
-
-        .points-form .modal-button.secondary:hover {
-            border-color: var(--primary);
-            color: var(--primary);
-            transform: translateY(-2px);
-        }
-
-        .add-points-btn {
-            padding: 0.6rem 1.2rem;
-            border: 1px solid var(--primary);
-            border-radius: 100rem;
-            background: transparent;
-            color: var(--primary);
-            font-size: 1.2rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            min-width: 100px;
-        }
-
-        .add-points-btn:hover {
-            background: var(--primary);
-            color: var(--light);
-            transform: translateY(-2px);
-            box-shadow: 0 0 15px var(--shadow-1);
-        }
-
-        .feedback-list {
-            margin-top: 20px;
-            max-height: 400px;
-            overflow-y: auto;
-        }
-
-        .feedback-item {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 15px;
-        }
-
-        .feedback-date {
-            color: var(--primary);
-            font-size: 0.9em;
-            margin-bottom: 8px;
-        }
-
-        .feedback-text {
-            white-space: pre-wrap;
-            line-height: 1.5;
-        }
-
-        .student-info {
-            background: rgba(255, 255, 255, 0.05);
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-        }
-
-        .student-info p {
-            margin: 5px 0;
-        }
-
-        /* ... existing styles ... */
-        .modal {
-    background: var(--background) !important;
-    border-radius: 10px !important;
-    padding: 25px !important;
-    max-width: 500px !important;
-    width: 90% !important;
-    position: relative !important;
-    z-index: 10000 !important;
-}
-
-        .modal-content {
-            background: #1a1b1e; /* Darker background */
-            padding: 1.5rem;
-            border-radius: 0.8rem;
-            width: 100%;
-            color: var(--light);
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
-        }
-
-        .modal h2 {
-            color: #a495dd; /* Purple tint for the title */
-            font-size: 1.2rem;
-            margin-bottom: 1rem;
-            text-align: left;
-        }
-
-        .close {
-            position: absolute;
-            top: 1rem;
-            right: 1rem;
-            font-size: 1.2rem;
-            color: #a495dd;
-            cursor: pointer;
-            transition: color 0.3s ease;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 0.5rem;
-            color: var(--light);
-        }
-
-        #feedbackForm textarea {
-            width: 100%;
-            padding: 0.8rem;
-            margin-bottom: 1rem;
-            background: #13151a; /* Darker input background */
-            border: 1px solid #2a2d35;
-            border-radius: 0.4rem;
-            color: var(--light);
-            resize: vertical;
-            min-height: 100px;
-        }
-
-        .submit-btn {
-            width: 100%;
-            padding: 0.8rem;
-            background: #a495dd; /* Purple button */
-            color: white;
-            border: none;
-            border-radius: 0.4rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 0.9rem;
-        }
-
-        .submit-btn:hover {
-            background: #8a7ac0;
-        }
-.dashboard-btn, .dashboard-select {
-    display: inline-block;
-    padding: 8px 18px;
-    background: transparent;
-    color: var(--light, #fff);
-    border: 1.5px solid var(--border-color, #666);
-    border-radius: 10px;
-    cursor: pointer;
-    font-weight: 500;
-    font-size: 16px;
-    transition: all 0.2s;
-    margin-right: 8px;
-    outline: none;
-    min-width: 160px;
-    min-height: 40px;
-    box-sizing: border-box;
-    vertical-align: middle;
-}
-.dashboard-btn:focus, .dashboard-btn:hover,
-.dashboard-select:focus, .dashboard-select:hover {
-    border-color: var(--primary, #4e9cff);
-    background: rgba(78,156,255,0.08);
-    color: var(--primary, #4e9cff);
-}
-.dashboard-select option {
-    color: #222;
-    background: #fff;
-}
-.filter-controls {
-    display: flex;
-    flex-direction: row;
-    gap: 10px;
-    align-items: center;
-}
-    </style>
-
 </head>
 <body>
     <div class="sidebar">
@@ -2287,10 +486,22 @@ if (isset($_POST['export_sitindata_pdf'])) {
                                 <th onclick="sortTable('year_level', 'number')" style="cursor: pointer;">Year Level ↕</th>
                                 <th onclick="sortTable('sessions', 'number')" style="cursor: pointer;">Sessions ↕</th>
                                 <th onclick="sortTable('points', 'number')" style="cursor: pointer;">Points ↕</th>
-                                
+                                <th>Total Points</th>
                             </tr>
                         </thead>
-                        <tbody id="studentTableBody"></tbody>
+                        <tbody id="studentTableBody">
+                        <?php foreach ($allStudents as $student): ?>
+<tr>
+    <td><?php echo $student['id_number']; ?></td>
+    <td><?php echo $student['last_name'] . ', ' . $student['first_name']; ?></td>
+    <td><?php echo $student['course']; ?></td>
+    <td><?php echo $student['year_level']; ?></td>
+    <td><?php echo $student['sessions']; ?></td>
+    <td><?php echo $student['points']; ?></td>
+    <td><?php echo $student['total_points']; ?></td>
+</tr>
+<?php endforeach; ?>
+                        </tbody>
                     </table>
                 </div>
                 <div class="export-buttons">
@@ -2312,9 +523,8 @@ if (isset($_POST['export_sitindata_pdf'])) {
                         entries
                     </div>
                     <div class="sitin-search">
-                        <input type="text" id="sitinSearch" placeholder="Search...">
-                        <button onclick="loadSitInData()">Search</button>
-                    </div>
+    <input type="text" id="sitinSearch" placeholder="Search...">
+</div>
                 </div>
                 <div class="sitin-list">
                     <table id="sitinTable">
@@ -2814,19 +1024,27 @@ if (isset($_POST['export_sitindata_pdf'])) {
                 </div>
 
                 <div class="pagination" style="text-align: center; margin-top: 20px;">
-                    <button onclick="goToFirstPage()" id="firstPageBtn"><<</button>
-                    <button onclick="goToPreviousPage()" id="prevPageBtn"><</button>
+                    <button onclick="goToFirstPage()"><<</button>
+                    <button onclick="goToPreviousPage()"><</button>
                     <span id="currentPage">1</span>
-                    <button onclick="goToNextPage()" id="nextPageBtn">></button>
-                    <button onclick="goToLastPage()" id="lastPageBtn">>></button>
+                    <button onclick="goToNextPage()">></button>
+                    <button onclick="goToLastPage()">>></button>
                 </div>
 
-                <div id="feedbackModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); justify-content: center; align-items: center;">
+                <div id="feedbackModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); justify-content: center; align-items: center;">
                     <div style="background-color: white; padding: 20px; border-radius: 5px; width: 80%; max-width: 600px;">
                         <span class="close" onclick="closeFeedbackModal()">&times;</span>
                         <h3>Feedback Details</h3>
                         <div id="modalFeedbackText"></div>
                         <button onclick="closeFeedbackModal()" class="btn btn-secondary mt-3">Close</button>
+                    </div>
+                </div>
+
+                <div id="timeoutModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); justify-content: center; align-items: center;">
+                    <div style="background-color: white; padding: 20px; border-radius: 5px; width: 80%; max-width: 600px;">
+                        <span class="close" onclick="closeTimeoutModal()">&times;</span>
+                        <h3>Timeout Options</h3>
+                        <div id="timeoutModalButtons"></div>
                     </div>
                 </div>
 
@@ -2914,6 +1132,50 @@ window.addEventListener('click', function(event) {
                 </style>
 
                 <script>
+function showTimeoutOptions(idNo, btn) {
+    document.getElementById('timeoutModal').style.display = 'flex';
+    document.getElementById('timeoutModalButtons').innerHTML = `
+        <button class="give-point-btn" onclick="givePointAndTimeout('${idNo}', this)">Give 1 Point & Timeout</button>
+        <button class="timeout-btn" onclick="timeoutOnly('${idNo}', this)">Timeout Only</button>
+        <button class="cancel-btn" onclick="closeTimeoutModal()">Cancel</button>
+    `;
+}
+function closeTimeoutModal() {
+    document.getElementById('timeoutModal').style.display = 'none';
+}
+                    function givePointAndTimeout(idNo, btn) {
+                        if (!confirm('Give 1 point and timeout this student?')) return;
+                        const formData = new FormData();
+                        formData.append('id_number', idNo);
+                        formData.append('give_point_and_timeout', true);
+                        fetch('admin_dashboard.php', {
+                            method: 'POST',
+                            body: formData
+                        })
+                        .then(res => res.json())
+                        .then(data => {
+                            alert(data.message || 'Success');
+                            loadSitInData();
+                            loadStudentData();
+                        })
+                        .catch(() => alert('Error processing request'));
+                    }
+                    function timeoutOnly(idNo, btn) {
+                        if (!confirm('Timeout this student?')) return;
+                        const formData = new FormData();
+                        formData.append('id_number', idNo);
+                        formData.append('logout_sitin', true);
+                        fetch('admin_dashboard.php', {
+                            method: 'POST',
+                            body: formData
+                        })
+                        .then(res => res.json())
+                        .then(data => {
+                            alert(data.message || 'Success');
+                            loadSitInData();
+                        })
+                        .catch(() => alert('Error processing request'));
+                    }
                     function loadSitInReportData() {
                         const tbody = document.getElementById('sitInDataBody');
                         // Example data row creation
@@ -2939,7 +1201,7 @@ window.addEventListener('click', function(event) {
         <div id="feedbackModal" class="modal-container">
             <div class="feedback-modal">
                 <span class="close" onclick="closeModal('feedbackModal')">&times;</span>
-                <h2>Student Feedback</h2>
+                <h2 class="modal-title">Student Feedback</h2>
                 <div id="feedbackContent"></div>
             </div>
         </div>
@@ -2985,7 +1247,7 @@ window.addEventListener('click', function(event) {
             function formatDateTime(dateString) {
                 if (!dateString) return 'N/A';
                 const date = new Date(dateString);
-                return date.toLocaleString('en-US', {
+                return date.toLocaleDateString('en-US', {
                     year: 'numeric',
                     month: '2-digit',
                     day: '2-digit',
@@ -3021,7 +1283,7 @@ window.addEventListener('click', function(event) {
                     <option value="Python">Python</option>
                     <option value="C#">C#</option>
                     <option value="Database">Database</option>
-                    <option value="Digital Logic &amp; Design">Digital Logic &amp; Design</option>
+                    <option value="Digital Logic & Design">Digital Logic & Design</option>
                     <option value="Embedded Systems and IoT">Embedded Systems and IoT</option>
                     <option value="System Integration and Architecture">System Integration and Architecture</option>
                     <option value="Computer Application">Computer Application</option>
@@ -3743,13 +2005,9 @@ window.addEventListener('click', function(event) {
                         <td>${sitin.lab || ''}</td>
                         <td>${sitin.sessions || ''}</td>
                         <td>${sitin.status || ''}</td>
-                        <td>
-                            <button onclick="logoutSitIn('${sitin.id_number}')" 
-                                    class="timeout-btn"
-                                    ${sitin.status !== 'active' ? 'disabled' : ''}>
-                                Timeout
-                            </button>
-                        </td>
+       <td>
+           <button class="timeout-btn" onclick="showTimeoutOptions('${sitin.id_number}', this)" ${sitin.status !== 'active' ? 'disabled' : ''}>Timeout</button>
+       </td>
                     `;
                     sitinTableBody.appendChild(row);
                 });
@@ -3799,10 +2057,10 @@ window.addEventListener('click', function(event) {
         });
 
         // Add search handler for current sit-in
-        document.getElementById('sitinSearch').addEventListener('input', function(e) {
-            currentPage = 1; // Reset to first page when searching
-            loadSitInData();
-        });
+        document.getElementById('sitinSearch').addEventListener('input', function() {
+    currentPage = 1;
+    displayCurrentSitInData(this.value.toLowerCase());
+});
 
         function searchStudent() {
             var searchTerm = document.getElementById('searchIdNo').value;
@@ -4007,100 +2265,6 @@ window.addEventListener('click', function(event) {
             const hours = Math.floor(minutes / 60);
             const remainingMinutes = minutes % 60;
             return `${hours}h ${remainingMinutes}m`;
-        }
-
-        function updateCharts(data) {
-            // Purpose Chart
-            const purposes = {};
-            data.forEach(record => {
-                purposes[record.purpose] = (purposes[record.purpose] || 0) + 1;
-            });
-
-            const purposeCtx = document.getElementById('purposePieChart').getContext('2d');
-            new Chart(purposeCtx, {
-                type: 'pie',
-                data: {
-                    labels: Object.keys(purposes),
-                    datasets: [{
-                        data: Object.values(purposes),
-                        backgroundColor: [
-                            'hsla(350, 100%, 70%, 0.7)',
-                            'hsla(200, 100%, 70%, 0.7)',
-                            'hsla(145, 100%, 70%, 0.7)',
-                            'hsla(45, 100%, 70%, 0.7)',
-                            'hsla(280, 100%, 70%, 0.7)',
-                        ],
-                        borderColor: [
-                            'hsla(350, 100%, 70%, 1)',
-                            'hsla(200, 100%, 70%, 1)',
-                            'hsla(145, 100%, 70%, 1)',
-                            'hsla(45, 100%, 70%, 1)',
-                            'hsla(280, 100%, 70%, 1)',
-                        ],
-                        borderWidth: 2
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'right',
-                            labels: {
-                                color: 'hsl(220, 50%, 90%)',
-                                font: { size: 12 }
-                            }
-                        }
-                    }
-                }
-            });
-
-            // Lab Chart
-            const labs = {};
-            data.forEach(record => {
-                labs[record.lab] = (labs[record.lab] || 0) + 1;
-            });
-
-            const labCtx = document.getElementById('labPieChart').getContext('2d');
-            new Chart(labCtx, {
-                type: 'pie',
-                data: {
-                    labels: Object.keys(labs),
-                    datasets: [{
-                        data: Object.values(labs),
-                        backgroundColor: [
-                            'hsla(180, 100%, 70%, 0.7)',
-                            'hsla(120, 100%, 70%, 0.7)',
-                            'hsla(60, 100%, 70%, 0.7)',
-                            'hsla(0, 100%, 70%, 0.7)',
-                            'hsla(240, 100%, 70%, 0.7)',
-                            'hsla(300, 100%, 70%, 0.7)',
-                        ],
-                        borderColor: [
-                            'hsla(180, 100%, 70%, 1)',
-                            'hsla(120, 100%, 70%, 1)',
-                            'hsla(60, 100%, 70%, 1)',
-                            'hsla(0, 100%, 70%, 1)',
-                            'hsla(240, 100%, 70%, 1)',
-                            'hsla(300, 100%, 70%, 1)',
-                        ],
-                        borderWidth: 2
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'right',
-                            labels: {
-                                color: 'hsl(220, 50%, 90%)',
-                                font: { size: 12 }
-                            }
-                        }
-                    }
-                }
-            });
         }
 
         function updatePagination() {
@@ -4621,96 +2785,6 @@ window.addEventListener('click', function(event) {
                 });
         }
 
-        function closeFeedbackModal() {
-            const modal = document.getElementById('feedbackModal');
-            modal.style.display = 'none';
-        }
-
-        function createActionButtons(studentId, studentName) {
-            return `
-                <div class="button-group">
-                    <button class="feedback-button btn-sm" onclick="showFeedbackModal('${studentId}')">
-                        View Feedback
-                    </button>
-                    <button class="add-points-btn btn-sm" onclick="addPoints('${studentId}', '${studentName}')">
-                        Add Points
-                    </button>
-                </div>
-            `;
-        }
-
-        function createLabControls(labId) {
-            return `
-                <button class="manage-schedule-btn btn-sm" onclick="openScheduleModal('${labId}')">
-                    Manage Schedule
-                </button>
-            `;
-        }
-
-        // Export button in the header
-        document.getElementById('exportButton').innerHTML = `
-            <button class="export-btn btn-icon" onclick="showExportModal()">
-                <i class="fas fa-download"></i>
-                Export Data
-            </button>
-        `;
-
-        function exportStudentDataToPDF() {
-            window.location.href = 'export_students_pdf.php';
-        }
-    </script>
-
-    <script>
-        function showFeedbackModal(idNumber) {
-            const modal = document.getElementById('feedbackModal');
-            const feedbackContent = document.getElementById('feedbackContent');
-            
-            // Show modal with loading state
-            modal.style.display = 'flex';
-            feedbackContent.innerHTML = '<div class="loading-feedback">Loading feedback data...</div>';
-            
-            // Fetch feedback data
-            fetch(`get_feedback_data.php?id=${idNumber}`)
-                .then(response => response.json())
-                .then(data => {
-                    if (data && data.length > 0) {
-                        const feedback = data[0]; // Get the most recent feedback
-                        feedbackContent.innerHTML = `
-                            <div class="feedback-details">
-                                <p><strong>Student ID:</strong> ${feedback.id_number}</p>
-                                <p><strong>Student Name:</strong> ${feedback.student_name}</p>
-                                <p><strong>Lab:</strong> ${feedback.lab || 'N/A'}</p>
-                                <p><strong>Date:</strong> ${new Date(feedback.date).toLocaleString()}</p>
-                                <p><strong>Feedback:</strong></p>
-                                <div class="feedback-text">${feedback.feedback_text}</div>
-                                ${feedback.rating ? `
-                                    <p class="mt-3">
-                                        <strong>Rating:</strong> 
-                                        <span class="rating-stars">${'★'.repeat(parseInt(feedback.rating))}${'☆'.repeat(5-parseInt(feedback.rating))}</span>
-                                    </p>` : ''
-                                }
-                            </div>
-                        `;
-                    } else {
-                        feedbackContent.innerHTML = `
-                            <div class="no-feedback">
-                                <i class="fas fa-comment-slash" style="font-size: 3rem; margin-bottom: 1rem;"></i>
-                                <p>No feedback available for this student.</p>
-                            </div>
-                        `;
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    feedbackContent.innerHTML = `
-                        <div class="no-feedback text-danger">
-                            <i class="fas fa-exclamation-circle" style="font-size: 3rem; margin-bottom: 1rem;"></i>
-                            <p>Error loading feedback. Please try again.</p>
-                        </div>
-                    `;
-                });
-        }
-
         function closeModal(modalId) {
             document.getElementById(modalId).style.display = 'none';
         }
@@ -4762,7 +2836,6 @@ window.addEventListener('click', function(event) {
                             <p class="feedback-text">${f.feedback_text}</p>
                         </div>
                     `).join('');
-
                     document.getElementById('feedbackModal').style.display = 'block';
                 } else {
                     alert('No feedback found for this student.');
@@ -4830,7 +2903,70 @@ window.addEventListener('click', function(event) {
     /* ... existing styles ... */
     </style>
 
-    // ... existing code ...
+    <script>
+function showFeedbackModal(idNumber) {
+    const modal = document.getElementById('feedbackModal');
+    const feedbackContent = document.getElementById('feedbackContent');
+    
+    // Show modal with loading state
+    modal.style.display = 'flex';
+    feedbackContent.innerHTML = '<div class="loading-feedback">Loading feedback data...</div>';
+    
+    // Fetch feedback data
+    fetch(`get_feedback_data.php?id=${idNumber}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data && data.length > 0) {
+                const feedback = data[0]; // Get the most recent feedback
+                feedbackContent.innerHTML = `
+                    <div class="feedback-details">
+                        <p><strong>Student ID:</strong> ${feedback.id_number}</p>
+                        <p><strong>Student Name:</strong> ${feedback.student_name}</p>
+                        <p><strong>Lab:</strong> ${feedback.lab || 'N/A'}</p>
+                        <p><strong>Date:</strong> ${new Date(feedback.date).toLocaleString()}</p>
+                        <p><strong>Feedback:</strong></p>
+                        <div class="feedback-text">${feedback.feedback_text}</div>
+                        ${feedback.rating ? `
+                            <p class="mt-3">
+                                <strong>Rating:</strong> 
+                                <span class="rating-stars">${'★'.repeat(parseInt(feedback.rating))}${'☆'.repeat(5-parseInt(feedback.rating))}</span>
+                            </p>` : ''
+                        }
+                    </div>
+                `;
+            } else {
+                feedbackContent.innerHTML = `
+                    <div class="no-feedback">
+                        <i class="fas fa-comment-slash" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                        <p>No feedback available for this student.</p>
+                    </div>
+                `;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            feedbackContent.innerHTML = `
+                <div class="no-feedback text-danger">
+                    <i class="fas fa-exclamation-circle" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                    <p>Error loading feedback. Please try again.</p>
+                </div>
+            `;
+        });
+}
+
+function closeModal(modalId) {
+    document.getElementById(modalId).style.display = 'none';
+}
+
+// Close modal when clicking outside
+window.addEventListener('click', function(event) {
+    const modal = document.getElementById('feedbackModal');
+    if (event.target === modal) {
+        closeModal('feedbackModal');
+    }
+});
+</script>
+
     </body>
 </html>
 <?php if ($conn instanceof mysqli) { mysqli_close($conn); } ?>
