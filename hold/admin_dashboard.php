@@ -2287,7 +2287,7 @@ if (isset($_POST['export_sitindata_pdf'])) {
                                 <th onclick="sortTable('year_level', 'number')" style="cursor: pointer;">Year Level ↕</th>
                                 <th onclick="sortTable('sessions', 'number')" style="cursor: pointer;">Sessions ↕</th>
                                 <th onclick="sortTable('points', 'number')" style="cursor: pointer;">Points ↕</th>
-                                <th>Actions</th>
+                                
                             </tr>
                         </thead>
                         <tbody id="studentTableBody"></tbody>
@@ -3509,11 +3509,7 @@ window.addEventListener('click', function(event) {
                             <td>${student.year_level}</td>
                             <td>${student.sessions}</td>
                             <td>${student.points || 0}</td>
-                            <td>
-                                <button onclick="addPoints('${student.id_number}', '${student.first_name} ${student.last_name}')" class="btn btn-primary btn-sm">
-                                    Add Points
-                                </button>
-                            </td>
+
                         `;
                         studentList.appendChild(row);
                     });
