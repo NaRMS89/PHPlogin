@@ -554,12 +554,12 @@ if (isset($_POST['export_sitindata_pdf'])) {
         }
 
         #courseFilter {
-            padding: 1rem 1.6rem;
+            
             border: 1px solid var(--border-color);
-            border-radius: 100rem;
+            
             color: var(--light);
             background: rgba(255, 255, 255, 0.1);
-            font-size: 1.4rem;
+            
             margin: 1rem 0;
             cursor: pointer;
         }
@@ -2137,8 +2137,40 @@ if (isset($_POST['export_sitindata_pdf'])) {
         .submit-btn:hover {
             background: #8a7ac0;
         }
-
-        /* ... existing styles ... */
+.dashboard-btn, .dashboard-select {
+    display: inline-block;
+    padding: 8px 18px;
+    background: transparent;
+    color: var(--light, #fff);
+    border: 1.5px solid var(--border-color, #666);
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 16px;
+    transition: all 0.2s;
+    margin-right: 8px;
+    outline: none;
+    min-width: 160px;
+    min-height: 40px;
+    box-sizing: border-box;
+    vertical-align: middle;
+}
+.dashboard-btn:focus, .dashboard-btn:hover,
+.dashboard-select:focus, .dashboard-select:hover {
+    border-color: var(--primary, #4e9cff);
+    background: rgba(78,156,255,0.08);
+    color: var(--primary, #4e9cff);
+}
+.dashboard-select option {
+    color: #222;
+    background: #fff;
+}
+.filter-controls {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    align-items: center;
+}
     </style>
 
 </head>
@@ -2212,31 +2244,31 @@ if (isset($_POST['export_sitindata_pdf'])) {
 
             <!-- Student Content -->
             <div id="studentContent" style="display: none;">
-                <div class="student-header">
-                    <h2>Student List</h2>
-                    <div class="filter-controls" style="display: flex; gap: 10px; margin-bottom: 15px;">
-                        <select id="courseFilter" class="filter-dropdown" onchange="filterStudents()">
-                            <option value="">All Courses</option>
-                            <option value="BSIT">BSIT</option>
-                            <option value="BSCS">BSCS</option>
-                            <option value="BSECE">BSECE</option>
-                            <option value="BSME">BSME</option>
-                            <option value="BSCE">BSCE</option>
-                            <option value="BSBA">BSBA</option>
-                            <option value="BSHRM">BSHRM</option>
-                            <option value="BSN">BSN</option>
-                            <option value="BSA">BSA</option>
-                            <option value="BSPSY">BSPSY</option>
-                            <option value="BSBIO">BSBIO</option>
-                            <option value="BSMATH">BSMATH</option>
-                        </select>
-                        <select id="yearFilter" class="filter-dropdown" onchange="filterStudents()">
-                            <option value="">All Year Levels</option>
-                            <option value="1">1st Year</option>
-                            <option value="2">2nd Year</option>
-                            <option value="3">3rd Year</option>
-                            <option value="4">4th Year</option>
-                        </select>
+            <div class="student-header">
+    <h2>Student List</h2>
+    <div class="filter-controls">
+    <select id="courseFilter" class="dashboard-select" onchange="filterStudents()">
+        <option value="">All Courses</option>
+        <option value="BSIT">BSIT</option>
+        <option value="BSCS">BSCS</option>
+        <option value="BSECE">BSECE</option>
+        <option value="BSME">BSME</option>
+        <option value="BSCE">BSCE</option>
+        <option value="BSBA">BSBA</option>
+        <option value="BSHRM">BSHRM</option>
+        <option value="BSN">BSN</option>
+        <option value="BSA">BSA</option>
+        <option value="BSPSY">BSPSY</option>
+        <option value="BSBIO">BSBIO</option>
+        <option value="BSMATH">BSMATH</option>
+        </select>
+        <select id="yearFilter" class="dashboard-select" onchange="filterStudents()">
+        <option value="">All Year Levels</option>
+            <option value="1">1st Year</option>
+            <option value="2">2nd Year</option>
+            <option value="3">3rd Year</option>
+            <option value="4">4th Year</option>
+        </select>
                     </div>
                     <div class="student-search-container">
                         <input type="text" id="studentSearch" placeholder="Search by ID Number or Name">
@@ -2978,6 +3010,7 @@ window.addEventListener('click', function(event) {
                 <p style="margin: 8px 0;"><b style="color: var(--light);">ID Number:</b> <span id="studentIdNo" style="color: var(--light);">5000</span></p>
                 <p style="margin: 8px 0;"><b style="color: var(--light);">Student Name:</b> <span id="studentName" style="color: var(--light);">Juan Dela Cruz</span></p>
                 <p style="margin: 8px 0;"><b style="color: var(--light);">Remaining Sessions:</b> <span id="remainingSessions" style="color: var(--light);">undefined</span></p>
+                
             </div>
             <div class="form-group" style="margin-bottom: 20px;">
                 <label for="purpose" style="display: block; margin-bottom: 8px; color: var(--light); font-weight: bold;">Purpose:</label>
@@ -3035,10 +3068,10 @@ window.addEventListener('click', function(event) {
 
     <!-- Add Student Modal -->
     <div id="addStudentModal" class="modal-container">
-        <div class="modal">
-            <span class="close" id="closeAddStudentModal">&times;</span>
-            <h2>Add Student</h2>
-            <form id="addStudentForm">
+    <div class="modal" style="width: 300px; max-height: 80vh; overflow-y: auto; padding: 20px; border-radius: 5px; font-family: sans-serif; box-shadow: 0 4px 8px rgba(0,0,0,0.1); position: relative; background: var(--primary-dark);">
+            <span class="close" id="closeAddStudentModal" style="position: absolute; top: 10px; right: 10px; cursor: pointer; font-size: 20px; color: var(--light);">×</span>
+            <h2 style="margin-bottom: 10px; text-align: center; color: var(--light);">Add Student</h2>
+            <form id="addStudentForm" style="display: flex; flex-direction: column; gap: 10px;">
                 <div class="form-group">
                     <label for="idno">ID Number</label>
                     <input type="text" id="idno" name="idno" required>

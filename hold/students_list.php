@@ -8,38 +8,14 @@ if (!isset($_SESSION['admin_logged_in'])) {
     exit;
 }
 
-// Handle point addition
-if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_points'])) {
-    $student_id = $_POST['student_id'];
-    $points = $_POST['points'];
-    $reason = $_POST['reason'];
-    
-    // Begin transaction
-    mysqli_begin_transaction($conn);
-    try {
-        // Update student points
-        $sql = "UPDATE info SET points = points + ? WHERE id_number = ?";
-        $stmt = mysqli_prepare($conn, $sql);
-        mysqli_stmt_bind_param($stmt, "is", $points, $student_id);
-        mysqli_stmt_execute($stmt);
-        
-        // Add point history
-        $sql = "INSERT INTO point_history (id_number, points, reason, added_by) VALUES (?, ?, ?, ?)";
-        $stmt = mysqli_prepare($conn, $sql);
-        $added_by = $_SESSION['admin_username'];
-        mysqli_stmt_bind_param($stmt, "siss", $student_id, $points, $reason, $added_by);
-        mysqli_stmt_execute($stmt);
-        
-        mysqli_commit($conn);
-        $success_message = "Points added successfully!";
-    } catch (Exception $e) {
-        mysqli_rollback($conn);
-        $error_message = "Error adding points: " . $e->getMessage();
-    }
-}
-
-// Get all students with their points
-$query = "SELECT id_number, first_name, last_name, course, points FROM info ORDER BY points DESC";
+// Get all students with their points and award count
+$query = "SELECT i.id_number, i.first_name, i.last_name, i.course, 
+                 COALESCE(SUM(p.points), 0) as total_points, 
+                 COUNT(p.id) as award_count
+          FROM info i
+          LEFT JOIN points p ON i.id_number = p.id_number
+          GROUP BY i.id_number, i.first_name, i.last_name, i.course
+          ORDER BY total_points DESC, i.last_name, i.first_name";
 $result = mysqli_query($conn, $query);
 $students = [];
 while ($row = mysqli_fetch_assoc($result)) {
@@ -68,9 +44,6 @@ while ($row = mysqli_fetch_assoc($result)) {
         .students-table th {
             background-color: #f8f9fa;
         }
-        .action-buttons .btn {
-            margin-right: 5px;
-        }
     </style>
 </head>
 <body>
@@ -84,13 +57,6 @@ while ($row = mysqli_fetch_assoc($result)) {
                         <h4 class="mb-0">Students List</h4>
                     </div>
                     <div class="card-body">
-                        <?php if (isset($success_message)): ?>
-                            <div class="alert alert-success"><?php echo $success_message; ?></div>
-                        <?php endif; ?>
-                        <?php if (isset($error_message)): ?>
-                            <div class="alert alert-danger"><?php echo $error_message; ?></div>
-                        <?php endif; ?>
-                        
                         <div class="table-responsive">
                             <table id="studentsTable" class="table table-striped table-bordered students-table">
                                 <thead>
@@ -99,7 +65,7 @@ while ($row = mysqli_fetch_assoc($result)) {
                                         <th>Name</th>
                                         <th>Course</th>
                                         <th>Total Points</th>
-                                        <th>Actions</th>
+                                        <th>Award Count</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -108,12 +74,8 @@ while ($row = mysqli_fetch_assoc($result)) {
                                         <td><?php echo htmlspecialchars($student['id_number']); ?></td>
                                         <td><?php echo htmlspecialchars($student['first_name'] . ' ' . $student['last_name']); ?></td>
                                         <td><?php echo htmlspecialchars($student['course']); ?></td>
-                                        <td><?php echo htmlspecialchars($student['points']); ?></td>
-                                        <td class="action-buttons">
-                                            <button class="btn btn-sm btn-primary" onclick="addPoints('<?php echo $student['id_number']; ?>', '<?php echo htmlspecialchars($student['first_name'] . ' ' . $student['last_name']); ?>')">
-                                                <i class="fas fa-plus"></i> Give Points
-                                            </button>
-                                        </td>
+                                        <td><?php echo htmlspecialchars($student['total_points']); ?></td>
+                                        <td><?php echo htmlspecialchars($student['award_count']); ?></td>
                                     </tr>
                                     <?php endforeach; ?>
                                 </tbody>
@@ -121,41 +83,6 @@ while ($row = mysqli_fetch_assoc($result)) {
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Add Points Modal -->
-    <div class="modal fade" id="addPointsModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Add Points</h5>
-                    <button type="button" class="close" data-dismiss="modal">
-                        <span>&times;</span>
-                    </button>
-                </div>
-                <form method="POST">
-                    <div class="modal-body">
-                        <input type="hidden" name="student_id" id="student_id">
-                        <div class="form-group">
-                            <label>Student Name</label>
-                            <input type="text" id="student_name" class="form-control" readonly>
-                        </div>
-                        <div class="form-group">
-                            <label>Points to Add</label>
-                            <input type="number" name="points" class="form-control" min="1" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Reason</label>
-                            <textarea name="reason" class="form-control" rows="3" required></textarea>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                        <button type="submit" name="add_points" class="btn btn-primary">Add Points</button>
-                    </div>
-                </form>
             </div>
         </div>
     </div>
@@ -171,12 +98,6 @@ while ($row = mysqli_fetch_assoc($result)) {
                 pageLength: 25
             });
         });
-
-        function addPoints(studentId, studentName) {
-            $('#student_id').val(studentId);
-            $('#student_name').val(studentName);
-            $('#addPointsModal').modal('show');
-        }
     </script>
 </body>
-</html> 
+</html>

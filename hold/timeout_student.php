@@ -21,6 +21,7 @@ if (!isset($_POST['sitin_id'])) {
 }
 
 $sitinId = mysqli_real_escape_string($conn, $_POST['sitin_id']);
+$awardPoint = isset($_POST['award_point']) && $_POST['award_point'] == '1';
 
 // Begin transaction
 mysqli_begin_transaction($conn);
@@ -36,6 +37,18 @@ try {
     if ($row = mysqli_fetch_assoc($result)) {
         $idNumber = $row['id_number'];
         
+        // Optionally award a point
+        if ($awardPoint) {
+            // Insert into points table: id_number, points, reason, awarded_by, awarded_at
+            $insertPoints = "INSERT INTO points (id_number, points, reason, awarded_by, awarded_at) VALUES (?, 1, 'Sit-in Timeout', ?, NOW())";
+            $stmt = mysqli_prepare($conn, $insertPoints);
+            $admin = isset($_SESSION['admin_username']) ? $_SESSION['admin_username'] : 'system';
+            mysqli_stmt_bind_param($stmt, "ss", $idNumber, $admin);
+            if (!mysqli_stmt_execute($stmt)) {
+                throw new Exception("Failed to award point");
+            }
+        }
+
         // Update sitin status and set logout time
         $updateSitin = "UPDATE sitin SET status = 'completed', logout_time = NOW() WHERE sitin_id = ?";
         $stmt = mysqli_prepare($conn, $updateSitin);
