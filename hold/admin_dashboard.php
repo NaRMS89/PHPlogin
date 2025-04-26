@@ -18,8 +18,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['give_point_and_timeout
     $success = false;
     $message = '';
     if ($conn instanceof mysqli) {
-        // Add 1 point to both points and total_points
-        $update = mysqli_query($conn, "UPDATE info SET points = points + 1, total_points = total_points + 1 WHERE id_number = '" . mysqli_real_escape_string($conn, $idNo) . "'");
+        // Add 1 point
+        $update = mysqli_query($conn, "UPDATE info SET points = points + 1 WHERE id_number = '" . mysqli_real_escape_string($conn, $idNo) . "'");
         // Log the point award
         $log = mysqli_query($conn, "INSERT INTO points_log (id_number, points_added, awarded_at) VALUES ('" . mysqli_real_escape_string($conn, $idNo) . "', 1, NOW())");
         // Timeout (set sitin status to inactive)
@@ -370,8 +370,11 @@ if (isset($_POST['export_sitindata_pdf'])) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
     <link rel="stylesheet" href="admin_dashboard.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+
 </head>
 <body>
     <div class="sidebar">
@@ -506,7 +509,30 @@ if (isset($_POST['export_sitindata_pdf'])) {
                 </div>
                 <div class="export-buttons">
                     
-                </div>
+                </div>if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['give_point_and_timeout'])) {
+                    $idNo = $_POST['id_number'];
+                    $success = false;
+                    $message = '';
+                    if ($conn instanceof mysqli) {
+                        // Add 1 point
+                        $update = mysqli_query($conn, "UPDATE info SET points = points + 1 WHERE id_number = '" . mysqli_real_escape_string($conn, $idNo) . "'");
+                        // Log the point award
+                        $log = mysqli_query($conn, "INSERT INTO points_log (id_number, points_added, awarded_at) VALUES ('" . mysqli_real_escape_string($conn, $idNo) . "', 1, NOW())");
+                        // Timeout (set sitin status to inactive)
+                        $timeout = mysqli_query($conn, "UPDATE sitin SET status = 'inactive' WHERE id_number = '" . mysqli_real_escape_string($conn, $idNo) . "' AND status = 'active'");
+                        if ($update && $log && $timeout) {
+                            $success = true;
+                            $message = 'Student awarded 1 point and timed out.';
+                        } else {
+                            $message = 'Error updating records.';
+                        }
+                    } else {
+                        $message = 'DB connection error.';
+                    }
+                    header('Content-Type: application/json');
+                    echo json_encode(['success' => $success, 'message' => $message]);
+                    exit();
+                }
             </div>
 
             <!-- Current Sit-in Content -->
@@ -1024,14 +1050,14 @@ if (isset($_POST['export_sitindata_pdf'])) {
                 </div>
 
                 <div class="pagination" style="text-align: center; margin-top: 20px;">
-                    <button onclick="goToFirstPage()"><<</button>
-                    <button onclick="goToPreviousPage()"><</button>
+                    <button onclick="goToFirstPage()" id="firstPageBtn"><<</button>
+                    <button onclick="goToPreviousPage()" id="prevPageBtn"><</button>
                     <span id="currentPage">1</span>
-                    <button onclick="goToNextPage()">></button>
-                    <button onclick="goToLastPage()">>></button>
+                    <button onclick="goToNextPage()" id="nextPageBtn">></button>
+                    <button onclick="goToLastPage()" id="lastPageBtn">>></button>
                 </div>
 
-                <div id="feedbackModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); justify-content: center; align-items: center;">
+                <div id="feedbackModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); justify-content: center; align-items: center;">
                     <div style="background-color: white; padding: 20px; border-radius: 5px; width: 80%; max-width: 600px;">
                         <span class="close" onclick="closeFeedbackModal()">&times;</span>
                         <h3>Feedback Details</h3>
@@ -1201,7 +1227,7 @@ function closeTimeoutModal() {
         <div id="feedbackModal" class="modal-container">
             <div class="feedback-modal">
                 <span class="close" onclick="closeModal('feedbackModal')">&times;</span>
-                <h2 class="modal-title">Student Feedback</h2>
+                <h2>Student Feedback</h2>
                 <div id="feedbackContent"></div>
             </div>
         </div>
@@ -1247,7 +1273,7 @@ function closeTimeoutModal() {
             function formatDateTime(dateString) {
                 if (!dateString) return 'N/A';
                 const date = new Date(dateString);
-                return date.toLocaleDateString('en-US', {
+                return date.toLocaleString('en-US', {
                     year: 'numeric',
                     month: '2-digit',
                     day: '2-digit',
@@ -1283,7 +1309,7 @@ function closeTimeoutModal() {
                     <option value="Python">Python</option>
                     <option value="C#">C#</option>
                     <option value="Database">Database</option>
-                    <option value="Digital Logic & Design">Digital Logic & Design</option>
+                    <option value="Digital Logic &amp; Design">Digital Logic &amp; Design</option>
                     <option value="Embedded Systems and IoT">Embedded Systems and IoT</option>
                     <option value="System Integration and Architecture">System Integration and Architecture</option>
                     <option value="Computer Application">Computer Application</option>
@@ -2267,6 +2293,100 @@ function closeTimeoutModal() {
             return `${hours}h ${remainingMinutes}m`;
         }
 
+        function updateCharts(data) {
+            // Purpose Chart
+            const purposes = {};
+            data.forEach(record => {
+                purposes[record.purpose] = (purposes[record.purpose] || 0) + 1;
+            });
+
+            const purposeCtx = document.getElementById('purposePieChart').getContext('2d');
+            new Chart(purposeCtx, {
+                type: 'pie',
+                data: {
+                    labels: Object.keys(purposes),
+                    datasets: [{
+                        data: Object.values(purposes),
+                        backgroundColor: [
+                            'hsla(350, 100%, 70%, 0.7)',
+                            'hsla(200, 100%, 70%, 0.7)',
+                            'hsla(145, 100%, 70%, 0.7)',
+                            'hsla(45, 100%, 70%, 0.7)',
+                            'hsla(280, 100%, 70%, 0.7)',
+                        ],
+                        borderColor: [
+                            'hsla(350, 100%, 70%, 1)',
+                            'hsla(200, 100%, 70%, 1)',
+                            'hsla(145, 100%, 70%, 1)',
+                            'hsla(45, 100%, 70%, 1)',
+                            'hsla(280, 100%, 70%, 1)',
+                        ],
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: {
+                                color: 'hsl(220, 50%, 90%)',
+                                font: { size: 12 }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Lab Chart
+            const labs = {};
+            data.forEach(record => {
+                labs[record.lab] = (labs[record.lab] || 0) + 1;
+            });
+
+            const labCtx = document.getElementById('labPieChart').getContext('2d');
+            new Chart(labCtx, {
+                type: 'pie',
+                data: {
+                    labels: Object.keys(labs),
+                    datasets: [{
+                        data: Object.values(labs),
+                        backgroundColor: [
+                            'hsla(180, 100%, 70%, 0.7)',
+                            'hsla(120, 100%, 70%, 0.7)',
+                            'hsla(60, 100%, 70%, 0.7)',
+                            'hsla(0, 100%, 70%, 0.7)',
+                            'hsla(240, 100%, 70%, 0.7)',
+                            'hsla(300, 100%, 70%, 0.7)',
+                        ],
+                        borderColor: [
+                            'hsla(180, 100%, 70%, 1)',
+                            'hsla(120, 100%, 70%, 1)',
+                            'hsla(60, 100%, 70%, 1)',
+                            'hsla(0, 100%, 70%, 1)',
+                            'hsla(240, 100%, 70%, 1)',
+                            'hsla(300, 100%, 70%, 1)',
+                        ],
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: {
+                                color: 'hsl(220, 50%, 90%)',
+                                font: { size: 12 }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
         function updatePagination() {
             const totalPages = Math.ceil(sitInReportData.length / entriesPerPage);
             document.getElementById('currentPage').textContent = currentPage;
@@ -2785,6 +2905,96 @@ function closeTimeoutModal() {
                 });
         }
 
+        function closeFeedbackModal() {
+            const modal = document.getElementById('feedbackModal');
+            modal.style.display = 'none';
+        }
+
+        function createActionButtons(studentId, studentName) {
+            return `
+                <div class="button-group">
+                    <button class="feedback-button btn-sm" onclick="showFeedbackModal('${studentId}')">
+                        View Feedback
+                    </button>
+                    <button class="add-points-btn btn-sm" onclick="addPoints('${studentId}', '${studentName}')">
+                        Add Points
+                    </button>
+                </div>
+            `;
+        }
+
+        function createLabControls(labId) {
+            return `
+                <button class="manage-schedule-btn btn-sm" onclick="openScheduleModal('${labId}')">
+                    Manage Schedule
+                </button>
+            `;
+        }
+
+        // Export button in the header
+        document.getElementById('exportButton').innerHTML = `
+            <button class="export-btn btn-icon" onclick="showExportModal()">
+                <i class="fas fa-download"></i>
+                Export Data
+            </button>
+        `;
+
+        function exportStudentDataToPDF() {
+            window.location.href = 'export_students_pdf.php';
+        }
+    </script>
+
+    <script>
+        function showFeedbackModal(idNumber) {
+            const modal = document.getElementById('feedbackModal');
+            const feedbackContent = document.getElementById('feedbackContent');
+            
+            // Show modal with loading state
+            modal.style.display = 'flex';
+            feedbackContent.innerHTML = '<div class="loading-feedback">Loading feedback data...</div>';
+            
+            // Fetch feedback data
+            fetch(`get_feedback_data.php?id=${idNumber}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data && data.length > 0) {
+                        const feedback = data[0]; // Get the most recent feedback
+                        feedbackContent.innerHTML = `
+                            <div class="feedback-details">
+                                <p><strong>Student ID:</strong> ${feedback.id_number}</p>
+                                <p><strong>Student Name:</strong> ${feedback.student_name}</p>
+                                <p><strong>Lab:</strong> ${feedback.lab || 'N/A'}</p>
+                                <p><strong>Date:</strong> ${new Date(feedback.date).toLocaleString()}</p>
+                                <p><strong>Feedback:</strong></p>
+                                <div class="feedback-text">${feedback.feedback_text}</div>
+                                ${feedback.rating ? `
+                                    <p class="mt-3">
+                                        <strong>Rating:</strong> 
+                                        <span class="rating-stars">${'★'.repeat(parseInt(feedback.rating))}${'☆'.repeat(5-parseInt(feedback.rating))}</span>
+                                    </p>` : ''
+                                }
+                            </div>
+                        `;
+                    } else {
+                        feedbackContent.innerHTML = `
+                            <div class="no-feedback">
+                                <i class="fas fa-comment-slash" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                                <p>No feedback available for this student.</p>
+                            </div>
+                        `;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    feedbackContent.innerHTML = `
+                        <div class="no-feedback text-danger">
+                            <i class="fas fa-exclamation-circle" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                            <p>Error loading feedback. Please try again.</p>
+                        </div>
+                    `;
+                });
+        }
+
         function closeModal(modalId) {
             document.getElementById(modalId).style.display = 'none';
         }
@@ -2836,6 +3046,7 @@ function closeTimeoutModal() {
                             <p class="feedback-text">${f.feedback_text}</p>
                         </div>
                     `).join('');
+
                     document.getElementById('feedbackModal').style.display = 'block';
                 } else {
                     alert('No feedback found for this student.');
@@ -2903,70 +3114,7 @@ function closeTimeoutModal() {
     /* ... existing styles ... */
     </style>
 
-    <script>
-function showFeedbackModal(idNumber) {
-    const modal = document.getElementById('feedbackModal');
-    const feedbackContent = document.getElementById('feedbackContent');
-    
-    // Show modal with loading state
-    modal.style.display = 'flex';
-    feedbackContent.innerHTML = '<div class="loading-feedback">Loading feedback data...</div>';
-    
-    // Fetch feedback data
-    fetch(`get_feedback_data.php?id=${idNumber}`)
-        .then(response => response.json())
-        .then(data => {
-            if (data && data.length > 0) {
-                const feedback = data[0]; // Get the most recent feedback
-                feedbackContent.innerHTML = `
-                    <div class="feedback-details">
-                        <p><strong>Student ID:</strong> ${feedback.id_number}</p>
-                        <p><strong>Student Name:</strong> ${feedback.student_name}</p>
-                        <p><strong>Lab:</strong> ${feedback.lab || 'N/A'}</p>
-                        <p><strong>Date:</strong> ${new Date(feedback.date).toLocaleString()}</p>
-                        <p><strong>Feedback:</strong></p>
-                        <div class="feedback-text">${feedback.feedback_text}</div>
-                        ${feedback.rating ? `
-                            <p class="mt-3">
-                                <strong>Rating:</strong> 
-                                <span class="rating-stars">${'★'.repeat(parseInt(feedback.rating))}${'☆'.repeat(5-parseInt(feedback.rating))}</span>
-                            </p>` : ''
-                        }
-                    </div>
-                `;
-            } else {
-                feedbackContent.innerHTML = `
-                    <div class="no-feedback">
-                        <i class="fas fa-comment-slash" style="font-size: 3rem; margin-bottom: 1rem;"></i>
-                        <p>No feedback available for this student.</p>
-                    </div>
-                `;
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            feedbackContent.innerHTML = `
-                <div class="no-feedback text-danger">
-                    <i class="fas fa-exclamation-circle" style="font-size: 3rem; margin-bottom: 1rem;"></i>
-                    <p>Error loading feedback. Please try again.</p>
-                </div>
-            `;
-        });
-}
-
-function closeModal(modalId) {
-    document.getElementById(modalId).style.display = 'none';
-}
-
-// Close modal when clicking outside
-window.addEventListener('click', function(event) {
-    const modal = document.getElementById('feedbackModal');
-    if (event.target === modal) {
-        closeModal('feedbackModal');
-    }
-});
-</script>
-
+    // ... existing code ...
     </body>
 </html>
 <?php if ($conn instanceof mysqli) { mysqli_close($conn); } ?>
