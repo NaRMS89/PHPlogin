@@ -2068,17 +2068,15 @@ if (isset($_POST['export_sitindata_pdf'])) {
         }
 
         /* ... existing styles ... */
-
         .modal {
-            display: none;
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            z-index: 1000;
-            width: 400px; /* Fixed width for more compact look */
-            background: none;
-        }
+    background: var(--background) !important;
+    border-radius: 10px !important;
+    padding: 25px !important;
+    max-width: 500px !important;
+    width: 90% !important;
+    position: relative !important;
+    z-index: 10000 !important;
+}
 
         .modal-content {
             background: #1a1b1e; /* Darker background */
@@ -2264,7 +2262,7 @@ if (isset($_POST['export_sitindata_pdf'])) {
                     </table>
                 </div>
                 <div class="export-buttons">
-                    <button onclick="exportStudentDataToPDF()" class="btn btn-primary">Export to PDF</button>
+                    
                 </div>
             </div>
 
@@ -2855,13 +2853,12 @@ if (isset($_POST['export_sitindata_pdf'])) {
                         modal.style.display = 'none';
                     }
 
-                    // Close modal when clicking outside
-                    window.addEventListener('click', function(event) {
-                        const modal = document.getElementById('feedbackModal');
-                        if (event.target === modal) {
-                            closeFeedbackModal();
-                        }
-                    });
+window.addEventListener('click', function(event) {
+    const modalContainer = document.getElementById('studentInfoModal');
+    if (event.target === modalContainer) {
+        modalContainer.style.display = 'none';
+    }
+});
                 </script>
 
                 <style>
