@@ -809,58 +809,7 @@ $lab_rooms = ['524', '526', '528', '530', '542', 'Mac Lab'];
 
         <!-- Reservation Content -->
         <div id="reservationContent" class="dynamic-content">
-            <div class="reservation-container">
-                <h2>Lab Reservation</h2>
-                <div class="lab-grid">
-                    <?php foreach ($lab_rooms as $room): 
-                        $occupancy_sql = "SELECT COUNT(*) as count FROM sitin WHERE lab = '$room' AND status = 'active'";
-                        $occupancy_result = mysqli_query($conn, $occupancy_sql);
-                        $occupancy_row = mysqli_fetch_assoc($occupancy_result);
-                        $current_occupancy = $occupancy_row['count'];
-                        $status = ($current_occupancy >= 50) ? 'Full' : 'Available';
-                    ?>
-                    <div class="lab-card">
-                        <h3>Lab <?php echo htmlspecialchars($room); ?></h3>
-                        <p class="lab-status">Current Occupancy: <?php echo $current_occupancy; ?>/50</p>
-                        <p class="lab-status <?php echo strtolower($status); ?>">Status: <?php echo $status; ?></p>
-                    </div>
-                    <?php endforeach; ?>
-                </div>
-                
-                <form id="reservationForm" class="reservation-form" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
-                    <input type="hidden" name="make_reservation" value="1">
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="labRoom">Lab Room</label>
-                            <select class="form-control" id="labRoom" name="lab" required>
-                                <option value="">Select Lab Room</option>
-                                <?php foreach ($lab_rooms as $room): ?>
-                                <option value="<?php echo $room; ?>">Lab <?php echo $room; ?></option>
-                                <?php endforeach; ?>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="reservationDate">Date</label>
-                            <input type="date" class="form-control" id="reservationDate" name="date" required>
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="startTime">Start Time</label>
-                            <input type="time" class="form-control" id="startTime" name="start_time" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="endTime">End Time</label>
-                            <input type="time" class="form-control" id="endTime" name="end_time" required>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="purpose">Purpose</label>
-                        <textarea class="form-control" id="purpose" name="purpose" rows="3" required></textarea>
-                    </div>
-                    <button type="submit" class="nav-btn">Submit Reservation</button>
-                </form>
-            </div>
+            <?php include 'reservation_content.php'; ?>
         </div>
 
         <!-- History Content -->
@@ -1013,6 +962,38 @@ $lab_rooms = ['524', '526', '528', '530', '542', 'Mac Lab'];
                 });
         }
 
+        function loadAnnouncements() {
+            const announcementList = document.getElementById('announcementList');
+            announcementList.innerHTML = '<div class="announcement-item"><p>Loading announcements...</p></div>';
+            
+            fetch('../hold/get_announcements.php')
+                .then(response => response.json())
+                .then(data => {
+                    if (data && data.length > 0) {
+                        announcementList.innerHTML = '';
+                        data.forEach(announcement => {
+                            const announcementItem = document.createElement('div');
+                            announcementItem.className = 'announcement-item';
+                            announcementItem.innerHTML = `
+                                <div class="announcement-text">${announcement.announcement_text}</div>
+                                <div class="announcement-date">Posted on ${new Date(announcement.date_posted).toLocaleDateString('en-US', { 
+                                    year: 'numeric', 
+                                    month: 'long', 
+                                    day: 'numeric' 
+                                })}</div>
+                            `;
+                            announcementList.appendChild(announcementItem);
+                        });
+                    } else {
+                        announcementList.innerHTML = '<p class="no-announcements">No announcements available at the moment.</p>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    announcementList.innerHTML = '<p class="no-announcements">Error loading announcements. Please try again later.</p>';
+                });
+        }
+
         function openFeedbackModal(sitInId) {
             const modal = document.getElementById('feedbackModal');
             document.getElementById('sitInId').value = sitInId;
@@ -1060,52 +1041,6 @@ $lab_rooms = ['524', '526', '528', '530', '542', 'Mac Lab'];
                 console.error('Error:', error);
                 alert('Error submitting feedback');
             });
-        });
-
-        function loadAnnouncements() {
-            const announcementList = document.getElementById('announcementList');
-            announcementList.innerHTML = '<div class="announcement-item"><p>Loading announcements...</p></div>';
-            
-            fetch('../hold/get_announcements.php')
-                .then(response => response.json())
-                .then(data => {
-                    if (data && data.length > 0) {
-                        announcementList.innerHTML = '';
-                        data.forEach(announcement => {
-                            const announcementItem = document.createElement('div');
-                            announcementItem.className = 'announcement-item';
-                            announcementItem.innerHTML = `
-                                <div class="announcement-text">${announcement.announcement_text}</div>
-                                <div class="announcement-date">Posted on ${new Date(announcement.date_posted).toLocaleDateString('en-US', { 
-                                    year: 'numeric', 
-                                    month: 'long', 
-                                    day: 'numeric' 
-                                })}</div>
-                            `;
-                            announcementList.appendChild(announcementItem);
-                        });
-                    } else {
-                        announcementList.innerHTML = '<p class="no-announcements">No announcements available at the moment.</p>';
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    announcementList.innerHTML = '<p class="no-announcements">Error loading announcements. Please try again later.</p>';
-                });
-        }
-
-        // Initialize the page
-        document.addEventListener('DOMContentLoaded', function() {
-            // Set home content and button as active by default
-            document.getElementById('homeContent').classList.add('active');
-            document.querySelector('button[onclick*="homeContent"]').classList.add('active');
-            
-            // Load initial data
-            loadAnnouncements();
-            loadHistoryData();
-            
-            // Set up auto-refresh for announcements every 5 minutes
-            setInterval(loadAnnouncements, 300000);
         });
 
         function openEditProfileModal() {
@@ -1298,7 +1233,22 @@ $lab_rooms = ['524', '526', '528', '530', '542', 'Mac Lab'];
             }
         `;
         document.head.appendChild(style);
+
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set home content and button as active by default
+            document.getElementById('homeContent').classList.add('active');
+            document.querySelector('button[onclick*="homeContent"]').classList.add('active');
+            
+            // Load initial data
+            loadAnnouncements();
+            loadHistoryData();
+            
+            // Set up auto-refresh for announcements every 5 minutes
+            setInterval(loadAnnouncements, 300000);
+        });
     </script>
+    <script src="reservation.js"></script>
 </body>
 </html>
 <?php
