@@ -1,0 +1,47 @@
+--- hold/admin_dashboard.php
++++ hold/admin_dashboard.php
+@@ </main>
+-</main>
++</main>
++    <!-- Timeout Modal -->
++    <div id="timeoutModal" class="modal" style="display:none;">
++      <div class="modal-content">
++        <span class="close" onclick="closeTimeoutModal()">&times;</span>
++        <h2>Timeout Options</h2>
++        <div id="timeoutModalStudentInfo" style="margin-bottom:15px;"></div>
++        <div class="modal-buttons">
++          <button class="give-point-btn" onclick="givePointAndTimeout()">Give 1 Point & Timeout</button>
++          <button class="timeout-only-btn" onclick="timeoutOnly()">Timeout Only</button>
++          <button class="cancel-btn" onclick="closeTimeoutModal()">Cancel</button>
++        </div>
++        <div id="timeoutModalMessage" style="margin-top:10px;color:#d9534f;"></div>
++      </div>
++    </div>
+@@ </body>
+-</body>
++</body>
++<script>
++let currentTimeoutId=null,currentTimeoutRow=null;
++function showTimeoutOptions(id,btn){currentTimeoutId=id;currentTimeoutRow=btn.closest('tr');const c=currentTimeoutRow.querySelectorAll('td');let info=`<strong>ID:</strong> ${id}`;if(c[1])info+=`<br><strong>Name:</strong> ${c[1].textContent}`;if(c[5])info+=`<br><strong>Sessions:</strong> <span id=\"modalSessions\">${c[5].textContent}</span>`;if(c[6])info+=`<br><strong>Points:</strong> <span id=\"modalPoints\">${c[6].textContent}</span>`;if(c[7])info+=`<br><strong>Total Pts:</strong> <span id=\"modalTotalPoints\">${c[7].textContent}</span>`;document.getElementById("timeoutModalStudentInfo").innerHTML=info;document.getElementById("timeoutModalMessage").textContent="";document.getElementById("timeoutModal").style.display="flex";}
++function closeTimeoutModal(){document.getElementById("timeoutModal").style.display="none";currentTimeoutId=currentTimeoutRow=null;}
++function givePointAndTimeout(){if(!currentTimeoutId)return;fetch("",{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:`give_point_and_timeout=1&id_number=${encodeURIComponent(currentTimeoutId)}`}).then(r=>r.json()).then(d=>{if(d.success&&currentTimeoutRow){let s=currentTimeoutRow.querySelector("td:nth-child(6)"),p=currentTimeoutRow.querySelector("td:nth-child(7)"),tp=currentTimeoutRow.querySelector("td:nth-child(8)");let sessions=+s.textContent,points=+p.textContent,total=+tp.textContent;points++;sessions=Math.max(0,sessions-1);if(points>=3){points-=3;total++;sessions++;}s.textContent=sessions;p.textContent=points;tp.textContent=total;document.getElementById("modalSessions").textContent=sessions;document.getElementById("modalPoints").textContent=points;document.getElementById("modalTotalPoints").textContent=total;closeTimeoutModal();}else document.getElementById("timeoutModalMessage").textContent=d.message||"Error";}).catch(_=>document.getElementById("timeoutModalMessage").textContent="Network error");}
++function timeoutOnly(){if(!currentTimeoutId)return;fetch("",{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:`timeout_only=1&id_number=${encodeURIComponent(currentTimeoutId)}`}).then(r=>r.json()).then(d=>{if(d.success&&currentTimeoutRow){let s=currentTimeoutRow.querySelector("td:nth-child(6)");let sessions=Math.max(0,+s.textContent-1);s.textContent=sessions;document.getElementById("modalSessions").textContent=sessions;closeTimeoutModal();}else document.getElementById("timeoutModalMessage").textContent=d.message||"Error";}).catch(_=>document.getElementById("timeoutModalMessage").textContent="Network error");}
++window.addEventListener("click",e=>{if(e.target.id==="timeoutModal")closeTimeoutModal();});
++</script>
+*** End Patch
+*** Update File: hold/admin_dashboard.css
+@@ EOF
++/* Timeout Modal */
++.modal{display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.4);align-items:center;justify-content:center;z-index:1000;}
++.modal-content{background:#fff;border-radius:10px;padding:30px;max-width:400px;width:90%;position:relative;box-shadow:0 4px 24px rgba(0,0,0,0.2);}
++.modal-content h2{margin-top:0;}
++.modal-buttons{display:flex;flex-direction:column;gap:12px;margin-top:15px;}
++.modal-buttons button{padding:12px;font-size:1em;font-weight:600;border:none;border-radius:6px;cursor:pointer;transition:background .2s;}
++.give-point-btn{background:#198754;color:#fff;}
++.give-point-btn:hover{background:#157347;}
++.timeout-only-btn{background:#ffc107;color:#212529;}
++.timeout-only-btn:hover{background:#e0a800;}
++.cancel-btn{background:#6c757d;color:#fff;}
++.cancel-btn:hover{background:#495057;}
++.close{position:absolute;top:10px;right:15px;font-size:1.5em;color:#888;cursor:pointer;}
++.close:hover{color:#333;}
