@@ -835,9 +835,13 @@ $lab_rooms = ['524', '526', '528', '530', '542', 'Mac Lab'];
                     </div>
 
                     <div id="computerSelection" style="display: none;">
-                        <h3>Available Computers in <span id="selectedLab"></span></h3>
-                        <div class="computer-grid">
-                            <!-- Computer buttons will be loaded here by JS -->
+                        <h3>Select a Computer in <span id="selectedLab"></span></h3>
+                        <div class="form-group"> 
+                            <label for="computerSelect">Available Computers</label>
+                            <select class="form-control" id="computerSelect" name="computer_select" required disabled> 
+                                <option value="">-- Select Available PC --</option>
+                                <!-- Options will be loaded here by JS -->
+                            </select>
                         </div>
                         <input type="hidden" id="selectedComputer" name="computer" required>
                         <p>Selected: <span id="computerDisplay">None</span></p>

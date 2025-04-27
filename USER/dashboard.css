@@ -516,45 +516,14 @@
     color: #495057;
 }
 
-.computer-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(60px, 1fr)); /* Adjust minmax for button size */
-    gap: 8px; /* Spacing between buttons */
-    margin-bottom: 15px;
+#computerSelection .form-group label {
+    display: block; /* Ensure label is on its own line */
+    margin-bottom: 5px;
 }
 
-.computer-button {
-    padding: 10px 5px; /* Adjust padding */
-    border: 1px solid #adb5bd;
-    border-radius: 4px;
-    background-color: #e9ecef;
-    color: #495057;
-    cursor: pointer;
-    text-align: center;
-    font-size: 0.85em; /* Adjust font size */
-    transition: background-color 0.2s ease, border-color 0.2s ease;
-    white-space: nowrap; /* Prevent text wrapping */
-    overflow: hidden; /* Hide overflow */
-    text-overflow: ellipsis; /* Add ellipsis if text is too long */
-}
-
-.computer-button.available:hover {
-    background-color: #ced4da;
-    border-color: #6c757d;
-}
-
-.computer-button.selected {
-    background-color: #007bff; /* Bootstrap primary color */
-    color: #fff;
-    border-color: #0056b3;
-    font-weight: bold;
-}
-
-.computer-button.unavailable {
-    background-color: #f1f3f5;
-    color: #adb5bd;
-    cursor: not-allowed;
-    border-color: #e9ecef;
+#computerSelect option:disabled {
+    color: #adb5bd; /* Grey out text */
+    background-color: #e9ecef; /* Slightly different background */
 }
 
 #computerSelection p {

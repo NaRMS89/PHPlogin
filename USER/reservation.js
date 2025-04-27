@@ -194,7 +194,7 @@ function submitReservation(lab, computerNumber, purpose, date, startTime, endTim
 document.addEventListener('DOMContentLoaded', function() {
     const labRoomSelect = document.getElementById('labRoom');
     const computerSelectionDiv = document.getElementById('computerSelection');
-    const computerGrid = document.querySelector('#computerSelection .computer-grid');
+    const computerSelect = document.getElementById('computerSelect'); // New dropdown element
     const selectedLabSpan = document.getElementById('selectedLab');
     const selectedComputerInput = document.getElementById('selectedComputer');
     const computerDisplaySpan = document.getElementById('computerDisplay');
@@ -221,47 +221,44 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Function to populate computer grid based on selected lab and availability
-    async function populateComputerGrid(selectedRoom) {
+    // Function to populate computer dropdown based on selected lab and availability
+    async function populateComputerSelect(selectedRoom) {
         if (selectedRoom) {
             selectedLabSpan.textContent = selectedRoom;
-            computerGrid.innerHTML = 'Loading computers...'; // Show loading state
+            computerSelect.innerHTML = '<option value="">Loading PCs...</option>'; // Show loading state
             computerSelectionDiv.style.display = 'block';
+            computerSelect.disabled = true; // Keep disabled while loading
             selectedComputerInput.value = ''; // Reset selection
             computerDisplaySpan.textContent = 'None'; // Reset display
 
             const availability = await fetchComputers(selectedRoom);
-            computerGrid.innerHTML = ''; // Clear loading/previous buttons
+            computerSelect.innerHTML = ''; // Clear loading/previous options
+
+            // Add the default placeholder option
+            const defaultOption = document.createElement('option');
+            defaultOption.value = '';
+            defaultOption.textContent = '-- Select Available PC --';
+            computerSelect.appendChild(defaultOption);
 
             for (let i = 1; i <= 50; i++) {
-                const computerButton = document.createElement('button');
-                computerButton.textContent = `PC ${i}`;
-                computerButton.type = 'button'; // Prevent form submission
-                computerButton.classList.add('computer-button');
+                const computerOption = document.createElement('option');
                 const pcIdentifier = `${selectedRoom}-PC${i}`;
+                computerOption.value = pcIdentifier; // Value like 524-PC1
 
                 if (availability.unavailable.includes(i)) {
-                    computerButton.classList.add('unavailable');
-                    computerButton.disabled = true;
+                    computerOption.textContent = `PC ${i} (Unavailable)`;
+                    computerOption.disabled = true;
                 } else {
-                    computerButton.classList.add('available');
-                    computerButton.addEventListener('click', function() {
-                        // Deselect previously selected button in this grid
-                        const currentlySelected = computerGrid.querySelector('.computer-button.selected');
-                        if (currentlySelected) {
-                            currentlySelected.classList.remove('selected');
-                        }
-                        // Select the clicked button
-                        this.classList.add('selected');
-                        selectedComputerInput.value = pcIdentifier; // Store value like 524-PC1
-                        computerDisplaySpan.textContent = `Room ${selectedRoom} PC ${i}`;
-                    });
+                    computerOption.textContent = `PC ${i}`;
+                    computerOption.disabled = false;
                 }
-                computerGrid.appendChild(computerButton);
+                computerSelect.appendChild(computerOption);
             }
+            computerSelect.disabled = false; // Enable the dropdown
         } else {
             computerSelectionDiv.style.display = 'none';
-            computerGrid.innerHTML = '';
+            computerSelect.innerHTML = '<option value="">-- Select Available PC --</option>';
+            computerSelect.disabled = true;
             selectedComputerInput.value = '';
             computerDisplaySpan.textContent = 'None';
         }
@@ -270,7 +267,21 @@ document.addEventListener('DOMContentLoaded', function() {
     // Event listener for lab room selection change
     if (labRoomSelect) {
         labRoomSelect.addEventListener('change', function() {
-            populateComputerGrid(this.value);
+            populateComputerSelect(this.value);
+        });
+    }
+
+    // Event listener for computer selection change
+    if (computerSelect) {
+        computerSelect.addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            if (selectedOption && selectedOption.value) {
+                selectedComputerInput.value = selectedOption.value;
+                computerDisplaySpan.textContent = `Room ${selectedLabSpan.textContent} ${selectedOption.textContent}`; // Use option text
+            } else {
+                selectedComputerInput.value = '';
+                computerDisplaySpan.textContent = 'None';
+            }
         });
     }
 
