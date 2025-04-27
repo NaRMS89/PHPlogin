@@ -2,17 +2,6 @@
 session_start();
 include("../includes/database.php");
 
-if (!isset($_SESSION['admin_logged_in'])) {
-    header("Location: ../user/index.php");
-    exit();
-}
-
-if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['logout'])) {
-    session_unset();
-    session_destroy();
-    header("Location: ../user/index.php");
-    exit();
-}
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['give_point_and_timeout'])) {
     $idNo = $_POST['id_number'];
     $success = false;
@@ -38,10 +27,42 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['give_point_and_timeout
     exit();
 }
 
-function getStudentData($idNo, $conn) {
-    $sql = "SELECT * FROM info WHERE id_number = '$idNo'";
-    $result = mysqli_query($conn, $sql);
-    return mysqli_fetch_assoc($result);
+if (!isset($_SESSION['admin_logged_in'])) {
+    header("Location: ../user/index.php");
+    exit();
+}
+
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['logout'])) {
+    session_unset();
+    session_destroy();
+    header("Location: ../user/index.php");
+    exit();
+}
+
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_sitin'])) {
+    $result = addStudentToSitIn($_POST['id_number'], $_POST['purpose'], $_POST['lab'], $conn);
+    header('Content-Type: application/json');
+    echo json_encode($result);
+    exit();
+}
+
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_student'])) {
+    // Implement adding a new student
+}
+
+// Function to update total_points in the database
+function updateTotalPoints($conn) {
+    if ($conn instanceof mysqli) {
+        // Calculate total_points as the sum of points
+        $sql = "UPDATE info SET total_points = points";
+        
+        if (!mysqli_query($conn, $sql)) {
+            error_log("Failed to update total points: " . mysqli_error($conn));
+            return false;
+        }
+        return true;
+    }
+    return false;
 }
 
 function getAllStudents($conn) {
@@ -74,123 +95,6 @@ function getCurrentSitInStudents($conn) {
     return $students;
 }
 
-function checkExistingSitIn($idNo, $conn) {
-    $sql = "SELECT COUNT(*) as count FROM sitin WHERE id_number = ? AND status = 'active'";
-    $stmt = mysqli_prepare($conn, $sql);
-    mysqli_stmt_bind_param($stmt, "s", $idNo);
-    mysqli_stmt_execute($stmt);
-    $result = mysqli_stmt_get_result($stmt);
-    $row = mysqli_fetch_assoc($result);
-    return $row['count'] > 0;
-}
-
-function addStudentToSitIn($idNo, $purpose, $lab, $conn) {
-    // Check if student is already in sit-in
-    if (checkExistingSitIn($idNo, $conn)) {
-        return ['success' => false, 'message' => 'Student is already in sit-in'];
-    }
-
-    // Check remaining sessions
-    $sql = "SELECT sessions FROM info WHERE id_number = ?";
-    $stmt = mysqli_prepare($conn, $sql);
-    mysqli_stmt_bind_param($stmt, "s", $idNo);
-    mysqli_stmt_execute($stmt);
-    $result = mysqli_stmt_get_result($stmt);
-    $row = mysqli_fetch_assoc($result);
-    
-    if ($row['sessions'] <= 0) {
-        return ['success' => false, 'message' => 'No remaining sessions available'];
-    }
-
-    // Begin transaction
-    mysqli_begin_transaction($conn);
-    try {
-        // Insert sit-in record
-        $sql = "INSERT INTO sitin (id_number, purpose, lab, status) VALUES (?, ?, ?, 'active')";
-        $stmt = mysqli_prepare($conn, $sql);
-        mysqli_stmt_bind_param($stmt, "sss", $idNo, $purpose, $lab);
-        $success = mysqli_stmt_execute($stmt);
-
-        if (!$success) {
-            throw new Exception("Failed to add sit-in record");
-        }
-
-        mysqli_commit($conn);
-        return ['success' => true, 'message' => 'Successfully added to sit-in'];
-    } catch (Exception $e) {
-        mysqli_rollback($conn);
-        error_log("Error in addStudentToSitIn: " . $e->getMessage());
-        return ['success' => false, 'message' => 'Error adding student to sit-in'];
-    }
-}
-
-function removeStudentFromSitIn($idNo, $conn) {
-    mysqli_begin_transaction($conn);
-    try {
-        // Update sit-in status to inactive
-        $sql = "UPDATE sitin SET status = 'inactive' WHERE id_number = ? AND status = 'active'";
-        $stmt = mysqli_prepare($conn, $sql);
-        mysqli_stmt_bind_param($stmt, "s", $idNo);
-        $success = mysqli_stmt_execute($stmt);
-
-        if (!$success) {
-            throw new Exception("Failed to update sit-in status");
-        }
-
-        // Decrease sessions count
-        $sql = "UPDATE info SET sessions = sessions - 1 WHERE id_number = ? AND sessions > 0";
-        $stmt = mysqli_prepare($conn, $sql);
-        mysqli_stmt_bind_param($stmt, "s", $idNo);
-        $success = mysqli_stmt_execute($stmt);
-
-        if (!$success) {
-            throw new Exception("Failed to update sessions");
-        }
-
-        // Add to sit-in report
-        $sql = "INSERT INTO sitin_report (id_number, purpose, lab, logout_time) 
-                SELECT id_number, purpose, lab, NOW() 
-                FROM sitin 
-                WHERE id_number = ? AND status = 'inactive'";
-        $stmt = mysqli_prepare($conn, $sql);
-        mysqli_stmt_bind_param($stmt, "s", $idNo);
-        $success = mysqli_stmt_execute($stmt);
-
-        if (!$success) {
-            throw new Exception("Failed to add to sit-in report");
-        }
-
-        mysqli_commit($conn);
-        return true;
-    } catch (Exception $e) {
-        mysqli_rollback($conn);
-        error_log("Error in removeStudentFromSitIn: " . $e->getMessage());
-        return false;
-    }
-}
-
-if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['logout_sitin'])) {
-    $success = removeStudentFromSitIn($_POST['id_number'], $conn);
-    header('Content-Type: application/json');
-    if ($success) {
-        echo json_encode(['success' => true, 'message' => 'Student successfully timed out']);
-    } else {
-        echo json_encode(['success' => false, 'message' => 'Error timing out student']);
-    }
-    exit();
-}
-
-if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_sitin'])) {
-    $result = addStudentToSitIn($_POST['id_number'], $_POST['purpose'], $_POST['lab'], $conn);
-    header('Content-Type: application/json');
-    echo json_encode($result);
-    exit();
-}
-
-if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_student'])) {
-    // Implement adding a new student
-}
-
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['reset_sessions'])) {
     if ($conn instanceof mysqli) {
         // Update sessions based on course
@@ -218,6 +122,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['reset_sessions'])) {
 
 if ($conn instanceof mysqli) {
     $currentSitInStudents = getCurrentSitInStudents($conn);
+    // Update total points before getting all students
+    updateTotalPoints($conn);
     $allStudents = getAllStudents($conn);
 } else {
     error_log("Database connection failed.");
@@ -274,6 +180,7 @@ function getPointsAwardedCount($idNo, $conn) {
     $row = mysqli_fetch_assoc($result);
     return $row ? $row['count'] : 0;
 }
+
 function addFeedback($sitInId, $feedbackText, $conn) {
     $sql = "INSERT INTO feedback (sit_in_id, feedback_text, feedback_date) VALUES (?, ?, NOW())";
     $stmt = mysqli_prepare($conn, $sql);
@@ -407,6 +314,45 @@ if (isset($_POST['export_sitindata_pdf'])) {
                     </div>
                 </div>
 
+                <!-- Leaderboard Section -->
+                <div class="leaderboard-container">
+                    <h3>Top Students Leaderboard</h3>
+                    <div class="leaderboard-table">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Rank</th>
+                                    <th>ID Number</th>
+                                    <th>Name</th>
+                                    <th>Course</th>
+                                    <th>Total Points</th>
+                                </tr>
+                            </thead>
+                            <tbody id="leaderboardBody">
+                                <?php 
+                                // Sort students by total_points in descending order
+                                usort($allStudents, function($a, $b) {
+                                    return $b['total_points'] - $a['total_points'];
+                                });
+                                
+                                // Get top 5 students
+                                $topStudents = array_slice($allStudents, 0, 5);
+                                
+                                foreach ($topStudents as $index => $student): 
+                                ?>
+                                <tr>
+                                    <td><?php echo $index + 1; ?></td>
+                                    <td><?php echo $student['id_number']; ?></td>
+                                    <td><?php echo $student['last_name'] . ', ' . $student['first_name']; ?></td>
+                                    <td><?php echo $student['course']; ?></td>
+                                    <td><?php echo $student['total_points']; ?></td>
+                                </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
                 <!-- Language Chart -->
                 <div class="chart-container">
                     <canvas id="languageChart"></canvas>
@@ -509,30 +455,7 @@ if (isset($_POST['export_sitindata_pdf'])) {
                 </div>
                 <div class="export-buttons">
                     
-                </div>if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['give_point_and_timeout'])) {
-                    $idNo = $_POST['id_number'];
-                    $success = false;
-                    $message = '';
-                    if ($conn instanceof mysqli) {
-                        // Add 1 point
-                        $update = mysqli_query($conn, "UPDATE info SET points = points + 1 WHERE id_number = '" . mysqli_real_escape_string($conn, $idNo) . "'");
-                        // Log the point award
-                        $log = mysqli_query($conn, "INSERT INTO points_log (id_number, points_added, awarded_at) VALUES ('" . mysqli_real_escape_string($conn, $idNo) . "', 1, NOW())");
-                        // Timeout (set sitin status to inactive)
-                        $timeout = mysqli_query($conn, "UPDATE sitin SET status = 'inactive' WHERE id_number = '" . mysqli_real_escape_string($conn, $idNo) . "' AND status = 'active'");
-                        if ($update && $log && $timeout) {
-                            $success = true;
-                            $message = 'Student awarded 1 point and timed out.';
-                        } else {
-                            $message = 'Error updating records.';
-                        }
-                    } else {
-                        $message = 'DB connection error.';
-                    }
-                    header('Content-Type: application/json');
-                    echo json_encode(['success' => $success, 'message' => $message]);
-                    exit();
-                }
+                </div>
             </div>
 
             <!-- Current Sit-in Content -->
@@ -585,7 +508,7 @@ if (isset($_POST['export_sitindata_pdf'])) {
                                     <?php endif; ?>
                                 </td>
                                 <td>
-                                    <button onclick="logoutSitIn('<?php echo $student['id_number']; ?>')">Logout</button>
+                                    <button class="action-button" onclick="showTimeoutModal('<?php echo $student['id_number']; ?>', this)">Timeout</button>
                                 </td>
                             </tr>
                             <?php endforeach; ?>
@@ -1050,11 +973,11 @@ if (isset($_POST['export_sitindata_pdf'])) {
                 </div>
 
                 <div class="pagination" style="text-align: center; margin-top: 20px;">
-                    <button onclick="goToFirstPage()" id="firstPageBtn"><<</button>
-                    <button onclick="goToPreviousPage()" id="prevPageBtn"><</button>
+                    <button onclick="goToFirstPage()"><<</button>
+                    <button onclick="goToPreviousPage()"><</button>
                     <span id="currentPage">1</span>
-                    <button onclick="goToNextPage()" id="nextPageBtn">></button>
-                    <button onclick="goToLastPage()" id="lastPageBtn">>></button>
+                    <button onclick="goToNextPage()">></button>
+                    <button onclick="goToLastPage()">>></button>
                 </div>
 
                 <div id="feedbackModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); justify-content: center; align-items: center;">
@@ -1066,13 +989,22 @@ if (isset($_POST['export_sitindata_pdf'])) {
                     </div>
                 </div>
 
-                <div id="timeoutModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); justify-content: center; align-items: center;">
-                    <div style="background-color: white; padding: 20px; border-radius: 5px; width: 80%; max-width: 600px;">
-                        <span class="close" onclick="closeTimeoutModal()">&times;</span>
-                        <h3>Timeout Options</h3>
-                        <div id="timeoutModalButtons"></div>
-                    </div>
-                </div>
+<!-- Timeout Modal -->
+<div id="timeoutModal" class="modal" style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 1000;">
+    <div class="modal-content" style="background-color: #2d3142; color: white; padding: 20px; border-radius: 8px; width: 400px; max-width: 90%; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
+        <span class="close" onclick="closeTimeoutModal()" style="color: white; float: right; font-size: 24px; cursor: pointer;">&times;</span>
+        <h2>Timeout Options</h2>
+        <div id="timeoutModalStudentInfo" style="margin-bottom: 15px; background: rgba(255, 255, 255, 0.1); padding: 10px; border-radius: 5px;"></div>
+        <div class="modal-buttons" style="display: flex; justify-content: space-between; margin-top: 20px;">
+            <button class="give-point-btn" onclick="givePointAndTimeout(currentTimeoutId)" style="background-color: #4CAF50; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer;">
+                Award Point & Timeout
+            </button>
+            <button class="timeout-btn" onclick="timeoutOnly()" style="background-color: #2196F3; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer;">Timeout Only</button>
+            <button onclick="closeTimeoutModal()" style="background-color: #607D8B; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer;">Cancel</button>
+        </div>
+        <div id="timeoutModalMessage" style="margin-top: 10px; color: #FF5252;"></div>
+    </div>
+</div>
 
                 <script>
                     function showFeedbackModal(idNumber) {
@@ -1114,8 +1046,8 @@ if (isset($_POST['export_sitindata_pdf'])) {
                                     `;
                                 }
                             })
-                            .catch(error => {
-                                console.error('Error:', error);
+                            .catch(() => {
+                                console.error('Error loading feedback');
                                 feedbackContent.innerHTML = `
                                     <div class="no-feedback text-danger">
                                         <i class="fas fa-exclamation-circle" style="font-size: 3rem; margin-bottom: 1rem;"></i>
@@ -1162,8 +1094,8 @@ function showTimeoutOptions(idNo, btn) {
     document.getElementById('timeoutModal').style.display = 'flex';
     document.getElementById('timeoutModalButtons').innerHTML = `
         <button class="give-point-btn" onclick="givePointAndTimeout('${idNo}', this)">Give 1 Point & Timeout</button>
-        <button class="timeout-btn" onclick="timeoutOnly('${idNo}', this)">Timeout Only</button>
-        <button class="cancel-btn" onclick="closeTimeoutModal()">Cancel</button>
+        <button class="timeout-btn" onclick="showTimeoutOptions('<?= $student['id_number'] ?>', this)">Timeout</button>
+        <button onclick="closeTimeoutModal()">Cancel</button>
     `;
 }
 function closeTimeoutModal() {
@@ -1227,7 +1159,7 @@ function closeTimeoutModal() {
         <div id="feedbackModal" class="modal-container">
             <div class="feedback-modal">
                 <span class="close" onclick="closeModal('feedbackModal')">&times;</span>
-                <h2>Student Feedback</h2>
+                <h2 class="modal-title">Student Feedback</h2>
                 <div id="feedbackContent"></div>
             </div>
         </div>
@@ -1254,26 +1186,27 @@ function closeTimeoutModal() {
                                         <p><strong>Login Time:</strong> ${formatDateTime(feedback.login_time)}</p>
                                         <p><strong>Logout Time:</strong> ${formatDateTime(feedback.logout_time)}</p>
                                         <p><strong>Duration:</strong> ${feedback.duration || 'N/A'}</p>
-                                        <p><strong>Feedback:</strong> ${feedback.feedback || 'No feedback provided'}</p>
+                                        <p><strong>Feedback:</strong></p>
+                                        <p>${feedback.feedback || 'No feedback provided'}</p>
                                         <p><strong>Date:</strong> ${formatDateTime(feedback.feedback_date)}</p>
                                     </div>
                                 `;
                             });
                             content.innerHTML = feedbackHtml;
                         } else {
-                            content.innerHTML = '<p class="no-feedback">No feedback available for this student</p>';
+                            content.innerHTML = '<p class="announcement-text">No feedback found</p>';
                         }
                     })
                     .catch(error => {
-                        console.error('Error:', error);
-                        content.innerHTML = '<p class="no-feedback">Error loading feedback. Please try again.</p>';
+                        console.error('Error fetching feedback:', error);
+                        content.innerHTML = '<p class="announcement-text">Error loading feedback.</p>';
                     });
             }
 
             function formatDateTime(dateString) {
                 if (!dateString) return 'N/A';
                 const date = new Date(dateString);
-                return date.toLocaleString('en-US', {
+                return date.toLocaleDateString('en-US', {
                     year: 'numeric',
                     month: '2-digit',
                     day: '2-digit',
@@ -1309,12 +1242,12 @@ function closeTimeoutModal() {
                     <option value="Python">Python</option>
                     <option value="C#">C#</option>
                     <option value="Database">Database</option>
-                    <option value="Digital Logic &amp; Design">Digital Logic &amp; Design</option>
+                    <option value="Digital Logic & Design">Digital Logic & Design</option>
                     <option value="Embedded Systems and IoT">Embedded Systems and IoT</option>
                     <option value="System Integration and Architecture">System Integration and Architecture</option>
                     <option value="Computer Application">Computer Application</option>
                     <option value="Project Management">Project Management</option>
-                    <option value="IT Trend">IT Trend</option>
+                    <option value="IT Trends">IT Trends</option>
                     <option value="Technopreneurship">Technopreneurship</option>
                     <option value="Capstone">Capstone</option>
                 </select>
@@ -1439,20 +1372,6 @@ function closeTimeoutModal() {
             </div>
             <div class="button-group">
                 <button class="modal-button secondary" onclick="closeModal('feedbackModal')">Close</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- View Feedback Modal -->
-    <div id="viewFeedbackModal" class="modal-container">
-        <div class="modal">
-            <span class="close" onclick="closeModal('viewFeedbackModal')">&times;</span>
-            <h2 class="modal-title">Feedback</h2>
-            <div id="feedbackContent" class="feedback-content">
-                <!-- Feedback content will be loaded here -->
-            </div>
-            <div class="button-group">
-                <button class="modal-button secondary" onclick="closeModal('viewFeedbackModal')">Close</button>
             </div>
         </div>
     </div>
@@ -2032,7 +1951,7 @@ function closeTimeoutModal() {
                         <td>${sitin.sessions || ''}</td>
                         <td>${sitin.status || ''}</td>
        <td>
-           <button class="timeout-btn" onclick="showTimeoutOptions('${sitin.id_number}', this)" ${sitin.status !== 'active' ? 'disabled' : ''}>Timeout</button>
+           <button class="timeout-btn" onclick="showTimeoutModal('${sitin.id_number}', this)" ${sitin.status !== 'active' ? 'disabled' : ''}>Timeout</button>
        </td>
                     `;
                     sitinTableBody.appendChild(row);
@@ -2291,100 +2210,6 @@ function closeTimeoutModal() {
             const hours = Math.floor(minutes / 60);
             const remainingMinutes = minutes % 60;
             return `${hours}h ${remainingMinutes}m`;
-        }
-
-        function updateCharts(data) {
-            // Purpose Chart
-            const purposes = {};
-            data.forEach(record => {
-                purposes[record.purpose] = (purposes[record.purpose] || 0) + 1;
-            });
-
-            const purposeCtx = document.getElementById('purposePieChart').getContext('2d');
-            new Chart(purposeCtx, {
-                type: 'pie',
-                data: {
-                    labels: Object.keys(purposes),
-                    datasets: [{
-                        data: Object.values(purposes),
-                        backgroundColor: [
-                            'hsla(350, 100%, 70%, 0.7)',
-                            'hsla(200, 100%, 70%, 0.7)',
-                            'hsla(145, 100%, 70%, 0.7)',
-                            'hsla(45, 100%, 70%, 0.7)',
-                            'hsla(280, 100%, 70%, 0.7)',
-                        ],
-                        borderColor: [
-                            'hsla(350, 100%, 70%, 1)',
-                            'hsla(200, 100%, 70%, 1)',
-                            'hsla(145, 100%, 70%, 1)',
-                            'hsla(45, 100%, 70%, 1)',
-                            'hsla(280, 100%, 70%, 1)',
-                        ],
-                        borderWidth: 2
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'right',
-                            labels: {
-                                color: 'hsl(220, 50%, 90%)',
-                                font: { size: 12 }
-                            }
-                        }
-                    }
-                }
-            });
-
-            // Lab Chart
-            const labs = {};
-            data.forEach(record => {
-                labs[record.lab] = (labs[record.lab] || 0) + 1;
-            });
-
-            const labCtx = document.getElementById('labPieChart').getContext('2d');
-            new Chart(labCtx, {
-                type: 'pie',
-                data: {
-                    labels: Object.keys(labs),
-                    datasets: [{
-                        data: Object.values(labs),
-                        backgroundColor: [
-                            'hsla(180, 100%, 70%, 0.7)',
-                            'hsla(120, 100%, 70%, 0.7)',
-                            'hsla(60, 100%, 70%, 0.7)',
-                            'hsla(0, 100%, 70%, 0.7)',
-                            'hsla(240, 100%, 70%, 0.7)',
-                            'hsla(300, 100%, 70%, 0.7)',
-                        ],
-                        borderColor: [
-                            'hsla(180, 100%, 70%, 1)',
-                            'hsla(120, 100%, 70%, 1)',
-                            'hsla(60, 100%, 70%, 1)',
-                            'hsla(0, 100%, 70%, 1)',
-                            'hsla(240, 100%, 70%, 1)',
-                            'hsla(300, 100%, 70%, 1)',
-                        ],
-                        borderWidth: 2
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'right',
-                            labels: {
-                                color: 'hsl(220, 50%, 90%)',
-                                font: { size: 12 }
-                            }
-                        }
-                    }
-                }
-            });
         }
 
         function updatePagination() {
@@ -3009,112 +2834,195 @@ function closeTimeoutModal() {
     </script>
 
     <!-- Feedback Modal -->
-    <div id="feedbackModal" class="modal">
-        <div class="modal-content">
+    <div id="feedbackModal" class="modal-container">
+        <div class="modal">
             <span class="close" onclick="closeFeedbackModal()">&times;</span>
             <h2>Student Feedback History</h2>
-            <div id="feedbackContent">
-                <div class="student-info">
-                    <p><strong>ID Number:</strong> <span id="feedbackStudentId"></span></p>
-                    <p><strong>Purpose:</strong> <span id="feedbackPurpose"></span></p>
-                    <p><strong>Lab:</strong> <span id="feedbackLab"></span></p>
-                </div>
-                <div class="feedback-list">
-                    <!-- Feedback items will be inserted here -->
-                </div>
-            </div>
+            <div id="feedbackContent"></div>
         </div>
     </div>
 
     <script>
-    // ... existing code ...
+let currentTimeoutId = null;
+let currentTimeoutRow = null;
 
-    function showFeedbackModal(idNumber) {
-        fetch('get_feedback_data.php?id=' + idNumber)
-            .then(response => response.json())
-            .then(data => {
-                if (data.success && data.feedbacks.length > 0) {
-                    const feedback = data.feedbacks[0]; // Get the most recent feedback
-                    document.getElementById('feedbackStudentId').textContent = idNumber;
-                    document.getElementById('feedbackPurpose').textContent = feedback.purpose;
-                    document.getElementById('feedbackLab').textContent = feedback.lab;
+function showTimeoutModal(idNumber, button) {
+    currentTimeoutId = idNumber;
+    const row = button.closest('tr');
+    currentTimeoutRow = row;
+    let infoHtml = '';
+    if(row) {
+        const cells = row.querySelectorAll('td');
+        infoHtml = `<strong>ID:</strong> ${idNumber}`;
+        if(cells.length > 1) infoHtml += `<br><strong>Name:</strong> ${cells[1]?.textContent || ''}`;
+        if(cells.length > 2) infoHtml += `<br><strong>Sessions:</strong> <span id='modalSessions'>${cells[5]?.textContent || ''}</span>`;
+        if(cells.length > 3) infoHtml += `<br><strong>Points:</strong> <span id='modalPoints'>${cells[6]?.textContent || ''}</span>`;
+        if(cells.length > 4) infoHtml += `<br><strong>Total Points:</strong> <span id='modalTotalPoints'>${cells[7]?.textContent || ''}</span>`;
+    }
+    document.getElementById('timeoutModalStudentInfo').innerHTML = infoHtml;
+    document.getElementById('timeoutModalMessage').textContent = '';
+    document.getElementById('timeoutModal').style.display = 'block';
+}
 
-                    const feedbackList = document.querySelector('.feedback-list');
-                    feedbackList.innerHTML = data.feedbacks.map(f => `
-                        <div class="feedback-item">
-                            <p class="feedback-date">${new Date(f.feedback_date).toLocaleString()}</p>
-                            <p class="feedback-text">${f.feedback_text}</p>
-                        </div>
-                    `).join('');
+function closeTimeoutModal() {
+    document.getElementById('timeoutModal').style.display = 'none';
+    currentTimeoutId = null;
+    currentTimeoutRow = null;
+}
 
-                    document.getElementById('feedbackModal').style.display = 'block';
-                } else {
-                    alert('No feedback found for this student.');
+function givePointAndTimeout() {
+    if (!currentTimeoutId) return;
+    fetch('', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: `give_point_and_timeout=1&id_number=${encodeURIComponent(currentTimeoutId)}`
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            if(currentTimeoutRow) {
+                let sessionsCell = currentTimeoutRow.querySelector('td:nth-child(6)');
+                let pointsCell = currentTimeoutRow.querySelector('td:nth-child(7)');
+                let totalPointsCell = currentTimeoutRow.querySelector('td:nth-child(8)');
+                let sessions = parseInt(sessionsCell?.textContent || '0', 10);
+                let points = parseInt(pointsCell?.textContent || '0', 10);
+                let totalPoints = parseInt(totalPointsCell?.textContent || '0', 10);
+                points += 1;
+                sessions = Math.max(0, sessions - 1);
+                if(points >= 3) {
+                    points -= 3;
+                    totalPoints += 1;
+                    sessions += 1;
                 }
-            })
-            .catch(error => {
-                console.error('Error fetching feedback:', error);
-                alert('Error fetching feedback. Please try again.');
-            });
-    }
-
-    function closeFeedbackModal() {
-        document.getElementById('feedbackModal').style.display = 'none';
-    }
-
-    // Close modal when clicking outside
-    window.onclick = function(event) {
-        const modal = document.getElementById('feedbackModal');
-        if (event.target === modal) {
-            closeFeedbackModal();
+                if(pointsCell) pointsCell.textContent = points;
+                if(sessionsCell) sessionsCell.textContent = sessions;
+                if(totalPointsCell) totalPointsCell.textContent = totalPoints;
+                document.getElementById('modalPoints').textContent = points;
+                document.getElementById('modalSessions').textContent = sessions;
+                document.getElementById('modalTotalPoints').textContent = totalPoints;
+            }
+            closeTimeoutModal();
+        } else {
+            document.getElementById('timeoutModalMessage').textContent = data.message || 'Error processing request.';
         }
+    })
+    .catch(() => {
+        document.getElementById('timeoutModalMessage').textContent = 'Network error.';
+    });
+}
+
+function timeoutOnly() {
+    if (!currentTimeoutId) return;
+    fetch('', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: `timeout_only=1&id_number=${encodeURIComponent(currentTimeoutId)}`
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            if(currentTimeoutRow) {
+                let sessionsCell = currentTimeoutRow.querySelector('td:nth-child(6)');
+                let sessions = parseInt(sessionsCell?.textContent || '0', 10);
+                sessions = Math.max(0, sessions - 1);
+                if(sessionsCell) sessionsCell.textContent = sessions;
+                document.getElementById('modalSessions').textContent = sessions;
+            }
+            closeTimeoutModal();
+        } else {
+            document.getElementById('timeoutModalMessage').textContent = data.message || 'Error processing request.';
+        }
+    })
+    .catch(() => {
+        document.getElementById('timeoutModalMessage').textContent = 'Network error.';
+    });
+}
+
+window.addEventListener('click', function(event) {
+    const modal = document.getElementById('timeoutModal');
+    if (event.target === modal) closeTimeoutModal();
+});
+
+function showFeedbackModal(idNumber) {
+    fetch('get_feedback_data.php?id=' + idNumber)
+        .then(response => response.json())
+        .then(data => {
+            const feedbackText = document.getElementById('feedbackText');
+            if (data.feedback) {
+                feedbackText.innerHTML = `
+                    <p><strong>Student ID:</strong> ${idNumber}</p>
+                    <p><strong>Date:</strong> ${data.date}</p>
+                    <p><strong>Feedback:</strong></p>
+                    <p>${data.feedback_text}</p>
+                `;
+            } else {
+                feedbackText.innerHTML = '<p>No feedback available for this student.</p>';
+            }
+            openModal('feedbackModal');
+        })
+        .catch(error => {
+            console.error('Error fetching feedback:', error);
+            alert('Error fetching feedback. Please try again.');
+        });
+}
+
+function closeFeedbackModal() {
+    document.getElementById('feedbackModal').style.display = 'none';
+}
+
+// Close modal when clicking outside
+window.onclick = function(event) {
+    const modal = document.getElementById('feedbackModal');
+    if (event.target === modal) {
+        closeFeedbackModal();
     }
+}
 
-    // ... existing code ...
-    </script>
+// ... existing code ...
+</script>
 
-    <style>
-    /* ... existing styles ... */
+<style>
+/* ... existing styles ... */
 
-    .feedback-list {
-        margin-top: 20px;
-        max-height: 400px;
-        overflow-y: auto;
-    }
+.feedback-list {
+    margin-top: 20px;
+    max-height: 400px;
+    overflow-y: auto;
+}
 
-    .feedback-item {
-        background: rgba(255, 255, 255, 0.1);
-        border-radius: 8px;
-        padding: 15px;
-        margin-bottom: 15px;
-    }
+.feedback-item {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 15px;
+}
 
-    .feedback-date {
-        color: var(--primary);
-        font-size: 0.9em;
-        margin-bottom: 8px;
-    }
+.feedback-date {
+    color: var(--primary);
+    font-size: 0.9em;
+    margin-bottom: 8px;
+}
 
-    .feedback-text {
-        white-space: pre-wrap;
-        line-height: 1.5;
-    }
+.feedback-text {
+    white-space: pre-wrap;
+    line-height: 1.5;
+}
 
-    .student-info {
-        background: rgba(255, 255, 255, 0.05);
-        padding: 15px;
-        border-radius: 8px;
-        margin-bottom: 20px;
-    }
+.student-info {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
 
-    .student-info p {
-        margin: 5px 0;
-    }
+.student-info p {
+    margin: 5px 0;
+}
 
-    /* ... existing styles ... */
-    </style>
+/* ... existing styles ... */
+</style>
 
-    // ... existing code ...
-    </body>
+// ... existing code ...
+</body>
 </html>
 <?php if ($conn instanceof mysqli) { mysqli_close($conn); } ?>

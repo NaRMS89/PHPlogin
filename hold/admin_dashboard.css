@@ -1725,30 +1725,31 @@ button::-moz-focus-inner {
       }
 
       /* Timeout Button Styles */
-      .timeout-btn {
-          padding: 0.6rem 1.2rem;
-          border: 1px solid var(--primary);
-          border-radius: 100rem;
-          background: transparent;
-          color: var(--primary);
-          font-size: 1.2rem;
+      .action-button {
+          background-color: #4a5568;
+          color: white;
+          border: none;
+          padding: 6px 12px;
+          border-radius: 4px;
           cursor: pointer;
-          transition: all 0.3s ease;
-          min-width: 100px;
+          transition: background-color 0.3s;
       }
 
-      .timeout-btn:hover:not(:disabled) {
-          background: var(--primary);
-          color: var(--light);
-          transform: translateY(-2px);
-          box-shadow: 0 0 15px var(--shadow-1);
+      .action-button:hover {
+          background-color: #2d3748;
       }
 
-      .timeout-btn:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-          border-color: var(--border-color);
-          color: var(--border-color);
+      .timeout-btn {
+          background-color: #3182ce !important;
+          color: white !important;
+          border: none !important;
+          padding: 6px 12px !important;
+          border-radius: 4px !important;
+          cursor: pointer !important;
+      }
+
+      .timeout-btn:hover {
+          background-color: #2c5282 !important;
       }
 
       /* Pagination Styles */
@@ -2049,3 +2050,25 @@ button::-moz-focus-inner {
   gap: 10px;
   align-items: center;
 }
+/* --- Timeout Modal Styles --- */
+.modal {
+    display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100vw; height: 100vh;
+    overflow: auto; background: rgba(0,0,0,0.4);
+}
+.modal-content {
+    background: #fff; margin: 10% auto; padding: 30px 30px 20px 30px; border-radius: 10px; width: 90%; max-width: 400px; position: relative;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.2);
+}
+.modal-content h2 { margin-top:0; }
+.modal-buttons { display: flex; flex-direction: column; gap: 15px; margin-top: 10px; }
+.modal-buttons button {
+    padding: 12px 0; border: none; border-radius: 6px; font-size: 1.1em; font-weight: 600; cursor: pointer; transition: background 0.2s;
+}
+.give-point-btn { background: #198754; color: #fff; }
+.give-point-btn:hover { background: #157347; }
+.timeout-btn { background: #3182ce; color: #fff; }
+.timeout-btn:hover { background: #2c5282; }
+.cancel-btn { background: #6c757d; color: #fff; }
+.cancel-btn:hover { background: #495057; }
+.close { position: absolute; top: 10px; right: 15px; font-size: 2em; color: #888; cursor: pointer; }
+.close:hover { color: #333; }
