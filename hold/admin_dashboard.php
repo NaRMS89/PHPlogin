@@ -959,7 +959,7 @@ if (isset($_POST['export_sitindata_pdf'])) {
 
 <!-- Timeout Modal -->
 <div id="timeoutModal" class="modal" style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 1000;">
-    <div class="modal-content" style="background-color: #2d3142; color: white; padding: 20px; border-radius: 8px; width: 400px; max-width: 90%; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
+    <div class="modal-content" style="background: #2d3142; color: white; padding: 20px; border-radius: 8px; width: 400px; max-width: 90%; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
         <span class="close" onclick="closeTimeoutModal()" style="color: white; float: right; font-size: 24px; cursor: pointer;">&times;</span>
         <h2>Timeout Options</h2>
         <div id="timeoutModalStudentInfo" style="margin-bottom: 15px; background: rgba(255, 255, 255, 0.1); padding: 10px; border-radius: 5px;"></div>
@@ -1192,7 +1192,7 @@ function closeTimeoutModal() {
         </script>
     </main>
 
-    <div id="studentInfoModal" class="modal-container active" style="display: flex; align-items: center; justify-content: center; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5);">
+    <div id="studentInfoModal" class="modal-container" style="display: none; align-items: center; justify-content: center; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); z-index: 1000;">
         <div class="modal" style="background: var(--background); border-radius: 10px; padding: 25px; max-width: 500px; margin: auto; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
             <h2 class="modal-title" style="color: var(--light); margin-bottom: 20px; font-size: 24px; text-align: center;">Sit-in Form</h2>
             <div class="form-group" style="background: rgba(255, 255, 255, 0.05); padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid var(--border-color);">
@@ -2990,7 +2990,27 @@ window.onclick = function(event) {
 /* ... existing styles ... */
 </style>
 
-// ... existing code ...
+<!-- Timeout Modal -->
+<div id="timeoutModal" class="modal-container">
+    <div class="modal">
+        <span class="close" onclick="closeTimeoutModal()">&times;</span>
+        <h2>Student Timeout Options</h2>
+        <div class="student-info" id="timeoutStudentInfo">
+            <p><strong>ID Number:</strong> <span id="modalIdNumber"></span></p>
+            <p><strong>Name:</strong> <span id="modalName"></span></p>
+            <p><strong>Sessions:</strong> <span id="modalSessions"></span></p>
+            <p><strong>Current Points:</strong> <span id="modalPoints"></span></p>
+            <p><strong>Total Points:</strong> <span id="modalTotalPoints"></span></p>
+        </div>
+        <div id="timeoutModalMessage" class="modal-message"></div>
+        <div class="modal-buttons">
+            <button class="give-point-btn" onclick="givePointAndTimeout()">Add Point & Timeout</button>
+            <button class="timeout-btn" onclick="timeoutOnly()">Timeout Only (No Point)</button>
+            <button class="cancel-btn" onclick="closeTimeoutModal()">Cancel</button>
+        </div>
+    </div>
+</div>
+
 </body>
 </html>
 <?php if ($conn instanceof mysqli) { mysqli_close($conn); } ?>
