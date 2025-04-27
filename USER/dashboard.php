@@ -839,7 +839,6 @@ $lab_rooms = ['524', '526', '528', '530', '542', 'Mac Lab'];
                         <div class="form-group"> 
                             <label for="computerSelect">Available Computers</label>
                             <select class="form-control" id="computerSelect" name="computer_select" required disabled> 
-                                <option value="">-- Select Available PC --</option>
                                 <!-- Options will be loaded here by JS -->
                             </select>
                         </div>

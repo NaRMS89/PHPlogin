@@ -225,7 +225,7 @@ document.addEventListener('DOMContentLoaded', function() {
     async function populateComputerSelect(selectedRoom) {
         if (selectedRoom) {
             selectedLabSpan.textContent = selectedRoom;
-            computerSelect.innerHTML = '<option value="">Loading PCs...</option>'; // Show loading state
+            computerSelect.innerHTML = ''; // Clear loading/previous options
             computerSelectionDiv.style.display = 'block';
             computerSelect.disabled = true; // Keep disabled while loading
             selectedComputerInput.value = ''; // Reset selection
@@ -234,11 +234,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const availability = await fetchComputers(selectedRoom);
             computerSelect.innerHTML = ''; // Clear loading/previous options
 
-            // Add the default placeholder option
-            const defaultOption = document.createElement('option');
-            defaultOption.value = '';
-            defaultOption.textContent = '-- Select Available PC --';
-            computerSelect.appendChild(defaultOption);
+            let firstAvailablePCIdentifier = null; // Variable to store the first available PC
 
             for (let i = 1; i <= 50; i++) {
                 const computerOption = document.createElement('option');
@@ -251,13 +247,35 @@ document.addEventListener('DOMContentLoaded', function() {
                 } else {
                     computerOption.textContent = `PC ${i}`;
                     computerOption.disabled = false;
+                    // Store the first available PC found
+                    if (firstAvailablePCIdentifier === null) {
+                        firstAvailablePCIdentifier = pcIdentifier;
+                    }
                 }
                 computerSelect.appendChild(computerOption);
             }
             computerSelect.disabled = false; // Enable the dropdown
+
+            // Automatically select the first available PC if one exists
+            if (firstAvailablePCIdentifier) {
+                computerSelect.value = firstAvailablePCIdentifier;
+                // Manually trigger change event to update display and hidden input
+                computerSelect.dispatchEvent(new Event('change'));
+            } else {
+                 // Handle case where no PCs are available (optional: add a disabled message option)
+                 const noPCOption = document.createElement('option');
+                 noPCOption.textContent = 'No PCs Available';
+                 noPCOption.disabled = true;
+                 computerSelect.appendChild(noPCOption);
+                 computerSelect.value = ''; // Ensure no value is selected
+                 selectedComputerInput.value = '';
+                 computerDisplaySpan.textContent = 'None';
+            }
+
         } else {
             computerSelectionDiv.style.display = 'none';
-            computerSelect.innerHTML = '<option value="">-- Select Available PC --</option>';
+            // Clear options instead of adding placeholder
+            computerSelect.innerHTML = ''; 
             computerSelect.disabled = true;
             selectedComputerInput.value = '';
             computerDisplaySpan.textContent = 'None';
@@ -275,9 +293,11 @@ document.addEventListener('DOMContentLoaded', function() {
     if (computerSelect) {
         computerSelect.addEventListener('change', function() {
             const selectedOption = this.options[this.selectedIndex];
-            if (selectedOption && selectedOption.value) {
+            if (selectedOption && selectedOption.value && !selectedOption.disabled) {
                 selectedComputerInput.value = selectedOption.value;
-                computerDisplaySpan.textContent = `Room ${selectedLabSpan.textContent} ${selectedOption.textContent}`; // Use option text
+                // Update display text correctly, handling the '(Unavailable)' case
+                let displayText = selectedOption.textContent;
+                computerDisplaySpan.textContent = `Room ${selectedLabSpan.textContent} ${displayText}`;
             } else {
                 selectedComputerInput.value = '';
                 computerDisplaySpan.textContent = 'None';

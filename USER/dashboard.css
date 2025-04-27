@@ -570,3 +570,30 @@
 .reservation-form label {
     margin-bottom: 3px; /* Slightly reduce space below labels */
 }
+
+/* Dark theme styling for select dropdowns and options */
+.reservation-form select.form-control {
+    background-color: #454d55; /* Dark background for the select itself */
+    color: #f8f9fa; /* Light text for the selected value */
+    border: 1px solid #6c757d;
+}
+
+/* Style options when dropdown is open */
+.reservation-form select.form-control option {
+    background-color: #343a40; /* Dark background for options */
+    color: #f8f9fa; /* Light text for options */
+}
+
+/* Optional: Style for hover/focus state on options (browser support varies) */
+.reservation-form select.form-control option:hover,
+.reservation-form select.form-control option:focus,
+.reservation-form select.form-control option:checked { /* Style for the selected option in the list */
+    background-color: #007bff; /* Highlight color (e.g., Bootstrap primary) */
+    color: #ffffff;
+}
+
+/* Style for disabled options within the select dropdown */
+#computerSelect option:disabled {
+    color: #adb5bd !important; /* Grey out text, use !important if needed */
+    background-color: #495057 !important; /* Darker disabled background, use !important if needed */
+}
