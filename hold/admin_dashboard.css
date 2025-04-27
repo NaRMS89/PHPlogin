@@ -2072,3 +2072,94 @@ button::-moz-focus-inner {
 .cancel-btn:hover { background: #495057; }
 .close { position: absolute; top: 10px; right: 15px; font-size: 2em; color: #888; cursor: pointer; }
 .close:hover { color: #333; }
+
+/* Leaderboard Styles */
+.leaderboard-container {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    padding: 20px;
+    margin: 20px 0;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.leaderboard-container h3 {
+    color: var(--primary);
+    margin-bottom: 15px;
+    font-size: 24px;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.leaderboard-table {
+    overflow-x: auto;
+}
+
+.leaderboard-table table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.leaderboard-table th, 
+.leaderboard-table td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.leaderboard-table th {
+    background: rgba(0, 0, 0, 0.2);
+    color: var(--primary);
+    font-weight: bold;
+    font-size: 16px;
+}
+
+/* Rank styling */
+.leaderboard-table tr.rank-first {
+    background: rgba(255, 215, 0, 0.15);
+    border: 2px solid gold;
+    font-weight: bold;
+}
+
+.leaderboard-table tr.rank-first td {
+    color: gold;
+    font-size: 18px;
+}
+
+.leaderboard-table tr.rank-second {
+    background: rgba(192, 192, 192, 0.1);
+    border: 1px solid silver;
+}
+
+.leaderboard-table tr.rank-second td {
+    color: silver;
+}
+
+.leaderboard-table tr.rank-third {
+    background: rgba(205, 127, 50, 0.1);
+    border: 1px solid #cd7f32;
+}
+
+.leaderboard-table tr.rank-third td {
+    color: #cd7f32;
+}
+
+.leaderboard-table .point-value {
+    font-weight: bold;
+    font-size: 18px;
+}
+
+.leaderboard-table .medal {
+    font-size: 20px;
+    margin-left: 5px;
+}
+
+.leaderboard-table tr:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.leaderboard-table .no-data {
+    text-align: center;
+    padding: 20px;
+    color: rgba(255, 255, 255, 0.5);
+}

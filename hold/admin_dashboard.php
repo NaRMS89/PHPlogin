@@ -1,6 +1,7 @@
 <?php
 session_start();
 include("../includes/database.php");
+include("leaderboard_top.php");
 
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['give_point_and_timeout'])) {
     $idNo = $_POST['id_number'];
@@ -315,43 +316,10 @@ if (isset($_POST['export_sitindata_pdf'])) {
                 </div>
 
                 <!-- Leaderboard Section -->
-                <div class="leaderboard-container">
-                    <h3>Top Students Leaderboard</h3>
-                    <div class="leaderboard-table">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Rank</th>
-                                    <th>ID Number</th>
-                                    <th>Name</th>
-                                    <th>Course</th>
-                                    <th>Total Points</th>
-                                </tr>
-                            </thead>
-                            <tbody id="leaderboardBody">
-                                <?php 
-                                // Sort students by total_points in descending order
-                                usort($allStudents, function($a, $b) {
-                                    return $b['total_points'] - $a['total_points'];
-                                });
-                                
-                                // Get top 5 students
-                                $topStudents = array_slice($allStudents, 0, 5);
-                                
-                                foreach ($topStudents as $index => $student): 
-                                ?>
-                                <tr>
-                                    <td><?php echo $index + 1; ?></td>
-                                    <td><?php echo $student['id_number']; ?></td>
-                                    <td><?php echo $student['last_name'] . ', ' . $student['first_name']; ?></td>
-                                    <td><?php echo $student['course']; ?></td>
-                                    <td><?php echo $student['total_points']; ?></td>
-                                </tr>
-                                <?php endforeach; ?>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+                <?php
+                // Display the leaderboard using the function from leaderboard_top.php
+                displayTopStudentsLeaderboard($conn);
+                ?>
 
                 <!-- Language Chart -->
                 <div class="chart-container">
@@ -2617,7 +2585,7 @@ function closeTimeoutModal() {
                     const feedbackText = document.getElementById('feedbackText');
                     if (data.feedback) {
                         feedbackText.innerHTML = `
-                            <p><strong>Student ID:</strong> ${data.id_number}</p>
+                            <p><strong>Student ID:</strong> ${idNumber}</p>
                             <p><strong>Date:</strong> ${data.date}</p>
                             <p><strong>Feedback:</strong></p>
                             <p>${data.feedback_text}</p>
