@@ -189,3 +189,155 @@ function submitReservation(lab, computerNumber, purpose, date, startTime, endTim
         alert('Error submitting reservation. Please try again.');
     });
 }
+
+// JavaScript to handle dynamic lab and computer selection
+document.addEventListener('DOMContentLoaded', function() {
+    const labRoomSelect = document.getElementById('labRoom');
+    const computerSelectionDiv = document.getElementById('computerSelection');
+    const computerGrid = document.querySelector('#computerSelection .computer-grid');
+    const selectedLabSpan = document.getElementById('selectedLab');
+    const selectedComputerInput = document.getElementById('selectedComputer');
+    const computerDisplaySpan = document.getElementById('computerDisplay');
+    const timeInInput = document.getElementById('timeIn');
+    const reservationDateInput = document.getElementById('reservationDate');
+    const studentIdSpan = document.getElementById('studentId'); // Assuming it's populated by PHP
+    const studentNameSpan = document.getElementById('studentName'); // Assuming it's populated by PHP
+    const remainingSessionsInput = document.getElementById('remainingSessions'); // Assuming it's populated by PHP
+
+    // Function to fetch available computers via AJAX
+    async function fetchComputers(labRoom) {
+        try {
+            // **IMPORTANT**: Update this URL to your actual PHP script
+            const response = await fetch(`get_available_computers.php?lab=${labRoom}`);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const data = await response.json(); // Expecting { available: [pc_number], unavailable: [pc_number] }
+            return data;
+        } catch (error) {
+            console.error('Error fetching computer availability:', error);
+            // Fallback: Assume all are available if fetch fails
+            return { available: Array.from({ length: 50 }, (_, i) => i + 1), unavailable: [] };
+        }
+    }
+
+    // Function to populate computer grid based on selected lab and availability
+    async function populateComputerGrid(selectedRoom) {
+        if (selectedRoom) {
+            selectedLabSpan.textContent = selectedRoom;
+            computerGrid.innerHTML = 'Loading computers...'; // Show loading state
+            computerSelectionDiv.style.display = 'block';
+            selectedComputerInput.value = ''; // Reset selection
+            computerDisplaySpan.textContent = 'None'; // Reset display
+
+            const availability = await fetchComputers(selectedRoom);
+            computerGrid.innerHTML = ''; // Clear loading/previous buttons
+
+            for (let i = 1; i <= 50; i++) {
+                const computerButton = document.createElement('button');
+                computerButton.textContent = `PC ${i}`;
+                computerButton.type = 'button'; // Prevent form submission
+                computerButton.classList.add('computer-button');
+                const pcIdentifier = `${selectedRoom}-PC${i}`;
+
+                if (availability.unavailable.includes(i)) {
+                    computerButton.classList.add('unavailable');
+                    computerButton.disabled = true;
+                } else {
+                    computerButton.classList.add('available');
+                    computerButton.addEventListener('click', function() {
+                        // Deselect previously selected button in this grid
+                        const currentlySelected = computerGrid.querySelector('.computer-button.selected');
+                        if (currentlySelected) {
+                            currentlySelected.classList.remove('selected');
+                        }
+                        // Select the clicked button
+                        this.classList.add('selected');
+                        selectedComputerInput.value = pcIdentifier; // Store value like 524-PC1
+                        computerDisplaySpan.textContent = `Room ${selectedRoom} PC ${i}`;
+                    });
+                }
+                computerGrid.appendChild(computerButton);
+            }
+        } else {
+            computerSelectionDiv.style.display = 'none';
+            computerGrid.innerHTML = '';
+            selectedComputerInput.value = '';
+            computerDisplaySpan.textContent = 'None';
+        }
+    }
+
+    // Event listener for lab room selection change
+    if (labRoomSelect) {
+        labRoomSelect.addEventListener('change', function() {
+            populateComputerGrid(this.value);
+        });
+    }
+
+    // Set the "Time In" to the current time (HH:MM format)
+    if (timeInInput) {
+        const now = new Date();
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        timeInInput.value = `${hours}:${minutes}`;
+    }
+
+    // Set the minimum date for the reservation date input to today
+    if (reservationDateInput) {
+        const today = new Date().toISOString().split('T')[0];
+        reservationDateInput.setAttribute('min', today);
+        // reservationDateInput.value = today; // Optionally set default to today
+    }
+
+    // Placeholder: Load pending reservations (requires another AJAX call)
+    const pendingReservationsDiv = document.getElementById('pendingReservations');
+    if (pendingReservationsDiv) {
+        // Example: fetchPendingReservations();
+        // This function would fetch and display pending reservations for the user
+        // pendingReservationsDiv.innerHTML = 'Loading pending reservations...';
+    }
+
+    // --- Additions for handling existing content visibility logic ---
+    const navLinks = document.querySelectorAll('.nav-link');
+    const dynamicContents = document.querySelectorAll('.dynamic-content');
+
+    // Function to hide all content sections
+    function hideAllSections() {
+        dynamicContents.forEach(content => content.classList.remove('active'));
+    }
+
+    // Function to show a specific content section
+    function showSection(sectionId) {
+        hideAllSections();
+        const sectionToShow = document.getElementById(sectionId);
+        if (sectionToShow) {
+            sectionToShow.classList.add('active');
+        }
+    }
+
+    // Add click event listeners to navigation links
+    navLinks.forEach(link => {
+        link.addEventListener('click', function(event) {
+            event.preventDefault(); // Prevent default anchor behavior
+            const targetId = this.getAttribute('data-target');
+            showSection(targetId);
+
+            // Optional: Update active state for nav links if needed
+            navLinks.forEach(nav => nav.classList.remove('active'));
+            this.classList.add('active');
+        });
+    });
+
+    // Show the default section (e.g., reservation) on page load
+    // Make sure the #reservationContent div in dashboard.php has the 'active' class initially
+    // showSection('reservationContent'); // Or check which one should be active by default
+
+    // If #reservationContent is the default, ensure it's shown
+    if (document.getElementById('reservationContent')?.classList.contains('active')) {
+       // It's already set to active in the HTML, no JS action needed for initial load
+    } else if (dynamicContents.length > 0 && !document.querySelector('.dynamic-content.active')){
+         // Fallback: If no section is active, activate the first one (or reservation)
+         showSection('reservationContent');
+    }
+
+});

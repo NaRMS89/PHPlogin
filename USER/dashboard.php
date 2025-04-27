@@ -809,7 +809,84 @@ $lab_rooms = ['524', '526', '528', '530', '542', 'Mac Lab'];
 
         <!-- Reservation Content -->
         <div id="reservationContent" class="dynamic-content">
-            <?php include 'reservation_content.php'; ?>
+            <div class="reservation-container">
+                <h2>Lab Reservation</h2>
+
+                <div class="user-info">
+                    <p><strong>ID Number:</strong> <span id="studentId"><?php echo htmlspecialchars($_SESSION['id_number'] ?? 'N/A'); ?></span></p>
+                    <p><strong>Name:</strong> <span id="studentName"><?php echo htmlspecialchars(($_SESSION['first_name'] ?? '') . ' ' . ($_SESSION['last_name'] ?? '')); ?></span></p>
+                </div>
+
+                <form id="reservationForm" class="reservation-form" action="process_reservation.php" method="post">
+                    <input type="hidden" name="make_reservation" value="1">
+
+                    <div class="form-group">
+                        <label for="labRoom">Lab Room</label>
+                        <select class="form-control" id="labRoom" name="lab" required>
+                            <option value="">Select Lab Room</option>
+                            <option value="524">524</option>
+                            <option value="526">526</option>
+                            <option value="528">528</option>
+                            <option value="530">530</option>
+                            <option value="542">542</option>
+                            <option value="544">544</option>
+                            <option value="517">517</option>
+                        </select>
+                    </div>
+
+                    <div id="computerSelection" style="display: none;">
+                        <h3>Available Computers in <span id="selectedLab"></span></h3>
+                        <div class="computer-grid">
+                            <!-- Computer buttons will be loaded here by JS -->
+                        </div>
+                        <input type="hidden" id="selectedComputer" name="computer" required>
+                        <p>Selected: <span id="computerDisplay">None</span></p>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="purpose">Purpose</label>
+                        <select class="form-control" id="purpose" name="purpose" required>
+                            <option value="">Select Purpose</option>
+                            <option value="C Programming">C Programming</option>
+                            <option value="Java Programming">Java Programming</option>
+                            <option value="Python">Python</option>
+                            <option value="C#">C#</option>
+                            <option value="Database">Database</option>
+                            <option value="Digital Logic & Design">Digital Logic & Design</option>
+                            <option value="Embedded Systems and IoT">Embedded Systems and IoT</option>
+                            <option value="System Integration and Architecture">System Integration and Architecture</option>
+                            <option value="Computer Application">Computer Application</option>
+                            <option value="Project Management">Project Management</option>
+                            <option value="IT Trends">IT Trends</option>
+                            <option value="Technopreneurship">Technopreneurship</option>
+                            <option value="Capstone">Capstone</option>
+                        </select>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="timeIn">Time In</label>
+                            <input type="text" class="form-control" id="timeIn" name="time_in" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label for="reservationDate">Date</label>
+                            <input type="date" class="form-control" id="reservationDate" name="date" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="remainingSessions">Remaining Sessions</label>
+                        <input type="text" class="form-control" id="remainingSessions" name="remaining_sessions" readonly value="<?php echo htmlspecialchars($user_data['remaining_sessions'] ?? 'N/A'); ?>">
+                    </div>
+
+                    <button type="submit" class="nav-btn">Reserve</button>
+                </form>
+            </div>
+
+            <div id="pendingReservations">
+                <h3>Pending Reservations</h3>
+                <!-- Pending reservations will be loaded here -->
+            </div>
         </div>
 
         <!-- History Content -->
