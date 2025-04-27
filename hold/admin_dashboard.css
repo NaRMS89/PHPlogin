@@ -2163,3 +2163,115 @@ button::-moz-focus-inner {
     padding: 20px;
     color: rgba(255, 255, 255, 0.5);
 }
+
+/* Reservation Styles */
+.reservation-management {
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    margin-top: 20px;
+}
+
+.reservation-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.reservation-list table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+.reservation-list th, 
+.reservation-list td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.reservation-list th {
+    background: rgba(0, 0, 0, 0.2);
+    color: var(--primary);
+    font-weight: bold;
+    font-size: 16px;
+}
+
+.reservation-list tr:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.status-badge {
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.status-pending {
+    background-color: rgba(255, 193, 7, 0.15);
+    color: #ffc107;
+}
+
+.status-approved {
+    background-color: rgba(40, 167, 69, 0.15);
+    color: #28a745;
+}
+
+.status-denied {
+    background-color: rgba(220, 53, 69, 0.15);
+    color: #dc3545;
+}
+
+.pending-row {
+    background-color: rgba(255, 193, 7, 0.05);
+}
+
+.approved-row {
+    background-color: rgba(40, 167, 69, 0.05);
+}
+
+.denied-row {
+    background-color: rgba(220, 53, 69, 0.05);
+}
+
+.action-buttons {
+    display: flex;
+    gap: 5px;
+}
+
+.approve-btn, .deny-btn, .status-btn {
+    padding: 5px 10px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 12px;
+    transition: background-color 0.3s;
+}
+
+.approve-btn {
+    background-color: #28a745;
+    color: white;
+}
+
+.approve-btn:hover {
+    background-color: #218838;
+}
+
+.deny-btn {
+    background-color: #dc3545;
+    color: white;
+}
+
+.deny-btn:hover {
+    background-color: #c82333;
+}
+
+.status-btn {
+    background-color: #6c757d;
+    color: white;
+    cursor: not-allowed;
+}

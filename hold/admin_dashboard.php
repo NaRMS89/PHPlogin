@@ -2,6 +2,7 @@
 session_start();
 include("../includes/database.php");
 include("leaderboard_top.php");
+include("../includes/reservation_functions.php");
 
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['give_point_and_timeout'])) {
     $idNo = $_POST['id_number'];
@@ -693,6 +694,8 @@ if (isset($_POST['export_sitindata_pdf'])) {
                     </div>
                 </div>
             </div>
+
+            <?php include('reservation_content.php'); ?>
 
             <!-- Lab Schedules Content -->
             <div id="labSchedulesContent" style="display: none;">
@@ -2706,21 +2709,15 @@ function closeTimeoutModal() {
         function createActionButtons(studentId, studentName) {
             return `
                 <div class="button-group">
-                    <button class="feedback-button btn-sm" onclick="showFeedbackModal('${studentId}')">
-                        View Feedback
-                    </button>
-                    <button class="add-points-btn btn-sm" onclick="addPoints('${studentId}', '${studentName}')">
-                        Add Points
-                    </button>
+                    <button class="feedback-button btn-sm" onclick="showFeedbackModal(this)">View Feedback</button>
+                    <button class="add-points-btn btn-sm" onclick="addPoints(this)">Add Points</button>
                 </div>
             `;
         }
 
         function createLabControls(labId) {
             return `
-                <button class="manage-schedule-btn btn-sm" onclick="openScheduleModal('${labId}')">
-                    Manage Schedule
-                </button>
+                <button class="manage-schedule-btn btn-sm" onclick="openScheduleModal(this)">Manage Schedule</button>
             `;
         }
 
@@ -3012,5 +3009,61 @@ window.onclick = function(event) {
 </div>
 
 </body>
+<script src="reservation_admin.js"></script>
 </html>
 <?php if ($conn instanceof mysqli) { mysqli_close($conn); } ?>
+```
+```php
+<!-- Lab Schedules Content -->
+<div id="labSchedulesContent" style="display: none;">
+    <h2>Lab Schedules</h2>
+    <div class="card">
+        <div class="card-header">
+            <h5>Lab Room Status</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <?php
+                $lab_rooms = ['524', '526', '528', '530', '542', '544', '517'];
+                foreach ($lab_rooms as $room): ?>
+                    <div class="mb-4 p-3 bg-dark rounded">
+                        <h6 class="text-light">Lab Room <?php echo $room; ?></h6>
+                        <div class="d-flex flex-wrap gap-2">
+                            <?php for ($i = 1; $i <= 50; $i++): 
+                                $query = "SELECT lc.status, s.id_number 
+                                         FROM lab_computers lc
+                                         LEFT JOIN sitin s ON s.lab = '$room' 
+                                         AND s.status = 'active'
+                                         WHERE lc.lab_id = '$room' 
+                                         AND lc.computer_number = $i";
+                                $result = mysqli_query($conn, $query);
+                                $pc = mysqli_fetch_assoc($result);
+                                
+                                $class = 'bg-success';
+                                $status = 'Available';
+                                
+                                if ($pc['id_number']) {
+                                    $class = 'bg-danger';
+                                    $status = 'In Use';
+                                } elseif ($pc['status'] === 'maintenance') {
+                                    $class = 'bg-warning';
+                                    $status = 'Maintenance';
+                                }
+                            ?>
+                                <div class="<?php echo $class; ?> p-2 rounded text-center text-light" style="min-width: 100px">
+                                    <strong>PC <?php echo $i; ?></strong><br>
+                                    <small><?php echo $status; ?></small><br>
+                                    <button class="btn btn-sm btn-outline-light mt-1 toggle-pc" 
+                                            data-lab="<?php echo $room; ?>" 
+                                            data-pc="<?php echo $i; ?>">
+                                        Toggle
+                                    </button>
+                                </div>
+                            <?php endfor; ?>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        </div>
+    </div>
+</div>
