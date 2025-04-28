@@ -13,17 +13,20 @@
 .profile-info {
     font-size: 1.2rem;
     line-height: 1.6;
+    color: #f8f9fa;
 }
 
 .profile-info h2 {
     font-size: 1.8rem;
     margin-bottom: 1.5rem;
+    color: #f8f9fa;
 }
 
 .profile-info p {
     margin: 1rem 0;
     padding: 0.5rem 0;
     border-bottom: 1px solid rgba(255,255,255,0.1);
+    color: #f8f9fa;
 }
 
 .profile-picture-main {
@@ -60,11 +63,12 @@
 }
 
 .announcement-item {
-    background: rgba(0,0,0,0.2);
+    background: #23272b;
     border-radius: 0.5rem;
     padding: 1.5rem;
     margin-bottom: 1.5rem;
     border-left: 4px solid var(--primary);
+    color: #f8f9fa;
 }
 
 .announcement-item .date {
@@ -75,6 +79,7 @@
 
 .announcement-item .content {
     line-height: 1.6;
+    color: #f8f9fa;
 }
 
 /* Modal Improvements */
@@ -106,13 +111,14 @@
 }
 
 .modal-content {
-    background: var(--global-background);
+    background: #181a1b;
     padding: 2rem;
     border-radius: 1rem;
     width: 90%;
     max-width: 500px;
     position: relative;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    color: #f8f9fa;
 }
 
 .close {
@@ -136,10 +142,10 @@
 .modal .form-control {
     width: 100%;
     padding: 0.8rem;
-    background: rgba(0,0,0,0.2);
+    background: #23272b;
     border: 1px solid var(--border-color);
     border-radius: 0.5rem;
-    color: var(--light);
+    color: #f8f9fa;
 }
 
 .modal .nav-btn {
@@ -149,10 +155,10 @@
 #feedbackForm textarea {
     width: 100%;
     padding: 0.8rem;
-    background: rgba(0, 0, 0, 0.2);
+    background: #23272b;
     border: 1px solid var(--border-color);
     border-radius: 0.5rem;
-    color: var(--light);
+    color: #f8f9fa;
     margin-bottom: 1rem;
 }
 
@@ -163,7 +169,7 @@
 }
 
 .feedback-text {
-    color: var(--light);
+    color: #f8f9fa;
     font-style: italic;
 }
 
@@ -185,7 +191,7 @@
 
 /* Reservation Styles */
 .reservation-container {
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(0, 0, 0, 0.2);
     border-radius: 1rem;
     padding: 2rem;
     margin-bottom: 2rem;
@@ -199,11 +205,12 @@
 }
 
 .lab-card {
-    background: rgba(0, 0, 0, 0.2);
+    background: #23272b;
     border-radius: 0.5rem;
     padding: 1.5rem;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     border: 1px solid var(--border-color);
+    color: #f8f9fa;
 }
 
 .lab-card:hover {
@@ -214,7 +221,7 @@
 .lab-card h3 {
     font-size: 1.4rem;
     margin-bottom: 1rem;
-    color: var(--light);
+    color: #f8f9fa;
 }
 
 .lab-status {
@@ -231,10 +238,11 @@
 }
 
 .reservation-form-container {
-    background: rgba(0, 0, 0, 0.2);
+    background: #23272b;
     border-radius: 0.5rem;
     padding: 2rem;
     border: 1px solid var(--border-color);
+    color: #f8f9fa;
 }
 
 .student-info-display {
@@ -243,6 +251,7 @@
     padding: 1rem;
     margin-bottom: 1.5rem;
     border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #f8f9fa;
 }
 
 .student-info-display p {
@@ -271,10 +280,10 @@
 .form-control {
     width: 100%;
     padding: 0.8rem;
-    background: rgba(0, 0, 0, 0.2);
+    background: #23272b;
     border: 1px solid var(--border-color);
     border-radius: 0.5rem;
-    color: var(--light);
+    color: #f8f9fa;
 }
 
 .form-control:focus {
@@ -298,6 +307,7 @@
     background: rgba(0, 0, 0, 0.2);
     border-radius: 0.5rem;
     border: 1px solid var(--border-color);
+    color: #f8f9fa;
 }
 
 .computer-row {
@@ -349,6 +359,7 @@
     background: rgba(0, 0, 0, 0.2);
     border-radius: 0.5rem;
     border: 1px solid var(--border-color);
+    color: #f8f9fa;
 }
 
 .form-buttons {
@@ -380,7 +391,7 @@
 }
 
 .modal-content {
-    background: var(--background);
+    background: #181a1b;
     margin: 5% auto;
     padding: 2rem;
     border-radius: 1rem;
@@ -389,6 +400,7 @@
     position: relative;
     max-height: 80vh;
     overflow-y: auto;
+    color: #f8f9fa;
 }
 
 /* History Table Styles */
@@ -405,10 +417,11 @@
     padding: 1rem;
     text-align: left;
     border-bottom: 1px solid var(--border-color);
+    color: #f8f9fa;
 }
 
 .history-table th {
-    background: rgba(0, 0, 0, 0.3);
+    background: #23272b;
     font-weight: 600;
     text-transform: uppercase;
     font-size: 0.9rem;
@@ -463,7 +476,7 @@
 
 .feedback-text {
     font-style: italic;
-    color: var(--light);
+    color: #f8f9fa;
     font-size: 0.9rem;
 }
 
@@ -474,6 +487,7 @@
     background: rgba(0, 0, 0, 0.2);
     border-radius: 0.5rem;
     margin: 2rem 0;
+    color: #f8f9fa;
 }
 
 .no-data h3 {
@@ -490,10 +504,11 @@
 .user-info {
     margin-bottom: 20px;
     padding: 15px;
-    border: 1px solid #dee2e6;
+    border: 1px solid #343a40;
     border-radius: 5px;
-    background-color: #f8f9fa;
+    background-color: #23272b;
     font-size: 0.95em;
+    color: #f8f9fa;
 }
 
 .user-info p {
@@ -504,26 +519,29 @@
     margin-top: 15px;
     margin-bottom: 20px;
     padding: 15px;
-    border: 1px solid #dee2e6;
+    border: 1px solid #343a40;
     border-radius: 5px;
-    background-color: #f8f9fa;
+    background-color: #23272b;
+    font-size: 0.95em;
+    color: #f8f9fa;
 }
 
 #computerSelection h3 {
     margin-top: 0;
     margin-bottom: 15px;
     font-size: 1.1em;
-    color: #495057;
+    color: #f8f9fa;
 }
 
 #computerSelection .form-group label {
     display: block; /* Ensure label is on its own line */
     margin-bottom: 5px;
+    color: #f8f9fa;
 }
 
 #computerSelect option:disabled {
-    color: #adb5bd; /* Grey out text */
-    background-color: #e9ecef; /* Slightly different background */
+    color: #adb5bd !important; /* Grey out text */
+    background-color: #343a40 !important; /* Slightly different background */
 }
 
 #computerSelection p {
@@ -565,22 +583,26 @@
 /* Adjustments for form controls if needed */
 .reservation-form .form-control {
     margin-bottom: 5px; /* Slightly reduce space below controls */
+    background: #23272b;
+    color: #f8f9fa;
+    border: 1px solid #343a40;
 }
 
 .reservation-form label {
     margin-bottom: 3px; /* Slightly reduce space below labels */
+    color: #f8f9fa;
 }
 
 /* Dark theme styling for select dropdowns and options */
 .reservation-form select.form-control {
-    background-color: #454d55; /* Dark background for the select itself */
+    background-color: #23272b; /* Dark background for the select itself */
     color: #f8f9fa; /* Light text for the selected value */
-    border: 1px solid #6c757d;
+    border: 1px solid #343a40;
 }
 
 /* Style options when dropdown is open */
 .reservation-form select.form-control option {
-    background-color: #343a40; /* Dark background for options */
+    background-color: #23272b; /* Dark background for options */
     color: #f8f9fa; /* Light text for options */
 }
 
@@ -595,5 +617,56 @@
 /* Style for disabled options within the select dropdown */
 #computerSelect option:disabled {
     color: #adb5bd !important; /* Grey out text, use !important if needed */
-    background-color: #495057 !important; /* Darker disabled background, use !important if needed */
+    background-color: #343a40 !important; /* Darker disabled background, use !important if needed */
+}
+
+.profile-column,
+.reservation-form-container,
+.dynamic-content {
+    background: #181a1b !important;
+    color: #f8f9fa;
+    border: 1px solid #23272b;
+}
+
+.modal-content,
+.modal {
+    background: #181a1b !important;
+    color: #f8f9fa;
+}
+
+.form-control {
+    background: #23272b !important;
+    color: #f8f9fa !important;
+    border: 1px solid #343a40 !important;
+}
+
+.form-group label,
+#computerSelection h3 {
+    color: #f8f9fa;
+}
+
+.history-table th {
+    background: #23272b;
+    color: #f8f9fa;
+}
+
+.history-table td {
+    background: #181a1b;
+    color: #f8f9fa;
+}
+
+.announcement-item {
+    background: #23272b;
+    color: #f8f9fa;
+}
+
+.lab-card {
+    background: #23272b;
+    color: #f8f9fa;
+}
+
+/* Remove any remaining light backgrounds */
+.user-info, #computerSelection, .profile-column, .reservation-form-container, .dynamic-content, .modal-content, .modal, .form-control, .history-table th, .history-table td, .announcement-item, .lab-card {
+    background: #181a1b !important;
+    color: #f8f9fa !important;
 }

@@ -194,29 +194,27 @@ function submitReservation(lab, computerNumber, purpose, date, startTime, endTim
 document.addEventListener('DOMContentLoaded', function() {
     const labRoomSelect = document.getElementById('labRoom');
     const computerSelectionDiv = document.getElementById('computerSelection');
-    const computerSelect = document.getElementById('computerSelect'); // New dropdown element
+    const computerSelect = document.getElementById('computerSelect'); 
     const selectedLabSpan = document.getElementById('selectedLab');
     const selectedComputerInput = document.getElementById('selectedComputer');
     const computerDisplaySpan = document.getElementById('computerDisplay');
     const timeInInput = document.getElementById('timeIn');
     const reservationDateInput = document.getElementById('reservationDate');
-    const studentIdSpan = document.getElementById('studentId'); // Assuming it's populated by PHP
-    const studentNameSpan = document.getElementById('studentName'); // Assuming it's populated by PHP
-    const remainingSessionsInput = document.getElementById('remainingSessions'); // Assuming it's populated by PHP
+    const studentIdSpan = document.getElementById('studentId'); 
+    const studentNameSpan = document.getElementById('studentName'); 
+    const remainingSessionsInput = document.getElementById('remainingSessions'); 
 
     // Function to fetch available computers via AJAX
     async function fetchComputers(labRoom) {
         try {
-            // **IMPORTANT**: Update this URL to your actual PHP script
             const response = await fetch(`get_available_computers.php?lab=${labRoom}`);
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
-            const data = await response.json(); // Expecting { available: [pc_number], unavailable: [pc_number] }
+            const data = await response.json(); 
             return data;
         } catch (error) {
             console.error('Error fetching computer availability:', error);
-            // Fallback: Assume all are available if fetch fails
             return { available: Array.from({ length: 50 }, (_, i) => i + 1), unavailable: [] };
         }
     }
@@ -225,60 +223,70 @@ document.addEventListener('DOMContentLoaded', function() {
     async function populateComputerSelect(selectedRoom) {
         if (selectedRoom) {
             selectedLabSpan.textContent = selectedRoom;
-            computerSelect.innerHTML = ''; // Clear loading/previous options
+            computerSelect.innerHTML = '';
             computerSelectionDiv.style.display = 'block';
-            computerSelect.disabled = true; // Keep disabled while loading
-            selectedComputerInput.value = ''; // Reset selection
-            computerDisplaySpan.textContent = 'None'; // Reset display
+            computerSelect.disabled = false;
+            selectedComputerInput.value = '';
+            computerDisplaySpan.textContent = 'None';
 
             const availability = await fetchComputers(selectedRoom);
-            computerSelect.innerHTML = ''; // Clear loading/previous options
+            const available = Array.isArray(availability.available) ? availability.available : [];
+            const availableSet = new Set(available);
 
-            let firstAvailablePCIdentifier = null; // Variable to store the first available PC
-
+            // Always show all 50 PCs, disabling those not available
             for (let i = 1; i <= 50; i++) {
-                const computerOption = document.createElement('option');
-                const pcIdentifier = `${selectedRoom}-PC${i}`;
-                computerOption.value = pcIdentifier; // Value like 524-PC1
-
-                if (availability.unavailable.includes(i)) {
-                    computerOption.textContent = `PC ${i} (Unavailable)`;
-                    computerOption.disabled = true;
-                } else {
-                    computerOption.textContent = `PC ${i}`;
-                    computerOption.disabled = false;
-                    // Store the first available PC found
-                    if (firstAvailablePCIdentifier === null) {
-                        firstAvailablePCIdentifier = pcIdentifier;
-                    }
+                const option = document.createElement('option');
+                option.value = i;
+                option.textContent = `PC ${i}`;
+                if (!availableSet.has(i)) {
+                    option.disabled = true;
                 }
-                computerSelect.appendChild(computerOption);
+                computerSelect.appendChild(option);
             }
-            computerSelect.disabled = false; // Enable the dropdown
-
-            // Automatically select the first available PC if one exists
-            if (firstAvailablePCIdentifier) {
-                computerSelect.value = firstAvailablePCIdentifier;
-                // Manually trigger change event to update display and hidden input
-                computerSelect.dispatchEvent(new Event('change'));
-            } else {
-                 // Handle case where no PCs are available (optional: add a disabled message option)
-                 const noPCOption = document.createElement('option');
-                 noPCOption.textContent = 'No PCs Available';
-                 noPCOption.disabled = true;
-                 computerSelect.appendChild(noPCOption);
-                 computerSelect.value = ''; // Ensure no value is selected
-                 selectedComputerInput.value = '';
-                 computerDisplaySpan.textContent = 'None';
-            }
-
         } else {
             computerSelectionDiv.style.display = 'none';
-            // Clear options instead of adding placeholder
-            computerSelect.innerHTML = ''; 
+            computerSelect.innerHTML = '';
             computerSelect.disabled = true;
             selectedComputerInput.value = '';
             computerDisplaySpan.textContent = 'None';
+        }
+    }
+
+    // Update the label for the computer select section
+    document.getElementById('selectedLab').addEventListener('DOMSubtreeModified', function() {
+        const lab = this.textContent;
+        const label = document.querySelector('label[for="computerSelect"]');
+        if (label) {
+            label.innerHTML = `Available Computers <small>(Select a Computer in ${lab})</small>`;
+        }
+    });
+
+    computerSelect.addEventListener('change', function() {
+        const selectedOption = computerSelect.options[computerSelect.selectedIndex];
+        if (selectedOption && !selectedOption.disabled) {
+            computerDisplaySpan.textContent = selectedOption.textContent;
+            selectedComputerInput.value = selectedOption.value;
+        } else {
+            computerDisplaySpan.textContent = 'None';
+            selectedComputerInput.value = '';
+        }
+        updateSelectedDisplay();
+    });
+
+    labRoomSelect.addEventListener('change', function() {
+        populateComputerSelect(this.value);
+        updateSelectedDisplay();
+    });
+
+    // Add or update this function to update the selected display above the ID/Name
+    function updateSelectedDisplay() {
+        const lab = labRoomSelect.value;
+        const pc = computerSelect.value;
+        const selectedDisplay = document.getElementById('selectedDisplay');
+        if (lab && pc) {
+            selectedDisplay.textContent = `Room: ${lab} | Computer: PC ${pc}`;
+        } else {
+            selectedDisplay.textContent = 'None';
         }
     }
 
@@ -286,22 +294,6 @@ document.addEventListener('DOMContentLoaded', function() {
     if (labRoomSelect) {
         labRoomSelect.addEventListener('change', function() {
             populateComputerSelect(this.value);
-        });
-    }
-
-    // Event listener for computer selection change
-    if (computerSelect) {
-        computerSelect.addEventListener('change', function() {
-            const selectedOption = this.options[this.selectedIndex];
-            if (selectedOption && selectedOption.value && !selectedOption.disabled) {
-                selectedComputerInput.value = selectedOption.value;
-                // Update display text correctly, handling the '(Unavailable)' case
-                let displayText = selectedOption.textContent;
-                computerDisplaySpan.textContent = `Room ${selectedLabSpan.textContent} ${displayText}`;
-            } else {
-                selectedComputerInput.value = '';
-                computerDisplaySpan.textContent = 'None';
-            }
         });
     }
 
@@ -317,15 +309,12 @@ document.addEventListener('DOMContentLoaded', function() {
     if (reservationDateInput) {
         const today = new Date().toISOString().split('T')[0];
         reservationDateInput.setAttribute('min', today);
-        // reservationDateInput.value = today; // Optionally set default to today
     }
 
     // Placeholder: Load pending reservations (requires another AJAX call)
     const pendingReservationsDiv = document.getElementById('pendingReservations');
     if (pendingReservationsDiv) {
-        // Example: fetchPendingReservations();
-        // This function would fetch and display pending reservations for the user
-        // pendingReservationsDiv.innerHTML = 'Loading pending reservations...';
+        pendingReservationsDiv.innerHTML = 'Loading pending reservations...';
     }
 
     // --- Additions for handling existing content visibility logic ---
@@ -349,25 +338,19 @@ document.addEventListener('DOMContentLoaded', function() {
     // Add click event listeners to navigation links
     navLinks.forEach(link => {
         link.addEventListener('click', function(event) {
-            event.preventDefault(); // Prevent default anchor behavior
+            event.preventDefault(); 
             const targetId = this.getAttribute('data-target');
             showSection(targetId);
 
-            // Optional: Update active state for nav links if needed
             navLinks.forEach(nav => nav.classList.remove('active'));
             this.classList.add('active');
         });
     });
 
     // Show the default section (e.g., reservation) on page load
-    // Make sure the #reservationContent div in dashboard.php has the 'active' class initially
-    // showSection('reservationContent'); // Or check which one should be active by default
-
-    // If #reservationContent is the default, ensure it's shown
     if (document.getElementById('reservationContent')?.classList.contains('active')) {
-       // It's already set to active in the HTML, no JS action needed for initial load
+        // It's already set to active in the HTML, no JS action needed for initial load
     } else if (dynamicContents.length > 0 && !document.querySelector('.dynamic-content.active')){
-         // Fallback: If no section is active, activate the first one (or reservation)
          showSection('reservationContent');
     }
 

@@ -96,21 +96,29 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_FILES['profile_picture'])) {
 }
 
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['make_reservation'])) {
-    $lab = filter_input(INPUT_POST, 'lab', FILTER_SANITIZE_STRING);
+    include_once '../includes/reservation_functions.php';
+    $lab = filter_input(INPUT_POST, 'lab_room', FILTER_SANITIZE_STRING);
+    $computer = filter_input(INPUT_POST, 'computer', FILTER_SANITIZE_STRING);
     $date = filter_input(INPUT_POST, 'date', FILTER_SANITIZE_STRING);
-    $start_time = filter_input(INPUT_POST, 'start_time', FILTER_SANITIZE_STRING);
-    $end_time = filter_input(INPUT_POST, 'end_time', FILTER_SANITIZE_STRING);
-    $purpose = filter_input(INPUT_POST, 'purpose', FILTER_SANITIZE_SPECIAL_CHARS);
-
+    $time_in = filter_input(INPUT_POST, 'time_in', FILTER_SANITIZE_STRING);
+    $purpose = filter_input(INPUT_POST, 'purpose', FILTER_SANITIZE_STRING);
     $user_id = $_SESSION['user_data']['id_number'];
-    $sql = "INSERT INTO reservations (user_id, lab, date, start_time, end_time, purpose, status) 
-            VALUES ('$user_id', '$lab', '$date', '$start_time', '$end_time', '$purpose', 'Pending')";
 
-    if (mysqli_query($conn, $sql)) {
-        echo "<script>alert('Reservation submitted successfully!');</script>";
+    // Decrement sessions
+    $update_sessions_sql = "UPDATE info SET sessions = sessions - 1 WHERE id_number = '$user_id' AND sessions > 0";
+    mysqli_query($conn, $update_sessions_sql);
+    $_SESSION['user_data']['sessions'] -= 1;
+
+    // Use the reusable function to save the reservation
+    $result = reserveLabSession($conn, $user_id, $lab, $computer, $purpose, $date, $time_in, null);
+    if ($result === true) {
+        // Success: show message or redirect
+        echo '<script>alert("Reservation submitted successfully!");window.location.href=window.location.href;</script>';
     } else {
-        echo "<script>alert('Error submitting reservation: " . mysqli_error($conn) . "');</script>";
+        // Failure: show error message
+        echo '<script>alert("Reservation failed: ' . addslashes($result) . '");</script>';
     }
+    exit();
 }
 
 $user_data = $_SESSION['user_data'];
@@ -337,6 +345,11 @@ $lab_rooms = ['524', '526', '528', '530', '542', 'Mac Lab'];
             width: 150px;
             height: 150px;
             margin: 0 auto 2rem;
+            border-radius: 50%;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
         .profile-picture {
@@ -812,9 +825,12 @@ $lab_rooms = ['524', '526', '528', '530', '542', 'Mac Lab'];
             <div class="reservation-container">
                 <h2>Lab Reservation</h2>
 
+                <div class="form-group">
+                    <label><strong>Selected:</strong> <span id="selectedDisplay">None</span></label>
+                </div>
                 <div class="user-info">
-                    <p><strong>ID Number:</strong> <span id="studentId"><?php echo htmlspecialchars($_SESSION['id_number'] ?? 'N/A'); ?></span></p>
-                    <p><strong>Name:</strong> <span id="studentName"><?php echo htmlspecialchars(($_SESSION['first_name'] ?? '') . ' ' . ($_SESSION['last_name'] ?? '')); ?></span></p>
+                    <p><strong>ID Number:</strong> <?php echo isset($user_data['id_number']) ? htmlspecialchars($user_data['id_number']) : 'N/A'; ?></p>
+                    <p><strong>Name:</strong> <?php echo isset($user_data['first_name']) && isset($user_data['last_name']) ? htmlspecialchars($user_data['first_name'].' '.$user_data['last_name']) : ''; ?></p>
                 </div>
 
                 <form id="reservationForm" class="reservation-form" action="process_reservation.php" method="post">
@@ -822,7 +838,7 @@ $lab_rooms = ['524', '526', '528', '530', '542', 'Mac Lab'];
 
                     <div class="form-group">
                         <label for="labRoom">Lab Room</label>
-                        <select class="form-control" id="labRoom" name="lab" required>
+                        <select class="form-control" id="labRoom" name="lab" required onchange="showComputerSelection(this.value)">
                             <option value="">Select Lab Room</option>
                             <option value="524">524</option>
                             <option value="526">526</option>
@@ -838,12 +854,33 @@ $lab_rooms = ['524', '526', '528', '530', '542', 'Mac Lab'];
                         <h3>Select a Computer in <span id="selectedLab"></span></h3>
                         <div class="form-group"> 
                             <label for="computerSelect">Available Computers</label>
-                            <select class="form-control" id="computerSelect" name="computer_select" required disabled> 
-                                <!-- Options will be loaded here by JS -->
+                            <select class="form-control" id="computerSelect" name="computer_select" required=""></select>
+                        </div>
+                        <input type="hidden" id="selectedComputer" name="computer" required value="">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="labRoomSelect">Lab Room</label>
+                        <select class="form-control" id="labRoomSelect" name="lab_room" required>
+                            <option value="">Select Room</option>
+                            <option value="524">524</option>
+                            <option value="525">525</option>
+                            <option value="526">526</option>
+                            <option value="528">528</option>
+                            <option value="530">530</option>
+                            <option value="542">542</option>
+                            <option value="Mac Lab">Mac Lab</option>
+                        </select>
+                    </div>
+                    <div id="computerSelection" style="display: none;">
+                        <h3>Select a Computer in <span id="selectedLab"></span></h3>
+                        <div class="form-group">
+                            <label for="computerSelect">Available Computers</label>
+                            <select class="form-control" id="computerSelect" name="computer_select" required>
+                                <!-- Options will be populated by JS -->
                             </select>
                         </div>
-                        <input type="hidden" id="selectedComputer" name="computer" required>
-                        <p>Selected: <span id="computerDisplay">None</span></p>
+                        <input type="hidden" id="selectedComputer" name="computer" required value="">
                     </div>
 
                     <div class="form-group">
@@ -879,7 +916,7 @@ $lab_rooms = ['524', '526', '528', '530', '542', 'Mac Lab'];
 
                     <div class="form-group">
                         <label for="remainingSessions">Remaining Sessions</label>
-                        <input type="text" class="form-control" id="remainingSessions" name="remaining_sessions" readonly value="<?php echo htmlspecialchars($user_data['remaining_sessions'] ?? 'N/A'); ?>">
+                        <input type="text" class="form-control" id="remainingSessions" name="remaining_sessions" readonly value="<?php echo htmlspecialchars($user_data['sessions']); ?>">
                     </div>
 
                     <button type="submit" class="nav-btn">Reserve</button>
@@ -1326,6 +1363,54 @@ $lab_rooms = ['524', '526', '528', '530', '542', 'Mac Lab'];
             
             // Set up auto-refresh for announcements every 5 minutes
             setInterval(loadAnnouncements, 300000);
+        });
+
+        function showComputerSelection(room) {
+            const computerSelection = document.getElementById('computerSelection');
+            const selectedLab = document.getElementById('selectedLab');
+            const computerSelect = document.getElementById('computerSelect');
+            
+            selectedLab.textContent = room;
+            computerSelect.innerHTML = '';
+            
+            for (let i = 1; i <= 50; i++) {
+                const option = document.createElement('option');
+                option.value = `PC ${i}`;
+                option.textContent = `PC ${i}`;
+                computerSelect.appendChild(option);
+            }
+            
+            computerSelection.style.display = 'block';
+        }
+
+        // Lab Room & Computer Selection Logic
+        document.addEventListener('DOMContentLoaded', function() {
+            const labRoomSelect = document.getElementById('labRoomSelect');
+            const computerSelection = document.getElementById('computerSelection');
+            const selectedLab = document.getElementById('selectedLab');
+            const computerSelect = document.getElementById('computerSelect');
+            const selectedComputer = document.getElementById('selectedComputer');
+
+            labRoomSelect.addEventListener('change', function() {
+                if (this.value) {
+                    computerSelection.style.display = 'block';
+                    selectedLab.textContent = this.value;
+                    computerSelect.innerHTML = '';
+                    for (let i = 1; i <= 50; i++) {
+                        const option = document.createElement('option');
+                        option.value = i;
+                        option.textContent = `PC ${i}`;
+                        computerSelect.appendChild(option);
+                    }
+                } else {
+                    computerSelection.style.display = 'none';
+                    selectedLab.textContent = '';
+                    computerSelect.innerHTML = '';
+                }
+            });
+            computerSelect.addEventListener('change', function() {
+                selectedComputer.value = this.value;
+            });
         });
     </script>
     <script src="reservation.js"></script>
