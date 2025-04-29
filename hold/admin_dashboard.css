@@ -1725,31 +1725,30 @@ button::-moz-focus-inner {
       }
 
       /* Timeout Button Styles */
-      .action-button {
-          background-color: #4a5568;
-          color: white;
-          border: none;
-          padding: 6px 12px;
-          border-radius: 4px;
-          cursor: pointer;
-          transition: background-color 0.3s;
-      }
-
-      .action-button:hover {
-          background-color: #2d3748;
-      }
-
       .timeout-btn {
-          background-color: #3182ce !important;
-          color: white !important;
-          border: none !important;
-          padding: 6px 12px !important;
-          border-radius: 4px !important;
-          cursor: pointer !important;
+          padding: 0.6rem 1.2rem;
+          border: 1px solid var(--primary);
+          border-radius: 100rem;
+          background: transparent;
+          color: var(--primary);
+          font-size: 1.2rem;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          min-width: 100px;
       }
 
-      .timeout-btn:hover {
-          background-color: #2c5282 !important;
+      .timeout-btn:hover:not(:disabled) {
+          background: var(--primary);
+          color: var(--light);
+          transform: translateY(-2px);
+          box-shadow: 0 0 15px var(--shadow-1);
+      }
+
+      .timeout-btn:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+          border-color: var(--border-color);
+          color: var(--border-color);
       }
 
       /* Pagination Styles */
@@ -2049,229 +2048,4 @@ button::-moz-focus-inner {
   flex-direction: row;
   gap: 10px;
   align-items: center;
-}
-/* --- Timeout Modal Styles --- */
-.modal {
-    display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100vw; height: 100vh;
-    overflow: auto; background: rgba(0,0,0,0.4);
-}
-.modal-content {
-    background: #fff; margin: 10% auto; padding: 30px 30px 20px 30px; border-radius: 10px; width: 90%; max-width: 400px; position: relative;
-    box-shadow: 0 4px 24px rgba(0,0,0,0.2);
-}
-.modal-content h2 { margin-top:0; }
-.modal-buttons { display: flex; flex-direction: column; gap: 15px; margin-top: 10px; }
-.modal-buttons button {
-    padding: 12px 0; border: none; border-radius: 6px; font-size: 1.1em; font-weight: 600; cursor: pointer; transition: background 0.2s;
-}
-.give-point-btn { background: #198754; color: #fff; }
-.give-point-btn:hover { background: #157347; }
-.timeout-btn { background: #3182ce; color: #fff; }
-.timeout-btn:hover { background: #2c5282; }
-.cancel-btn { background: #6c757d; color: #fff; }
-.cancel-btn:hover { background: #495057; }
-.close { position: absolute; top: 10px; right: 15px; font-size: 2em; color: #888; cursor: pointer; }
-.close:hover { color: #333; }
-
-/* Leaderboard Styles */
-.leaderboard-container {
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 10px;
-    padding: 20px;
-    margin: 20px 0;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-}
-
-.leaderboard-container h3 {
-    color: var(--primary);
-    margin-bottom: 15px;
-    font-size: 24px;
-    text-align: center;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-}
-
-.leaderboard-table {
-    overflow-x: auto;
-}
-
-.leaderboard-table table {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-.leaderboard-table th, 
-.leaderboard-table td {
-    padding: 12px 15px;
-    text-align: left;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.leaderboard-table th {
-    background: rgba(0, 0, 0, 0.2);
-    color: var(--primary);
-    font-weight: bold;
-    font-size: 16px;
-}
-
-/* Rank styling */
-.leaderboard-table tr.rank-first {
-    background: rgba(255, 215, 0, 0.15);
-    border: 2px solid gold;
-    font-weight: bold;
-}
-
-.leaderboard-table tr.rank-first td {
-    color: gold;
-    font-size: 18px;
-}
-
-.leaderboard-table tr.rank-second {
-    background: rgba(192, 192, 192, 0.1);
-    border: 1px solid silver;
-}
-
-.leaderboard-table tr.rank-second td {
-    color: silver;
-}
-
-.leaderboard-table tr.rank-third {
-    background: rgba(205, 127, 50, 0.1);
-    border: 1px solid #cd7f32;
-}
-
-.leaderboard-table tr.rank-third td {
-    color: #cd7f32;
-}
-
-.leaderboard-table .point-value {
-    font-weight: bold;
-    font-size: 18px;
-}
-
-.leaderboard-table .medal {
-    font-size: 20px;
-    margin-left: 5px;
-}
-
-.leaderboard-table tr:hover {
-    background: rgba(255, 255, 255, 0.05);
-}
-
-.leaderboard-table .no-data {
-    text-align: center;
-    padding: 20px;
-    color: rgba(255, 255, 255, 0.5);
-}
-
-/* Reservation Styles */
-.reservation-management {
-    padding: 20px;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 10px;
-    margin-top: 20px;
-}
-
-.reservation-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-}
-
-.reservation-list table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 20px;
-}
-
-.reservation-list th, 
-.reservation-list td {
-    padding: 12px 15px;
-    text-align: left;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.reservation-list th {
-    background: rgba(0, 0, 0, 0.2);
-    color: var(--primary);
-    font-weight: bold;
-    font-size: 16px;
-}
-
-.reservation-list tr:hover {
-    background: rgba(255, 255, 255, 0.05);
-}
-
-.status-badge {
-    padding: 5px 10px;
-    border-radius: 20px;
-    font-size: 14px;
-    font-weight: bold;
-}
-
-.status-pending {
-    background-color: rgba(255, 193, 7, 0.15);
-    color: #ffc107;
-}
-
-.status-approved {
-    background-color: rgba(40, 167, 69, 0.15);
-    color: #28a745;
-}
-
-.status-denied {
-    background-color: rgba(220, 53, 69, 0.15);
-    color: #dc3545;
-}
-
-.pending-row {
-    background-color: rgba(255, 193, 7, 0.05);
-}
-
-.approved-row {
-    background-color: rgba(40, 167, 69, 0.05);
-}
-
-.denied-row {
-    background-color: rgba(220, 53, 69, 0.05);
-}
-
-.action-buttons {
-    display: flex;
-    gap: 5px;
-}
-
-.approve-btn, .deny-btn, .status-btn {
-    padding: 5px 10px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-weight: bold;
-    font-size: 12px;
-    transition: background-color 0.3s;
-}
-
-.approve-btn {
-    background-color: #28a745;
-    color: white;
-}
-
-.approve-btn:hover {
-    background-color: #218838;
-}
-
-.deny-btn {
-    background-color: #dc3545;
-    color: white;
-}
-
-.deny-btn:hover {
-    background-color: #c82333;
-}
-
-.status-btn {
-    background-color: #6c757d;
-    color: white;
-    cursor: not-allowed;
 }

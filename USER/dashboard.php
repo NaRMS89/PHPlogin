@@ -96,29 +96,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_FILES['profile_picture'])) {
 }
 
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['make_reservation'])) {
-    include_once '../includes/reservation_functions.php';
-    $lab = filter_input(INPUT_POST, 'lab_room', FILTER_SANITIZE_STRING);
-    $computer = filter_input(INPUT_POST, 'computer', FILTER_SANITIZE_STRING);
+    $lab = filter_input(INPUT_POST, 'lab', FILTER_SANITIZE_STRING);
     $date = filter_input(INPUT_POST, 'date', FILTER_SANITIZE_STRING);
-    $time_in = filter_input(INPUT_POST, 'time_in', FILTER_SANITIZE_STRING);
-    $purpose = filter_input(INPUT_POST, 'purpose', FILTER_SANITIZE_STRING);
+    $start_time = filter_input(INPUT_POST, 'start_time', FILTER_SANITIZE_STRING);
+    $end_time = filter_input(INPUT_POST, 'end_time', FILTER_SANITIZE_STRING);
+    $purpose = filter_input(INPUT_POST, 'purpose', FILTER_SANITIZE_SPECIAL_CHARS);
+
     $user_id = $_SESSION['user_data']['id_number'];
+    $sql = "INSERT INTO reservations (user_id, lab, date, start_time, end_time, purpose, status) 
+            VALUES ('$user_id', '$lab', '$date', '$start_time', '$end_time', '$purpose', 'Pending')";
 
-    // Decrement sessions
-    $update_sessions_sql = "UPDATE info SET sessions = sessions - 1 WHERE id_number = '$user_id' AND sessions > 0";
-    mysqli_query($conn, $update_sessions_sql);
-    $_SESSION['user_data']['sessions'] -= 1;
-
-    // Use the reusable function to save the reservation
-    $result = reserveLabSession($conn, $user_id, $lab, $computer, $purpose, $date, $time_in, null);
-    if ($result === true) {
-        // Success: show message or redirect
-        echo '<script>alert("Reservation submitted successfully!");window.location.href=window.location.href;</script>';
+    if (mysqli_query($conn, $sql)) {
+        echo "<script>alert('Reservation submitted successfully!');</script>";
     } else {
-        // Failure: show error message
-        echo '<script>alert("Reservation failed: ' . addslashes($result) . '");</script>';
+        echo "<script>alert('Error submitting reservation: " . mysqli_error($conn) . "');</script>";
     }
-    exit();
 }
 
 $user_data = $_SESSION['user_data'];
@@ -345,11 +337,6 @@ $lab_rooms = ['524', '526', '528', '530', '542', 'Mac Lab'];
             width: 150px;
             height: 150px;
             margin: 0 auto 2rem;
-            border-radius: 50%;
-            overflow: hidden;
-            display: flex;
-            justify-content: center;
-            align-items: center;
         }
 
         .profile-picture {
@@ -824,108 +811,55 @@ $lab_rooms = ['524', '526', '528', '530', '542', 'Mac Lab'];
         <div id="reservationContent" class="dynamic-content">
             <div class="reservation-container">
                 <h2>Lab Reservation</h2>
-
-                <div class="form-group">
-                    <label><strong>Selected:</strong> <span id="selectedDisplay">None</span></label>
+                <div class="lab-grid">
+                    <?php foreach ($lab_rooms as $room): 
+                        $occupancy_sql = "SELECT COUNT(*) as count FROM sitin WHERE lab = '$room' AND status = 'active'";
+                        $occupancy_result = mysqli_query($conn, $occupancy_sql);
+                        $occupancy_row = mysqli_fetch_assoc($occupancy_result);
+                        $current_occupancy = $occupancy_row['count'];
+                        $status = ($current_occupancy >= 50) ? 'Full' : 'Available';
+                    ?>
+                    <div class="lab-card">
+                        <h3>Lab <?php echo htmlspecialchars($room); ?></h3>
+                        <p class="lab-status">Current Occupancy: <?php echo $current_occupancy; ?>/50</p>
+                        <p class="lab-status <?php echo strtolower($status); ?>">Status: <?php echo $status; ?></p>
+                    </div>
+                    <?php endforeach; ?>
                 </div>
-                <div class="user-info">
-                    <p><strong>ID Number:</strong> <?php echo isset($user_data['id_number']) ? htmlspecialchars($user_data['id_number']) : 'N/A'; ?></p>
-                    <p><strong>Name:</strong> <?php echo isset($user_data['first_name']) && isset($user_data['last_name']) ? htmlspecialchars($user_data['first_name'].' '.$user_data['last_name']) : ''; ?></p>
-                </div>
-
-                <form id="reservationForm" class="reservation-form" action="process_reservation.php" method="post">
+                
+                <form id="reservationForm" class="reservation-form" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
                     <input type="hidden" name="make_reservation" value="1">
-
-                    <div class="form-group">
-                        <label for="labRoom">Lab Room</label>
-                        <select class="form-control" id="labRoom" name="lab" required onchange="showComputerSelection(this.value)">
-                            <option value="">Select Lab Room</option>
-                            <option value="524">524</option>
-                            <option value="526">526</option>
-                            <option value="528">528</option>
-                            <option value="530">530</option>
-                            <option value="542">542</option>
-                            <option value="544">544</option>
-                            <option value="517">517</option>
-                        </select>
-                    </div>
-
-                    <div id="computerSelection" style="display: none;">
-                        <h3>Select a Computer in <span id="selectedLab"></span></h3>
-                        <div class="form-group"> 
-                            <label for="computerSelect">Available Computers</label>
-                            <select class="form-control" id="computerSelect" name="computer_select" required=""></select>
-                        </div>
-                        <input type="hidden" id="selectedComputer" name="computer" required value="">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="labRoomSelect">Lab Room</label>
-                        <select class="form-control" id="labRoomSelect" name="lab_room" required>
-                            <option value="">Select Room</option>
-                            <option value="524">524</option>
-                            <option value="525">525</option>
-                            <option value="526">526</option>
-                            <option value="528">528</option>
-                            <option value="530">530</option>
-                            <option value="542">542</option>
-                            <option value="Mac Lab">Mac Lab</option>
-                        </select>
-                    </div>
-                    <div id="computerSelection" style="display: none;">
-                        <h3>Select a Computer in <span id="selectedLab"></span></h3>
-                        <div class="form-group">
-                            <label for="computerSelect">Available Computers</label>
-                            <select class="form-control" id="computerSelect" name="computer_select" required>
-                                <!-- Options will be populated by JS -->
-                            </select>
-                        </div>
-                        <input type="hidden" id="selectedComputer" name="computer" required value="">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="purpose">Purpose</label>
-                        <select class="form-control" id="purpose" name="purpose" required>
-                            <option value="">Select Purpose</option>
-                            <option value="C Programming">C Programming</option>
-                            <option value="Java Programming">Java Programming</option>
-                            <option value="Python">Python</option>
-                            <option value="C#">C#</option>
-                            <option value="Database">Database</option>
-                            <option value="Digital Logic & Design">Digital Logic & Design</option>
-                            <option value="Embedded Systems and IoT">Embedded Systems and IoT</option>
-                            <option value="System Integration and Architecture">System Integration and Architecture</option>
-                            <option value="Computer Application">Computer Application</option>
-                            <option value="Project Management">Project Management</option>
-                            <option value="IT Trends">IT Trends</option>
-                            <option value="Technopreneurship">Technopreneurship</option>
-                            <option value="Capstone">Capstone</option>
-                        </select>
-                    </div>
-
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="timeIn">Time In</label>
-                            <input type="text" class="form-control" id="timeIn" name="time_in" readonly>
+                            <label for="labRoom">Lab Room</label>
+                            <select class="form-control" id="labRoom" name="lab" required>
+                                <option value="">Select Lab Room</option>
+                                <?php foreach ($lab_rooms as $room): ?>
+                                <option value="<?php echo $room; ?>">Lab <?php echo $room; ?></option>
+                                <?php endforeach; ?>
+                            </select>
                         </div>
                         <div class="form-group">
                             <label for="reservationDate">Date</label>
                             <input type="date" class="form-control" id="reservationDate" name="date" required>
                         </div>
                     </div>
-
-                    <div class="form-group">
-                        <label for="remainingSessions">Remaining Sessions</label>
-                        <input type="text" class="form-control" id="remainingSessions" name="remaining_sessions" readonly value="<?php echo htmlspecialchars($user_data['sessions']); ?>">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="startTime">Start Time</label>
+                            <input type="time" class="form-control" id="startTime" name="start_time" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="endTime">End Time</label>
+                            <input type="time" class="form-control" id="endTime" name="end_time" required>
+                        </div>
                     </div>
-
-                    <button type="submit" class="nav-btn">Reserve</button>
+                    <div class="form-group">
+                        <label for="purpose">Purpose</label>
+                        <textarea class="form-control" id="purpose" name="purpose" rows="3" required></textarea>
+                    </div>
+                    <button type="submit" class="nav-btn">Submit Reservation</button>
                 </form>
-            </div>
-
-            <div id="pendingReservations">
-                <h3>Pending Reservations</h3>
-                <!-- Pending reservations will be loaded here -->
             </div>
         </div>
 
@@ -1079,38 +1013,6 @@ $lab_rooms = ['524', '526', '528', '530', '542', 'Mac Lab'];
                 });
         }
 
-        function loadAnnouncements() {
-            const announcementList = document.getElementById('announcementList');
-            announcementList.innerHTML = '<div class="announcement-item"><p>Loading announcements...</p></div>';
-            
-            fetch('../hold/get_announcements.php')
-                .then(response => response.json())
-                .then(data => {
-                    if (data && data.length > 0) {
-                        announcementList.innerHTML = '';
-                        data.forEach(announcement => {
-                            const announcementItem = document.createElement('div');
-                            announcementItem.className = 'announcement-item';
-                            announcementItem.innerHTML = `
-                                <div class="announcement-text">${announcement.announcement_text}</div>
-                                <div class="announcement-date">Posted on ${new Date(announcement.date_posted).toLocaleDateString('en-US', { 
-                                    year: 'numeric', 
-                                    month: 'long', 
-                                    day: 'numeric' 
-                                })}</div>
-                            `;
-                            announcementList.appendChild(announcementItem);
-                        });
-                    } else {
-                        announcementList.innerHTML = '<p class="no-announcements">No announcements available at the moment.</p>';
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    announcementList.innerHTML = '<p class="no-announcements">Error loading announcements. Please try again later.</p>';
-                });
-        }
-
         function openFeedbackModal(sitInId) {
             const modal = document.getElementById('feedbackModal');
             document.getElementById('sitInId').value = sitInId;
@@ -1158,6 +1060,52 @@ $lab_rooms = ['524', '526', '528', '530', '542', 'Mac Lab'];
                 console.error('Error:', error);
                 alert('Error submitting feedback');
             });
+        });
+
+        function loadAnnouncements() {
+            const announcementList = document.getElementById('announcementList');
+            announcementList.innerHTML = '<div class="announcement-item"><p>Loading announcements...</p></div>';
+            
+            fetch('../hold/get_announcements.php')
+                .then(response => response.json())
+                .then(data => {
+                    if (data && data.length > 0) {
+                        announcementList.innerHTML = '';
+                        data.forEach(announcement => {
+                            const announcementItem = document.createElement('div');
+                            announcementItem.className = 'announcement-item';
+                            announcementItem.innerHTML = `
+                                <div class="announcement-text">${announcement.announcement_text}</div>
+                                <div class="announcement-date">Posted on ${new Date(announcement.date_posted).toLocaleDateString('en-US', { 
+                                    year: 'numeric', 
+                                    month: 'long', 
+                                    day: 'numeric' 
+                                })}</div>
+                            `;
+                            announcementList.appendChild(announcementItem);
+                        });
+                    } else {
+                        announcementList.innerHTML = '<p class="no-announcements">No announcements available at the moment.</p>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    announcementList.innerHTML = '<p class="no-announcements">Error loading announcements. Please try again later.</p>';
+                });
+        }
+
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set home content and button as active by default
+            document.getElementById('homeContent').classList.add('active');
+            document.querySelector('button[onclick*="homeContent"]').classList.add('active');
+            
+            // Load initial data
+            loadAnnouncements();
+            loadHistoryData();
+            
+            // Set up auto-refresh for announcements every 5 minutes
+            setInterval(loadAnnouncements, 300000);
         });
 
         function openEditProfileModal() {
@@ -1350,70 +1298,7 @@ $lab_rooms = ['524', '526', '528', '530', '542', 'Mac Lab'];
             }
         `;
         document.head.appendChild(style);
-
-        // Initialize the page
-        document.addEventListener('DOMContentLoaded', function() {
-            // Set home content and button as active by default
-            document.getElementById('homeContent').classList.add('active');
-            document.querySelector('button[onclick*="homeContent"]').classList.add('active');
-            
-            // Load initial data
-            loadAnnouncements();
-            loadHistoryData();
-            
-            // Set up auto-refresh for announcements every 5 minutes
-            setInterval(loadAnnouncements, 300000);
-        });
-
-        function showComputerSelection(room) {
-            const computerSelection = document.getElementById('computerSelection');
-            const selectedLab = document.getElementById('selectedLab');
-            const computerSelect = document.getElementById('computerSelect');
-            
-            selectedLab.textContent = room;
-            computerSelect.innerHTML = '';
-            
-            for (let i = 1; i <= 50; i++) {
-                const option = document.createElement('option');
-                option.value = `PC ${i}`;
-                option.textContent = `PC ${i}`;
-                computerSelect.appendChild(option);
-            }
-            
-            computerSelection.style.display = 'block';
-        }
-
-        // Lab Room & Computer Selection Logic
-        document.addEventListener('DOMContentLoaded', function() {
-            const labRoomSelect = document.getElementById('labRoomSelect');
-            const computerSelection = document.getElementById('computerSelection');
-            const selectedLab = document.getElementById('selectedLab');
-            const computerSelect = document.getElementById('computerSelect');
-            const selectedComputer = document.getElementById('selectedComputer');
-
-            labRoomSelect.addEventListener('change', function() {
-                if (this.value) {
-                    computerSelection.style.display = 'block';
-                    selectedLab.textContent = this.value;
-                    computerSelect.innerHTML = '';
-                    for (let i = 1; i <= 50; i++) {
-                        const option = document.createElement('option');
-                        option.value = i;
-                        option.textContent = `PC ${i}`;
-                        computerSelect.appendChild(option);
-                    }
-                } else {
-                    computerSelection.style.display = 'none';
-                    selectedLab.textContent = '';
-                    computerSelect.innerHTML = '';
-                }
-            });
-            computerSelect.addEventListener('change', function() {
-                selectedComputer.value = this.value;
-            });
-        });
     </script>
-    <script src="reservation.js"></script>
 </body>
 </html>
 <?php
