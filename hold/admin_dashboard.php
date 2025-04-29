@@ -219,6 +219,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['reset_sessions'])) {
 if ($conn instanceof mysqli) {
     $currentSitInStudents = getCurrentSitInStudents($conn);
     $allStudents = getAllStudents($conn);
+    $totalPoints = calculateTotalPoints($conn);
 } else {
     error_log("Database connection failed.");
     die("Could not connect to the database.");
@@ -267,7 +268,12 @@ if (isset($_POST['export_excel'])) {
     fclose($output);
     exit;
 }
-
+function calculateTotalPoints($conn) {
+    $sql = "SELECT SUM(points) as total_points FROM info";
+    $result = mysqli_query($conn, $sql);
+    $row = mysqli_fetch_assoc($result);
+    return $row ? $row['total_points'] : 0;
+}
 function getPointsAwardedCount($idNo, $conn) {
     $sql = "SELECT COUNT(*) as count FROM points_log WHERE id_number = '" . mysqli_real_escape_string($conn, $idNo) . "'";
     $result = mysqli_query($conn, $sql);
@@ -502,6 +508,12 @@ if (isset($_POST['export_sitindata_pdf'])) {
     <td><?php echo $student['sessions']; ?></td>
     <td><?php echo $student['points']; ?></td>
     <td><?php echo $student['total_points']; ?></td>
+    <td>
+        <form action="give_point_and_timeout.php" method="post">
+            <input type="hidden" name="id_number" value="<?php echo $student['id_number']; ?>">
+            <button type="submit" class="action-button" name="give_point_and_timeout">Give Point & Timeout</button>
+        </form>
+    </td>
 </tr>
 <?php endforeach; ?>
                         </tbody>
@@ -509,7 +521,8 @@ if (isset($_POST['export_sitindata_pdf'])) {
                 </div>
                 <div class="export-buttons">
                     
-                </div>if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['give_point_and_timeout'])) {
+                </div>
+                <?php if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['give_point_and_timeout'])) {
                     $idNo = $_POST['id_number'];
                     $success = false;
                     $message = '';
@@ -533,6 +546,7 @@ if (isset($_POST['export_sitindata_pdf'])) {
                     echo json_encode(['success' => $success, 'message' => $message]);
                     exit();
                 }
+                ?>
             </div>
 
             <!-- Current Sit-in Content -->
