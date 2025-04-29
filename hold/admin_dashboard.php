@@ -268,6 +268,7 @@ if (isset($_POST['export_excel'])) {
     fclose($output);
     exit;
 }
+
 function calculateTotalPoints($conn) {
     $sql = "SELECT SUM(points) as total_points FROM info";
     $result = mysqli_query($conn, $sql);
@@ -1080,11 +1081,22 @@ if (isset($_POST['export_sitindata_pdf'])) {
                     </div>
                 </div>
 
-                <div id="timeoutModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); justify-content: center; align-items: center;">
-                    <div style="background-color: white; padding: 20px; border-radius: 5px; width: 80%; max-width: 600px;">
+                <!-- Timeout Modal -->
+                <div id="timeoutModal" class="modal-container">
+                    <div class="modal">
                         <span class="close" onclick="closeTimeoutModal()">&times;</span>
-                        <h3>Timeout Options</h3>
-                        <div id="timeoutModalButtons"></div>
+                        <h2 class="modal-title">Timeout Options</h2>
+                        <div class="modal-body">
+                            <p>Choose an action for this student:</p>
+                            <div class="timeout-options">
+                                <button class="btn btn-success" onclick="handleTimeoutOption('point_and_timeout')">
+                                    <i class="fas fa-plus"></i> Add Point and Timeout
+                                </button>
+                                <button class="btn btn-danger" onclick="handleTimeoutOption('normal_timeout')">
+                                    <i class="fas fa-times"></i> Normal Timeout
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -1172,17 +1184,49 @@ window.addEventListener('click', function(event) {
                 </style>
 
                 <script>
-function showTimeoutOptions(idNo, btn) {
-    document.getElementById('timeoutModal').style.display = 'flex';
-    document.getElementById('timeoutModalButtons').innerHTML = `
-        <button class="give-point-btn" onclick="givePointAndTimeout('${idNo}', this)">Give 1 Point & Timeout</button>
-        <button class="timeout-btn" onclick="timeoutOnly('${idNo}', this)">Timeout Only</button>
-        <button class="cancel-btn" onclick="closeTimeoutModal()">Cancel</button>
-    `;
+// Add this JavaScript code
+let currentTimeoutId = null;
+
+function showTimeoutOptions(idNumber, btn) {
+    currentTimeoutId = idNumber;
+    const modal = document.getElementById('timeoutModal');
+    if (modal) {
+        modal.style.display = 'block';
+    }
 }
+
 function closeTimeoutModal() {
-    document.getElementById('timeoutModal').style.display = 'none';
+    const modal = document.getElementById('timeoutModal');
+    modal.style.display = 'none';
 }
+
+function handleTimeoutOption(option) {
+    const formData = new FormData();
+    formData.append('id_number', currentTimeoutId);
+    formData.append('timeout_option', option);
+
+    fetch('handle_timeout.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            loadSitInData();
+            loadStudentData();
+        } else {
+            alert(data.message || 'Error processing timeout');
+        }
+        closeTimeoutModal();
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error processing timeout');
+        closeTimeoutModal();
+    });
+}
+
                     function givePointAndTimeout(idNo, btn) {
                         if (!confirm('Give 1 point and timeout this student?')) return;
                         const formData = new FormData();
@@ -1472,6 +1516,38 @@ function closeTimeoutModal() {
     </div>
 
     <script>
+        function initSitInContent() {
+    // Initialize timeout modal
+    const timeoutModal = document.getElementById('timeoutModal');
+    if (timeoutModal) {
+        timeoutModal.addEventListener('click', function(e) {
+            if (e.target === timeoutModal) {
+                closeTimeoutModal();
+            }
+        });
+    }
+
+    // Initialize search
+    const sitinSearch = document.getElementById('sitinSearch');
+    if (sitinSearch) {
+        sitinSearch.addEventListener('input', function() {
+            displayCurrentSitInData(this.value.toLowerCase());
+        });
+    }
+
+    // Initialize entries per page
+    const entriesPerPageSelect = document.getElementById('entriesPerPage');
+    if (entriesPerPageSelect) {
+        entriesPerPageSelect.addEventListener('change', function() {
+            currentSitInEntriesPerPage = parseInt(this.value);
+            displayCurrentSitInData();
+        });
+    }
+
+    // Load initial data
+    loadSitInData();
+}
+
         // Global variables for all data management
         let currentSitInData = [];
         let currentSitInPage = 1;
@@ -2091,10 +2167,10 @@ function closeTimeoutModal() {
         }
 
         // Initialize when the current sit-in content is shown
-        document.getElementById('sitinBtn').addEventListener('click', function() {
-            currentPage = 1; // Reset to first page
-            loadSitInData();
-        });
+document.getElementById('sitinBtn').addEventListener('click', function() {
+    currentPage = 1;
+    initSitInContent();
+});
 
         // Add search handler for current sit-in
         document.getElementById('sitinSearch').addEventListener('input', function() {
