@@ -2049,3 +2049,64 @@ button::-moz-focus-inner {
   gap: 10px;
   align-items: center;
 }
+.modal-container {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0; top: 0;
+    width: 100vw; height: 100vh;
+    background: rgba(0,0,0,0.5);
+    justify-content: center;
+    align-items: center;
+}
+.modal-container .modal {
+    background: #23243a;
+    color: #fff;
+    border-radius: 12px;
+    padding: 32px 24px;
+    min-width: 320px;
+    max-width: 95vw;
+    box-shadow: 0 4px 32px rgba(0,0,0,0.35);
+    position: relative;
+    text-align: center;
+}
+.modal-title {
+    margin-bottom: 18px;
+    font-size: 1.5em;
+    color: #ffd700;
+}
+.modal .close {
+    position: absolute;
+    right: 18px; top: 14px;
+    font-size: 28px;
+    color: #fff;
+    cursor: pointer;
+}
+.timeout-options {
+    display: flex;
+    justify-content: center;
+    gap: 18px;
+    margin-top: 24px;
+}
+.btn {
+    padding: 10px 22px;
+    border: none;
+    border-radius: 6px;
+    font-size: 1em;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.btn-success {
+    background: #28a745;
+    color: #fff;
+}
+.btn-success:hover {
+    background: #218838;
+}
+.btn-danger {
+    background: #dc3545;
+    color: #fff;
+}
+.btn-danger:hover {
+    background: #c82333;
+}
