@@ -2110,3 +2110,59 @@ button::-moz-focus-inner {
 .btn-danger:hover {
     background: #c82333;
 }
+/* Timeout Modal Specific Styles */
+.modal.timeout-modal {
+    width: 320px;
+    padding: 32px 24px;
+    background: #23243a;
+    border-radius: 12px;
+    box-shadow: 0 4px 32px rgba(0,0,0,0.35);
+}
+
+.modal.timeout-modal .modal-title {
+    margin-bottom: 18px;
+    font-size: 1.5em;
+    color: #ffd700;
+}
+
+.modal.timeout-modal .close {
+    position: absolute;
+    right: 18px; top: 14px;
+    font-size: 28px;
+    color: #fff;
+    cursor: pointer;
+}
+
+.timeout-options {
+    display: flex;
+    justify-content: center;
+    gap: 18px;
+    margin-top: 24px;
+}
+
+.btn {
+    padding: 10px 22px;
+    border: none;
+    border-radius: 6px;
+    font-size: 1em;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-success {
+    background: #28a745;
+    color: #fff;
+}
+
+.btn-success:hover {
+    background: #218838;
+}
+
+.btn-danger {
+    background: #dc3545;
+    color: #fff;
+}
+
+.btn-danger:hover {
+    background: #c82333;
+}

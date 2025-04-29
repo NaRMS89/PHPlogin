@@ -1082,23 +1082,23 @@ if (isset($_POST['export_sitindata_pdf'])) {
                 </div>
 
                 <!-- Timeout Modal -->
-                <div id="timeoutModal" class="modal-container">
-                    <div class="modal">
-                        <span class="close" onclick="closeTimeoutModal()">&times;</span>
-                        <h2 class="modal-title">Timeout Options</h2>
-                        <div class="modal-body">
-                            <p>Choose an action for this student:</p>
-                            <div class="timeout-options">
-                                <button class="btn btn-success" onclick="handleTimeoutOption('point_and_timeout')">
-                                    <i class="fas fa-plus"></i> Add Point and Timeout
-                                </button>
-                                <button class="btn btn-danger" onclick="handleTimeoutOption('normal_timeout')">
-                                    <i class="fas fa-times"></i> Normal Timeout
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+<div id="timeoutModal" class="modal-container">
+    <div class="modal timeout-modal">
+        <span class="close" onclick="closeTimeoutModal()">&times;</span>
+        <h2 class="modal-title">Timeout Options</h2>
+        <div class="modal-body">
+            <p>Choose an action for this student:</p>
+            <div class="timeout-options">
+                <button class="btn btn-success" onclick="handleTimeoutOption('point_and_timeout')">
+                    <i class="fas fa-plus"></i> Add Point and Timeout
+                </button>
+                <button class="btn btn-danger" onclick="handleTimeoutOption('normal_timeout')">
+                    <i class="fas fa-times"></i> Normal Timeout
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 
                 <script>
                     function showFeedbackModal(idNumber) {
@@ -1191,13 +1191,15 @@ function showTimeoutOptions(idNumber, btn) {
     currentTimeoutId = idNumber;
     const modal = document.getElementById('timeoutModal');
     if (modal) {
-        modal.style.display = 'block';
+        modal.style.display = 'flex';
     }
 }
 
 function closeTimeoutModal() {
     const modal = document.getElementById('timeoutModal');
-    modal.style.display = 'none';
+    if (modal) {
+        modal.style.display = 'none';
+    }
 }
 
 function handleTimeoutOption(option) {
