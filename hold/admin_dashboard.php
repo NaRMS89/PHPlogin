@@ -427,7 +427,7 @@ function getTopStudents($conn, $limit = 3) {
 $topStudents = getTopStudents($conn, 3);
 
 // Include the new sections
-include 'computer_control.php';
+// include 'computer_content.php';
 include 'reservation_requests.php';
 ?>
 <!DOCTYPE html>
@@ -484,15 +484,38 @@ include 'reservation_requests.php';
 </head>
 <body>
     <div class="sidebar">
-        <button id="homeBtn" class="sidebar-button">Home</button>
-        <button id="searchBtn" class="sidebar-button">Search</button>
-        <button id="studentBtn" class="sidebar-button">Students</button>
-        <button id="sitinBtn" class="sidebar-button">Current Sit-in</button>
-        <button id="sitInDataBtn" class="sidebar-button">Sit-in Data</button>
-        <button id="reservationBtn" class="sidebar-button">Reservation</button>
-        <button id="labResourcesBtn" class="sidebar-button">Lab Resources</button>
-        <button id="labSchedulesBtn" class="sidebar-button">Lab Schedules</button>
-        <button id="logoutBtn" class="sidebar-button">Logout</button>
+        <button id="homeBtn">
+            <i class="fas fa-home"></i>
+            <span>Home</span>
+        </button>
+        <button id="studentBtn">
+            <i class="fas fa-users"></i>
+            <span>Students</span>
+        </button>
+        <button id="computersBtn">
+            <i class="fas fa-desktop"></i>
+            <span>Computers</span>
+        </button>
+        <button id="sitinBtn">
+            <i class="fas fa-chair"></i>
+            <span>Sit-in</span>
+        </button>
+        <button id="historyBtn">
+            <i class="fas fa-history"></i>
+            <span>History</span>
+        </button>
+        <button id="leaderboardBtn">
+            <i class="fas fa-trophy"></i>
+            <span>Leaderboard</span>
+        </button>
+        <button id="searchBtn">
+            <i class="fas fa-search"></i>
+            <span>Search</span>
+        </button>
+        <button id="logoutBtn">
+            <i class="fas fa-sign-out-alt"></i>
+            <span>Logout</span>
+        </button>
     </div>
 
     <main>
