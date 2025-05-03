@@ -432,12 +432,13 @@ $topStudents = getTopStudents($conn, 3);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.24/css/dataTables.bootstrap4.min.css">
     <link rel="stylesheet" href="admin_dashboard.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-
+    <script src="https://cdn.datatables.net/1.10.24/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.24/js/dataTables.bootstrap4.min.js"></script>
 </head>
 <body>
     <div class="sidebar">
@@ -680,10 +681,9 @@ $topStudents = getTopStudents($conn, 3);
                 <div class="sitin-header" style="display: flex; flex-wrap: wrap; align-items: center; gap: 18px; margin-bottom: 18px;">
                     <div class="entries-display" style="display: flex; align-items: center; gap: 8px;">
                         <label for="entriesPerPage" style="font-size: 1.1em;">Show</label>
-                        <select id="entriesPerPage" class="entries-select" style="min-width: 60px;" onchange="loadSitInData()">
+                        <select id="entriesPerPage" class="entries-select" style="min-width: 60px;" onchange="currentPage=1;displaySitInData();">
                             <option value="5">5</option>
                             <option value="10">10</option>
-                            <option value="15">15</option>
                         </select>
                         <span>entries</span>
                     </div>
@@ -1217,13 +1217,10 @@ $topStudents = getTopStudents($conn, 3);
                 
                 <div class="data-controls">
                     <div class="entries-display">
-                        Displaying
-                        <select id="entriesPerPage" class="entries-select" onchange="loadSitInReportData()">
+                        Displaying <span id="displayStart">1</span> to <span id="displayEnd">0</span> of <span id="displayTotal">0</span> entries
+                        <select id="entriesPerPage" class="entries-select" style="min-width: 60px;" onchange="currentPage=1;displaySitInData();">
                             <option value="5">5</option>
                             <option value="10">10</option>
-                            <option value="15">15</option>
-                            <option value="25">25</option>
-                            <option value="50">50</option>
                         </select>
                         entries
                     </div>
@@ -1233,13 +1230,15 @@ $topStudents = getTopStudents($conn, 3);
                     <table id="sitInDataTable" class="data-table">
                         <thead>
                             <tr>
-                                <th onclick="sortSitInTable('id_number')" style="cursor:pointer;">ID Number ↕</th>
+                                <th>ID Number</th>
                                 <th>Purpose</th>
-                                <th onclick="sortSitInTable('lab')" style="cursor:pointer;">Lab ↕</th>
-                                <th onclick="sortSitInTable('login_time')" style="cursor:pointer;">Login Time ↕</th>
-                                <th onclick="sortSitInTable('logout_time')" style="cursor:pointer;">Logout Time ↕</th>
-                                <th onclick="sortSitInTable('duration')" style="cursor:pointer;">Duration ↕</th>
+                                <th>Lab</th>
+                                <th>Login Time</th>
+                                <th>Logout Time</th>
+                                <th>Duration</th>
+                                <th>Status</th>
                                 <th>Feedback</th>
+                                <th>Feedback Date</th>
                             </tr>
                         </thead>
                         <tbody id="sitInDataBody"></tbody>
@@ -2514,11 +2513,9 @@ document.getElementById('sitinBtn').addEventListener('click', function() {
         function displaySitInData() {
             const tbody = document.getElementById('sitInDataBody');
             tbody.innerHTML = '';
-            
             const start = (currentPage - 1) * entriesPerPage;
-            const end = start + entriesPerPage;
+            const end = start + parseInt(entriesPerPage);
             const paginatedData = sitInReportData.slice(start, end);
-
             paginatedData.forEach(record => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
@@ -2534,7 +2531,12 @@ document.getElementById('sitinBtn').addEventListener('click', function() {
                 `;
                 tbody.appendChild(row);
             });
-
+            // Update display entries info
+            const displayStart = sitInReportData.length === 0 ? 0 : start + 1;
+            const displayEnd = Math.min(end, sitInReportData.length);
+            document.getElementById('displayStart').textContent = displayStart;
+            document.getElementById('displayEnd').textContent = displayEnd;
+            document.getElementById('displayTotal').textContent = sitInReportData.length;
             updatePagination();
         }
 
@@ -2643,8 +2645,13 @@ document.getElementById('sitinBtn').addEventListener('click', function() {
         }
 
         function updatePagination() {
-            const totalPages = Math.ceil(sitInReportData.length / entriesPerPage);
+            const totalPages = Math.max(1, Math.ceil(sitInReportData.length / entriesPerPage));
             document.getElementById('currentPage').textContent = currentPage;
+            document.getElementById('totalPages').textContent = totalPages;
+            document.getElementById('firstPageBtn').disabled = currentPage === 1;
+            document.getElementById('prevPageBtn').disabled = currentPage === 1;
+            document.getElementById('nextPageBtn').disabled = currentPage === totalPages;
+            document.getElementById('lastPageBtn').disabled = currentPage === totalPages;
         }
 
         function applyDateFilter() {
@@ -3198,6 +3205,33 @@ document.getElementById('sitinBtn').addEventListener('click', function() {
         function exportStudentDataToPDF() {
             window.location.href = 'export_students_pdf.php';
         }
+
+        function goToFirstPage() {
+            if (currentPage !== 1) {
+                currentPage = 1;
+                displaySitInData();
+            }
+        }
+        function goToPreviousPage() {
+            if (currentPage > 1) {
+                currentPage--;
+                displaySitInData();
+            }
+        }
+        function goToNextPage() {
+            const totalPages = Math.max(1, Math.ceil(sitInReportData.length / entriesPerPage));
+            if (currentPage < totalPages) {
+                currentPage++;
+                displaySitInData();
+            }
+        }
+        function goToLastPage() {
+            const totalPages = Math.max(1, Math.ceil(sitInReportData.length / entriesPerPage));
+            if (currentPage !== totalPages) {
+                currentPage = totalPages;
+                displaySitInData();
+            }
+        }
     </script>
 
     <script>
@@ -3374,3 +3408,20 @@ document.getElementById('sitinBtn').addEventListener('click', function() {
     </body>
 </html>
 <?php if ($conn instanceof mysqli) { mysqli_close($conn); } ?>
+
+<script>
+$(document).ready(function() {
+    $('#sitInDataTable').DataTable({
+        "order": [[3, "desc"]], // Default sort by login time
+        "pageLength": 10,
+        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+        "language": {
+            "search": "Search:",
+            "lengthMenu": "Show _MENU_ entries",
+            "info": "Showing _START_ to _END_ of _TOTAL_ entries",
+            "infoEmpty": "Showing 0 to 0 of 0 entries",
+            "infoFiltered": "(filtered from _MAX_ total entries)"
+        }
+    });
+});
+</script>

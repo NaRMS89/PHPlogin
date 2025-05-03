@@ -196,15 +196,15 @@ while ($row = mysqli_fetch_assoc($purposes_result)) {
                             <table id="sitinTable" class="table table-hover table-bordered">
                                 <thead class="thead-light">
                                     <tr>
-                                        <th data-sort="id_number" class="sortable">ID Number <i class="fas fa-sort"></i></th>
-                                        <th data-sort="purpose" class="sortable">Purpose <i class="fas fa-sort"></i></th>
-                                        <th data-sort="lab" class="sortable">Lab <i class="fas fa-sort"></i></th>
-                                        <th data-sort="login_time" class="sortable">Login Time <i class="fas fa-sort"></i></th>
-                                        <th data-sort="logout_time" class="sortable">Logout Time <i class="fas fa-sort"></i></th>
-                                        <th data-sort="duration" class="sortable">Duration <i class="fas fa-sort"></i></th>
-                                        <th data-sort="status" class="sortable">Status <i class="fas fa-sort"></i></th>
+                                        <th onclick="sortSitInTable(0, 'string')" style="cursor: pointer;">ID Number <i class="fas fa-sort"></i></th>
+                                        <th onclick="sortSitInTable(1, 'string')" style="cursor: pointer;">Purpose <i class="fas fa-sort"></i></th>
+                                        <th onclick="sortSitInTable(2, 'string')" style="cursor: pointer;">Lab <i class="fas fa-sort"></i></th>
+                                        <th onclick="sortSitInTable(3, 'date')" style="cursor: pointer;">Login Time <i class="fas fa-sort"></i></th>
+                                        <th onclick="sortSitInTable(4, 'date')" style="cursor: pointer;">Logout Time <i class="fas fa-sort"></i></th>
+                                        <th onclick="sortSitInTable(5, 'string')" style="cursor: pointer;">Duration <i class="fas fa-sort"></i></th>
+                                        <th onclick="sortSitInTable(6, 'string')" style="cursor: pointer;">Status <i class="fas fa-sort"></i></th>
                                         <th>Feedback</th>
-                                        <th data-sort="feedback_date" class="sortable">Feedback Date <i class="fas fa-sort"></i></th>
+                                        <th onclick="sortSitInTable(8, 'date')" style="cursor: pointer;">Feedback Date <i class="fas fa-sort"></i></th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -313,136 +313,78 @@ while ($row = mysqli_fetch_assoc($purposes_result)) {
     <script src="../assets/js/jquery.dataTables.min.js"></script>
     <script src="../assets/js/dataTables.bootstrap.min.js"></script>
     <script>
-        let sitinTable;
-        let exportType = '';
-
         $(document).ready(function() {
-            // Initialize DataTable with enhanced options
-            sitinTable = $('#sitinTable').DataTable({
-                order: [[4, 'desc']], // Sort by login time by default
-                pageLength: 25,
-                dom: '<"top"f>rt<"bottom"lip><"clear">',
-                language: {
-                    search: "Search records:",
-                    lengthMenu: "Show _MENU_ entries",
-                    info: "Showing _START_ to _END_ of _TOTAL_ entries",
-                    infoEmpty: "Showing 0 to 0 of 0 entries",
-                    infoFiltered: "(filtered from _MAX_ total entries)"
-                },
-                responsive: true
+            // Initialize DataTable
+            $('#sitinTable').DataTable({
+                "order": [[3, "desc"]], // Default sort by login time descending
+                "pageLength": 10,
+                "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                "language": {
+                    "search": "Search:",
+                    "lengthMenu": "Show _MENU_ entries",
+                    "info": "Showing _START_ to _END_ of _TOTAL_ entries",
+                    "infoEmpty": "Showing 0 to 0 of 0 entries",
+                    "infoFiltered": "(filtered from _MAX_ total entries)"
+                }
             });
 
-            // Add data-label attributes for mobile view
-            $('#sitinTable thead th').each(function() {
-                var title = $(this).text().trim();
-                $('#sitinTable tbody td').eq($(this).index()).attr('data-label', title);
-            });
-
-            // Search functionality
+            // Custom search functionality
             $('#searchInput').on('keyup', function() {
-                sitinTable.search(this.value).draw();
+                $('#sitinTable').DataTable().search(this.value).draw();
             });
-        });
 
-        function openExportModal(type) {
-            exportType = type;
-            $('#exportModal').modal('show');
-        }
-
-        $('#confirmExport').click(function() {
-            const lab = $('#exportLab').val();
-            const purpose = $('#exportPurpose').val();
-            const fromDate = $('#exportFromDate').val();
-            const toDate = $('#exportToDate').val();
-
-            if (fromDate && toDate && new Date(fromDate) > new Date(toDate)) {
-                alert('End date must be after start date');
-                return;
-            }
-
-            let exportUrl = `export_sitin_data.php?type=${exportType}`;
-            if (lab) exportUrl += `&lab=${encodeURIComponent(lab)}`;
-            if (purpose) exportUrl += `&purpose=${encodeURIComponent(purpose)}`;
-            if (fromDate) exportUrl += `&fromDate=${encodeURIComponent(fromDate)}`;
-            if (toDate) exportUrl += `&toDate=${encodeURIComponent(toDate)}`;
-
-            window.open(exportUrl, '_blank');
-            $('#exportModal').modal('hide');
-        });
-
-        // Reset form when modal is closed
-        $('#exportModal').on('hidden.bs.modal', function () {
-            $('#exportForm')[0].reset();
-        });
-
-        function applyDateFilter() {
-            const fromDate = $('#fromDate').val();
-            const toDate = $('#toDate').val();
-            
-            if (fromDate && toDate) {
-                sitinTable.draw();
-            }
-        }
-
-        function resetDateFilter() {
-            $('#fromDate').val('');
-            $('#toDate').val('');
-            sitinTable.draw();
-        }
-
-        function viewFeedback(sitinId) {
-            // Fetch and display feedback
-            fetch('get_feedback_data.php?id=' + sitinId)
-                .then(response => response.json())
-                .then(data => {
-                    document.getElementById('feedbackContent').innerHTML = data.feedback_text;
-                    document.getElementById('feedbackModal').style.display = 'block';
-                });
-        }
-
-        function closeModal(modalId) {
-            document.getElementById(modalId).style.display = 'none';
-        }
-
-        function sortTable(column, type) {
-            const table = document.getElementById('sitinTable');
-            const tbody = table.getElementsByTagName('tbody')[0];
-            const rows = Array.from(tbody.getElementsByTagName('tr'));
-            const header = table.querySelector(`th[onclick*="${column}"]`);
-            const currentSort = header.getAttribute('data-sort') || 'desc';
-            const newSort = currentSort === 'asc' ? 'desc' : 'asc';
-            
-            // Reset all headers
-            table.querySelectorAll('th[onclick]').forEach(th => {
-                const text = th.textContent;
-                th.textContent = text.replace(' ↑', ' ↓').replace(' ↓', ' ↓');
-            });
-            
-            // Update current header
-            header.textContent = header.textContent.replace(' ↓', newSort === 'asc' ? ' ↑' : ' ↓');
-            header.setAttribute('data-sort', newSort);
-
-            rows.sort((a, b) => {
-                let aValue = a.cells[Array.from(a.parentNode.parentNode.getElementsByTagName('th')).findIndex(th => th.getAttribute('onclick')?.includes(column))].textContent.trim();
-                let bValue = b.cells[Array.from(b.parentNode.parentNode.getElementsByTagName('th')).findIndex(th => th.getAttribute('onclick')?.includes(column))].textContent.trim();
-
-                if (type === 'number') {
-                    aValue = parseFloat(aValue) || 0;
-                    bValue = parseFloat(bValue) || 0;
-                } else if (type === 'date') {
-                    aValue = new Date(aValue).getTime();
-                    bValue = new Date(bValue).getTime();
+            // Date filter functionality
+            function applyDateFilter() {
+                const fromDate = $('#fromDate').val();
+                const toDate = $('#toDate').val();
+                
+                if (fromDate && toDate) {
+                    const table = $('#sitinTable').DataTable();
+                    table.column(3).search(fromDate + '|' + toDate, true, false).draw();
                 }
+            }
 
-                if (newSort === 'asc') {
-                    return aValue > bValue ? 1 : -1;
+            function resetDateFilter() {
+                $('#fromDate').val('');
+                $('#toDate').val('');
+                $('#sitinTable').DataTable().search('').draw();
+            }
+
+            // Export modal functionality
+            function openExportModal(type) {
+                // Implementation for export modal
+                // This can be expanded based on your export requirements
+                alert('Export functionality will be implemented here');
+            }
+
+            // View feedback functionality
+            function viewFeedback(sitinId) {
+                // Implementation for viewing feedback
+                // This can be expanded based on your feedback viewing requirements
+                alert('Feedback viewing functionality will be implemented here');
+            }
+
+            // Sorting functionality
+            function sortSitInTable(column, type) {
+                const table = $('#sitinTable').DataTable();
+                const currentOrder = table.order();
+                
+                // If clicking the same column, reverse the order
+                if (currentOrder[0][0] === column) {
+                    table.order([column, currentOrder[0][1] === 'asc' ? 'desc' : 'asc']).draw();
                 } else {
-                    return aValue < bValue ? 1 : -1;
+                    // Otherwise, sort by the new column in ascending order
+                    table.order([column, 'asc']).draw();
                 }
-            });
+            }
 
-            rows.forEach(row => tbody.appendChild(row));
-        }
+            // Make functions available globally
+            window.applyDateFilter = applyDateFilter;
+            window.resetDateFilter = resetDateFilter;
+            window.openExportModal = openExportModal;
+            window.viewFeedback = viewFeedback;
+            window.sortSitInTable = sortSitInTable;
+        });
     </script>
 </body>
 </html> 
