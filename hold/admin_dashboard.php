@@ -437,6 +437,45 @@ $topStudents = getTopStudents($conn, 3);
     <link rel="stylesheet" href="admin_dashboard.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+    <style>
+    @media (max-width: 900px) {
+        .charts-row {
+            flex-direction: column !important;
+            align-items: center;
+        }
+        .chart-box {
+            max-width: 95vw !important;
+            min-width: 0 !important;
+            margin: 18px 0 !important;
+        }
+    }
+    .charts-row {
+        display: flex;
+        gap: 40px;
+        margin-bottom: 40px;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    .chart-box {
+        flex: 1 1 420px !important;
+        background: #23233a;
+        border-radius: 18px;
+        padding: 32px 20px 20px 20px;
+        min-width: 340px;
+        max-width: 520px;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.22);
+        margin: 18px 10px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    .chart-box canvas {
+        width: 100% !important;
+        max-width: 380px !important;
+        height: auto !important;
+        aspect-ratio: 1 / 1 !important;
+    }
+    </style>
 
 </head>
 <body>
@@ -1177,14 +1216,14 @@ $topStudents = getTopStudents($conn, 3);
             ?>
             <div id="sitInDataContent" style="margin: 30px 0;">
                 <h2 class="mb-4">Sit-in Data</h2>
-                <div class="charts-row" style="display: flex; gap: 30px; margin-bottom: 30px; flex-wrap: wrap;">
-                    <div class="chart-box" style="flex: 1 1 300px; background: #23233a; border-radius: 12px; padding: 20px; min-width: 280px;">
-                        <h3 style="text-align: center; color: #fff; margin-bottom: 10px;">Purpose Distribution</h3>
-                        <canvas id="purposePieChart"></canvas>
+                <div class="charts-row" style="display: flex; gap: 30px; margin-bottom: 30px; flex-wrap: wrap; justify-content: center;">
+                    <div class="chart-box" style="flex: 1 1 350px; background: #23233a; border-radius: 18px; padding: 32px 20px 20px 20px; min-width: 320px; max-width: 500px; box-shadow: 0 8px 32px rgba(0,0,0,0.22); margin: 10px auto;">
+                        <h3 style="text-align: center; color: #fff; margin-bottom: 18px; font-size: 1.3em; letter-spacing: 1px;">Purpose Distribution</h3>
+                        <canvas id="purposePieChart" style="max-width: 100%; height: 340px;"></canvas>
                     </div>
-                    <div class="chart-box" style="flex: 1 1 300px; background: #23233a; border-radius: 12px; padding: 20px; min-width: 280px;">
-                        <h3 style="text-align: center; color: #fff; margin-bottom: 10px;">Lab Usage Distribution</h3>
-                        <canvas id="labPieChart"></canvas>
+                    <div class="chart-box" style="flex: 1 1 350px; background: #23233a; border-radius: 18px; padding: 32px 20px 20px 20px; min-width: 320px; max-width: 500px; box-shadow: 0 8px 32px rgba(0,0,0,0.22); margin: 10px auto;">
+                        <h3 style="text-align: center; color: #fff; margin-bottom: 18px; font-size: 1.3em; letter-spacing: 1px;">Lab Usage Distribution</h3>
+                        <canvas id="labPieChart" style="max-width: 100%; height: 340px;"></canvas>
                     </div>
                 </div>
                 <div class="table-container mt-4" style="background: #23233a; border-radius: 12px; padding: 20px;">
@@ -1221,15 +1260,65 @@ $topStudents = getTopStudents($conn, 3);
                     </div>
                 </div>
                 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+                <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
                 <script>
                 // Pie chart data from PHP
                 const purposeLabels = <?= json_encode(array_keys($purposeCounts)) ?>;
                 const purposeData = <?= json_encode(array_values($purposeCounts)) ?>;
                 const labLabels = <?= json_encode(array_keys($labCounts)) ?>;
                 const labData = <?= json_encode(array_values($labCounts)) ?>;
+                // Modern, harmonious color palette
                 const pieColors = [
-                    '#6a89cc', '#38ada9', '#e55039', '#f6b93b', '#60a3bc', '#78e08f', '#fa983a', '#e58e26', '#b71540', '#079992', '#b8e994', '#f8c291', '#fad390', '#f6b93b', '#e17055'
+                    '#4F8A8B', '#FBD46D', '#F76B8A', '#A3D2CA', '#45526C', '#374785', '#F8E9A1', '#A8D8EA', '#AA96DA', '#FCBAD3', '#B8F2E6', '#F67280', '#C06C84', '#6C5B7B', '#355C7D'
                 ];
+                function getPercent(data, value) {
+                    const total = data.reduce((a, b) => a + b, 0);
+                    return ((value / total) * 100).toFixed(1) + '%';
+                }
+                Chart.register(window.ChartDataLabels);
+                function datalabelFormatter(value, ctx) {
+                    const percent = getPercent(ctx.chart.data.datasets[0].data, value);
+                    return value + ' (' + percent + ')';
+                }
+                const pieOptions = {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    aspectRatio: 1,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { color: '#fff', font: { size: 17, weight: 'bold' }, padding: 18 }
+                        },
+                        datalabels: {
+                            color: '#fff',
+                            font: { weight: 'bold', size: 16 },
+                            borderRadius: 6,
+                            backgroundColor: 'rgba(0,0,0,0.25)',
+                            padding: 6,
+                            anchor: 'end',
+                            align: 'end',
+                            offset: 8,
+                            formatter: datalabelFormatter
+                        },
+                        tooltip: {
+                            backgroundColor: '#23233a',
+                            titleColor: '#FBD46D',
+                            bodyColor: '#fff',
+                            borderColor: '#4F8A8B',
+                            borderWidth: 1.5,
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.parsed;
+                                    return `${label}: ${value} (${getPercent(context.chart.data.datasets[0].data, value)})`;
+                                }
+                            }
+                        }
+                    },
+                    layout: {
+                        padding: 18
+                    }
+                };
                 new Chart(document.getElementById('purposePieChart'), {
                     type: 'pie',
                     data: {
@@ -1237,11 +1326,12 @@ $topStudents = getTopStudents($conn, 3);
                         datasets: [{
                             data: purposeData,
                             backgroundColor: pieColors,
+                            borderColor: '#23233a',
+                            borderWidth: 2
                         }]
                     },
-                    options: {
-                        plugins: { legend: { labels: { color: '#fff' } } }
-                    }
+                    options: pieOptions,
+                    plugins: [ChartDataLabels]
                 });
                 new Chart(document.getElementById('labPieChart'), {
                     type: 'pie',
@@ -1250,11 +1340,12 @@ $topStudents = getTopStudents($conn, 3);
                         datasets: [{
                             data: labData,
                             backgroundColor: pieColors,
+                            borderColor: '#23233a',
+                            borderWidth: 2
                         }]
                     },
-                    options: {
-                        plugins: { legend: { labels: { color: '#fff' } } }
-                    }
+                    options: pieOptions,
+                    plugins: [ChartDataLabels]
                 });
                 </script>
             </div>
