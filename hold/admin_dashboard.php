@@ -1155,310 +1155,110 @@ $topStudents = getTopStudents($conn, 3);
             </div>
 
             <!-- Sit-in Data Content -->
-            <div id="sitInDataContent" style="display: none;">
-                <div class="content-header">
-                    <h2>Sit-in Data</h2>
-                    <div class="export-buttons">
-                        <button onclick="showExportModal()" class="btn btn-primary">Export</button>
-                    </div>
-                </div>
-
-                <!-- Export Filter Modal -->
-                <div id="exportFilterModal" class="modal-container">
-                    <div class="modal">
-                        <span class="close" onclick="closeModal('exportFilterModal')">&times;</span>
-                        <h2 class="modal-title">Export Data</h2>
-                        <div class="form-group">
-                            <label for="exportType">Export Type:</label>
-                            <select id="exportType" class="form-control">
-                                <option value="pdf">PDF</option>
-                                <option value="excel">Excel</option>
-                                <option value="csv">CSV</option>
-                                <option value="print">Print</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="exportLabFilter">Lab:</label>
-                            <select id="exportLabFilter" class="form-control">
-                                <option value="">All Labs</option>
-                                <option value="524">524</option>
-                                <option value="526">526</option>
-                                <option value="528">528</option>
-                                <option value="530">530</option>
-                                <option value="542">542</option>
-                                <option value="544">544</option>
-                                <option value="517">517</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="exportPurposeFilter">Purpose:</label>
-                            <select id="exportPurposeFilter" class="form-control">
-                                <option value="">All Purposes</option>
-                                <option value="C Programming">C Programming</option>
-                                <option value="Java Programming">Java Programming</option>
-                                <option value="Python">Python</option>
-                                <option value="C#">C#</option>
-                                <option value="Database">Database</option>
-                                <option value="Digital Logic & Design">Digital Logic & Design</option>
-                                <option value="Embedded Systems and IoT">Embedded Systems and IoT</option>
-                                <option value="System Integration and Architecture">System Integration and Architecture</option>
-                                <option value="Computer Application">Computer Application</option>
-                                <option value="Project Management">Project Management</option>
-                                <option value="IT Trends">IT Trends</option>
-                                <option value="Technopreneurship">Technopreneurship</option>
-                                <option value="Capstone">Capstone</option>
-                            </select>
-                        </div>
-                        <div class="button-group">
-                            <button onclick="applyExportFilters()" class="modal-button primary">Export</button>
-                            <button onclick="closeModal('exportFilterModal')" class="modal-button secondary">Cancel</button>
-                        </div>
-                    </div>
-                </div>
-                
-
-
-                <div class="charts-container">
-                    <div class="chart-box">
-                        <h3>Purpose Distribution</h3>
+            <?php
+            // Fetch all sit-in report data
+            include_once("../includes/database.php");
+            $query = "SELECT * FROM sitin_report ORDER BY logout_time DESC";
+            $result = mysqli_query($conn, $query);
+            $sitinData = [];
+            $purposeCounts = [];
+            $labCounts = [];
+            while ($row = mysqli_fetch_assoc($result)) {
+                $sitinData[] = $row;
+                // Count purposes
+                $purpose = $row['purpose'];
+                if (!isset($purposeCounts[$purpose])) $purposeCounts[$purpose] = 0;
+                $purposeCounts[$purpose]++;
+                // Count labs
+                $lab = $row['lab'];
+                if (!isset($labCounts[$lab])) $labCounts[$lab] = 0;
+                $labCounts[$lab]++;
+            }
+            ?>
+            <div id="sitInDataContent" style="margin: 30px 0;">
+                <h2 class="mb-4">Sit-in Data</h2>
+                <div class="charts-row" style="display: flex; gap: 30px; margin-bottom: 30px; flex-wrap: wrap;">
+                    <div class="chart-box" style="flex: 1 1 300px; background: #23233a; border-radius: 12px; padding: 20px; min-width: 280px;">
+                        <h3 style="text-align: center; color: #fff; margin-bottom: 10px;">Purpose Distribution</h3>
                         <canvas id="purposePieChart"></canvas>
                     </div>
-                    <div class="chart-box">
-                        <h3>Lab Usage Distribution</h3>
+                    <div class="chart-box" style="flex: 1 1 300px; background: #23233a; border-radius: 12px; padding: 20px; min-width: 280px;">
+                        <h3 style="text-align: center; color: #fff; margin-bottom: 10px;">Lab Usage Distribution</h3>
                         <canvas id="labPieChart"></canvas>
                     </div>
                 </div>
-                
-                <div class="search-control" style="margin: 20px 0;">
-                    <input type="text" id="searchInput" placeholder="Search by ID, Name, Purpose, or Lab..." style="width: 100%; padding: 10px;">
-                </div>
-                
-                <div class="data-controls">
-                    <div class="entries-display">
-                        Displaying <span id="displayStart">1</span> to <span id="displayEnd">0</span> of <span id="displayTotal">0</span> entries
-                        <select id="entriesPerPage" class="entries-select" style="min-width: 60px;" onchange="currentPage=1;displaySitInData();">
-                            <option value="5">5</option>
-                            <option value="10">10</option>
-                        </select>
-                        entries
+                <div class="table-container mt-4" style="background: #23233a; border-radius: 12px; padding: 20px;">
+                    <h4 class="mb-3">Sit-in Records</h4>
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover" style="color: #fff;">
+                            <thead>
+                                <tr>
+                                    <th>ID Number</th>
+                                    <th>Purpose</th>
+                                    <th>Lab</th>
+                                    <th>Login Time</th>
+                                    <th>Logout Time</th>
+                                    <th>Duration</th>
+                                    <th>Feedback</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            <?php foreach ($sitinData as $row): ?>
+                                <tr>
+                                    <td><?= htmlspecialchars($row['id_number']) ?></td>
+                                    <td><?= htmlspecialchars($row['purpose']) ?></td>
+                                    <td><?= htmlspecialchars($row['lab']) ?></td>
+                                    <td><?= htmlspecialchars($row['login_time']) ?></td>
+                                    <td><?= htmlspecialchars($row['logout_time']) ?></td>
+                                    <td><?= htmlspecialchars($row['duration']) ?></td>
+                                    <td style="max-width: 200px; white-space: pre-wrap; word-break: break-word;">
+                                        <?= $row['feedback'] ? htmlspecialchars($row['feedback']) : '<span class="text-muted">No Feedback</span>' ?>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
-
-                <div class="data-table-container">
-                    <table id="sitInDataTable" class="data-table">
-                        <thead>
-                            <tr>
-                                <th onclick="sortSitInTable('id_number')" style="cursor:pointer;">ID Number ↕</th>
-                                <th>Purpose</th>
-                                <th onclick="sortSitInTable('lab')" style="cursor:pointer;">Lab ↕</th>
-                                <th onclick="sortSitInTable('login_time')" style="cursor:pointer;">Login Time ↕</th>
-                                <th onclick="sortSitInTable('logout_time')" style="cursor:pointer;">Logout Time ↕</th>
-                                <th onclick="sortSitInTable('duration')" style="cursor:pointer;">Duration ↕</th>
-                                <th>Feedback</th>
-                            </tr>
-                        </thead>
-                        <tbody id="sitInDataBody"></tbody>
-                    </table>
-                </div>
-
-                <div class="pagination" style="text-align: center; margin-top: 20px;">
-                    <button onclick="goToFirstPage()" id="firstPageBtn">&lt;&lt;</button>
-                    <button onclick="goToPreviousPage()" id="prevPageBtn">&lt;</button>
-                    <span id="currentPage">1</span> / <span id="totalPages">1</span>
-                    <button onclick="goToNextPage()" id="nextPageBtn">&gt;</button>
-                    <button onclick="goToLastPage()" id="lastPageBtn">&gt;&gt;</button>
-                </div>
-
-                <div id="feedbackModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); justify-content: center; align-items: center;">
-                    <div style="background-color: white; padding: 20px; border-radius: 5px; width: 80%; max-width: 600px;">
-                        <span class="close" onclick="closeFeedbackModal()">&times;</span>
-                        <h3>Feedback Details</h3>
-                        <div id="modalFeedbackText"></div>
-                        <button onclick="closeFeedbackModal()" class="btn btn-secondary mt-3">Close</button>
-                    </div>
-                </div>
-
+                <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
                 <script>
-                    function showFeedbackModal(idNumber) {
-                        const modal = document.getElementById('feedbackModal');
-                        const modalContent = document.getElementById('modalFeedbackText');
-                        
-                        // Show modal with loading state
-                        modal.style.display = 'flex';
-                        modalContent.innerHTML = '<div class="loading-feedback">Loading feedback data...</div>';
-                        
-                        // Fetch feedback data
-                        fetch(`get_feedback_data.php?id=${idNumber}`)
-                            .then(response => response.json())
-                            .then(data => {
-                                if (data && data.length > 0) {
-                                    const feedback = data[0]; // Get the most recent feedback
-                                    feedbackContent.innerHTML = `
-                                        <div class="feedback-details">
-                                            <p><strong>Student ID:</strong> ${feedback.id_number}</p>
-                                            <p><strong>Student Name:</strong> ${feedback.student_name}</p>
-                                            <p><strong>Lab:</strong> ${feedback.lab || 'N/A'}</p>
-                                            <p><strong>Date:</strong> ${new Date(feedback.date).toLocaleString()}</p>
-                                            <p><strong>Feedback:</strong></p>
-                                            <div class="feedback-text">${feedback.feedback_text}</div>
-                                            ${feedback.rating ? `
-                                                <p class="mt-3">
-                                                    <strong>Rating:</strong> 
-                                                    <span class="rating-stars">${'★'.repeat(parseInt(feedback.rating))}${'☆'.repeat(5-parseInt(feedback.rating))}</span>
-                                                </p>` : ''
-                                            }
-                                        </div>
-                                    `;
-                                } else {
-                                    feedbackContent.innerHTML = `
-                                        <div class="no-feedback">
-                                            <i class="fas fa-comment-slash" style="font-size: 3rem; margin-bottom: 1rem;"></i>
-                                            <p>No feedback available for this student.</p>
-                                        </div>
-                                    `;
-                                }
-                            })
-                            .catch(error => {
-                                console.error('Error:', error);
-                                feedbackContent.innerHTML = `
-                                    <div class="no-feedback text-danger">
-                                        <i class="fas fa-exclamation-circle" style="font-size: 3rem; margin-bottom: 1rem;"></i>
-                                        <p>Error loading feedback. Please try again.</p>
-                                    </div>
-                                `;
-                            });
+                // Pie chart data from PHP
+                const purposeLabels = <?= json_encode(array_keys($purposeCounts)) ?>;
+                const purposeData = <?= json_encode(array_values($purposeCounts)) ?>;
+                const labLabels = <?= json_encode(array_keys($labCounts)) ?>;
+                const labData = <?= json_encode(array_values($labCounts)) ?>;
+                const pieColors = [
+                    '#6a89cc', '#38ada9', '#e55039', '#f6b93b', '#60a3bc', '#78e08f', '#fa983a', '#e58e26', '#b71540', '#079992', '#b8e994', '#f8c291', '#fad390', '#f6b93b', '#e17055'
+                ];
+                new Chart(document.getElementById('purposePieChart'), {
+                    type: 'pie',
+                    data: {
+                        labels: purposeLabels,
+                        datasets: [{
+                            data: purposeData,
+                            backgroundColor: pieColors,
+                        }]
+                    },
+                    options: {
+                        plugins: { legend: { labels: { color: '#fff' } } }
                     }
-
-                    function closeFeedbackModal() {
-                        const modal = document.getElementById('feedbackModal');
-                        modal.style.display = 'none';
+                });
+                new Chart(document.getElementById('labPieChart'), {
+                    type: 'pie',
+                    data: {
+                        labels: labLabels,
+                        datasets: [{
+                            data: labData,
+                            backgroundColor: pieColors,
+                        }]
+                    },
+                    options: {
+                        plugins: { legend: { labels: { color: '#fff' } } }
                     }
-
-window.addEventListener('click', function(event) {
-    const modalContainer = document.getElementById('studentInfoModal');
-    if (event.target === modalContainer) {
-        modalContainer.style.display = 'none';
-    }
-});
-                </script>
-
-                <style>
-                    .feedback-content {
-                        margin: 15px 0;
-                    }
-                    .feedback-content p {
-                        margin: 8px 0;
-                    }
-                    #feedbackModal .close {
-                        position: absolute;
-                        right: 15px;
-                        top: 10px;
-                        font-size: 24px;
-                        cursor: pointer;
-                    }
-                    #modalFeedbackText {
-                        margin-top: 20px;
-                    }
-                </style>
-
-                <script>
-// Add this JavaScript code
-let currentTimeoutId = null;
-
-function showTimeoutOptions(idNumber, btn) {
-    currentTimeoutId = idNumber;
-    const modal = document.getElementById('timeoutModal');
-    if (modal) {
-        modal.style.display = 'flex';
-    }
-}
-
-function closeTimeoutModal() {
-    const modal = document.getElementById('timeoutModal');
-    if (modal) {
-        modal.style.display = 'none';
-    }
-}
-
-function handleTimeoutOption(option) {
-    const formData = new FormData();
-    formData.append('id_number', currentTimeoutId);
-    formData.append('timeout_option', option);
-
-    fetch('handle_timeout.php', {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            alert(data.message);
-            loadSitInData();
-            loadStudentData();
-        } else {
-            alert(data.message || 'Error processing timeout');
-        }
-        closeTimeoutModal();
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Error processing timeout');
-        closeTimeoutModal();
-    });
-}
-
-                    function givePointAndTimeout(idNo, btn) {
-                        if (!confirm('Give 1 point and timeout this student?')) return;
-                        const formData = new FormData();
-                        formData.append('id_number', idNo);
-                        formData.append('give_point_and_timeout', true);
-                        fetch('admin_dashboard.php', {
-                            method: 'POST',
-                            body: formData
-                        })
-                        .then(res => res.json())
-                        .then(data => {
-                            alert(data.message || 'Success');
-                            loadSitInData();
-                            loadStudentData();
-                        })
-                        .catch(() => alert('Error processing request'));
-                    }
-                    function timeoutOnly(idNo, btn) {
-                        if (!confirm('Timeout this student?')) return;
-                        const formData = new FormData();
-                        formData.append('id_number', idNo);
-                        formData.append('logout_sitin', true);
-                        fetch('admin_dashboard.php', {
-                            method: 'POST',
-                            body: formData
-                        })
-                        .then(res => res.json())
-                        .then(data => {
-                            alert(data.message || 'Success');
-                            loadSitInData();
-                        })
-                        .catch(() => alert('Error processing request'));
-                    }
-                    function loadSitInReportData() {
-                        const tbody = document.getElementById('sitInDataBody');
-                        // Example data row creation
-                        const row = document.createElement('tr');
-                        row.innerHTML = `
-                            <td>\${record.id_number}</td>
-                            <td>\${record.purpose}</td>
-                            <td>\${record.lab}</td>
-                            <td>\${record.login_time}</td>
-                            <td>\${record.logout_time}</td>
-                            <td>\${calculateDuration(record.login_time, record.logout_time)}</td>
-                            <td>
-                                <button class="feedback-button" onclick="showFeedbackModal(this)">View Feedback</button>
-                            </td>
-                        `;
-                        tbody.appendChild(row);
-                    }
+                });
                 </script>
             </div>
+
         </div>
 
         <!-- Feedback Modal -->
