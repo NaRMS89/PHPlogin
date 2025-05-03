@@ -1215,7 +1215,62 @@ $topStudents = getTopStudents($conn, 3);
             }
             ?>
             <div id="sitInDataContent" style="margin: 30px 0;">
-                <h2 class="mb-4">Sit-in Data</h2>
+                <!-- Export Button -->
+                <div style="display: flex; justify-content: flex-end; margin-bottom: 18px;">
+                    <button id="openExportModal" class="btn-primary">Export</button>
+                </div>
+                <!-- Export Modal -->
+                <div id="exportModal" class="modal-container" style="display:none; align-items:center; justify-content:center;">
+                    <div class="modal" style="max-width: 400px; margin:auto; display:flex; flex-direction:column; align-items:center;">
+                        <span class="close" onclick="closeExportModal()" style="align-self:flex-end; cursor:pointer;">&times;</span>
+                        <h2 style="text-align:center; width:100%;">Export Sit-in Data</h2>
+                        <form id="exportForm" style="width:100%; display:flex; flex-direction:column; gap:16px;">
+                            <label for="exportType">Export as:</label>
+                            <select id="exportType" name="exportType" required>
+                                <option value="csv">CSV</option>
+                                <option value="excel">Excel</option>
+                                <option value="pdf">PDF</option>
+                                <option value="print">Print</option>
+                            </select>
+                            <label for="filterBy">Filter by:</label>
+                            <select id="filterBy" name="filterBy" required onchange="updateExportOptions()">
+                                <option value="lab">Lab</option>
+                                <option value="purpose">Purpose</option>
+                            </select>
+                            <div id="labOptions" style="display:block;">
+                                <label for="labRoom">Lab Room:</label>
+                                <select id="labRoom" name="labRoom">
+                                    <option value="524">Lab 524</option>
+                                    <option value="526">Lab 526</option>
+                                    <option value="528">Lab 528</option>
+                                    <option value="530">Lab 530</option>
+                                    <option value="542">Lab 542</option>
+                                    <option value="544">Lab 544</option>
+                                    <option value="517">Lab 517</option>
+                                </select>
+                            </div>
+                            <div id="purposeOptions" style="display:none;">
+                                <label for="purpose">Purpose:</label>
+                                <select id="purpose" name="purpose">
+                                    <option value="C Programming">C Programming</option>
+                                    <option value="Java Programming">Java Programming</option>
+                                    <option value="Python">Python</option>
+                                    <option value="C#">C#</option>
+                                    <option value="Database">Database</option>
+                                    <option value="Digital Logic &amp; Design">Digital Logic &amp; Design</option>
+                                    <option value="Embedded Systems and IoT">Embedded Systems and IoT</option>
+                                    <option value="System Integration and Architecture">System Integration and Architecture</option>
+                                    <option value="Computer Application">Computer Application</option>
+                                    <option value="Project Management">Project Management</option>
+                                    <option value="IT Trend">IT Trend</option>
+                                    <option value="Technopreneurship">Technopreneurship</option>
+                                    <option value="Capstone">Capstone</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn-primary">Export</button>
+                        </form>
+                    </div>
+                </div>
                 <div class="charts-row" style="display: flex; gap: 30px; margin-bottom: 30px; flex-wrap: wrap; justify-content: center;">
                     <div class="chart-box" style="flex: 1 1 350px; background: #23233a; border-radius: 18px; padding: 32px 20px 20px 20px; min-width: 320px; max-width: 500px; box-shadow: 0 8px 32px rgba(0,0,0,0.22); margin: 10px auto;">
                         <h3 style="text-align: center; color: #fff; margin-bottom: 18px; font-size: 1.3em; letter-spacing: 1px;">Purpose Distribution</h3>
