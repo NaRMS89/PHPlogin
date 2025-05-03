@@ -1215,28 +1215,51 @@ $topStudents = getTopStudents($conn, 3);
             }
             ?>
             <div id="sitInDataContent" style="margin: 30px 0;">
-                <!-- Export Button -->
+                <!-- Export Button (inside sitInDataContent only) -->
                 <div style="display: flex; justify-content: flex-end; margin-bottom: 18px;">
                     <button id="openExportModal" class="btn-primary">Export</button>
                 </div>
-                <!-- Export Modal -->
+                <!-- Export Modal (inside sitInDataContent only) -->
                 <div id="exportModal" class="modal-container" style="display:none; align-items:center; justify-content:center;">
-                    <div class="modal" style="max-width: 400px; margin:auto; display:flex; flex-direction:column; align-items:center;">
+                    <div class="modal" style="max-width: 500px; margin:auto; display:flex; flex-direction:column; align-items:center;">
                         <span class="close" onclick="closeExportModal()" style="align-self:flex-end; cursor:pointer;">&times;</span>
                         <h2 style="text-align:center; width:100%;">Export Sit-in Data</h2>
                         <form id="exportForm" style="width:100%; display:flex; flex-direction:column; gap:16px;">
-                            <label for="exportType">Export as:</label>
-                            <select id="exportType" name="exportType" required>
-                                <option value="csv">CSV</option>
-                                <option value="excel">Excel</option>
-                                <option value="pdf">PDF</option>
-                                <option value="print">Print</option>
-                            </select>
-                            <label for="filterBy">Filter by:</label>
-                            <select id="filterBy" name="filterBy" required onchange="updateExportOptions()">
-                                <option value="lab">Lab</option>
-                                <option value="purpose">Purpose</option>
-                            </select>
+                            <div class="form-group">
+                                <label for="exportType">Export as:</label>
+                                <select id="exportType" name="exportType" required>
+                                    <option value="csv">CSV</option>
+                                    <option value="excel">Excel</option>
+                                    <option value="pdf">PDF</option>
+                                    <option value="print">Print</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="dateRange">Date Range:</label>
+                                <div style="display: flex; gap: 10px;">
+                                    <input type="date" id="startDate" name="startDate" style="flex: 1;">
+                                    <input type="date" id="endDate" name="endDate" style="flex: 1;">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="exportScope">Export Scope:</label>
+                                <select id="exportScope" name="exportScope" required>
+                                    <option value="all">All Records</option>
+                                    <option value="filtered">Filtered Records</option>
+                                    <option value="selected">Selected Records</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="filterBy">Filter by:</label>
+                                <select id="filterBy" name="filterBy" required onchange="updateExportOptions()">
+                                    <option value="lab">Lab</option>
+                                    <option value="purpose">Purpose</option>
+                                </select>
+                            </div>
+
                             <div id="labOptions" style="display:block;">
                                 <label for="labRoom">Lab Room:</label>
                                 <select id="labRoom" name="labRoom">
@@ -1249,6 +1272,7 @@ $topStudents = getTopStudents($conn, 3);
                                     <option value="517">Lab 517</option>
                                 </select>
                             </div>
+
                             <div id="purposeOptions" style="display:none;">
                                 <label for="purpose">Purpose:</label>
                                 <select id="purpose" name="purpose">
@@ -1267,10 +1291,137 @@ $topStudents = getTopStudents($conn, 3);
                                     <option value="Capstone">Capstone</option>
                                 </select>
                             </div>
-                            <button type="submit" class="btn-primary">Export</button>
+
+                            <div class="form-group">
+                                <label for="fileName">File Name:</label>
+                                <input type="text" id="fileName" name="fileName" value="sit_in_data" required>
+                            </div>
+
+                            <div class="button-group" style="display: flex; gap: 10px;">
+                                <button type="button" class="btn-secondary" onclick="previewExport()">Preview</button>
+                                <button type="submit" class="btn-primary">Export</button>
+                            </div>
                         </form>
+
+                        <!-- Preview Modal -->
+                        <div id="previewModal" class="modal-container" style="display: none;">
+                            <div class="modal" style="max-width: 800px; max-height: 80vh; overflow-y: auto;">
+                                <span class="close" onclick="closePreviewModal()">&times;</span>
+                                <h2>Export Preview</h2>
+                                <div id="previewContent"></div>
+                            </div>
+                        </div>
+
+                        <!-- Progress Modal -->
+                        <div id="progressModal" class="modal-container" style="display: none;">
+                            <div class="modal" style="max-width: 400px;">
+                                <h2>Exporting Data</h2>
+                                <div class="progress-bar">
+                                    <div class="progress" style="width: 0%"></div>
+                                </div>
+                                <p id="progressText">Preparing export...</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
+
+                <script>
+                // Export modal logic
+                document.getElementById('openExportModal').onclick = function() {
+                    document.getElementById('exportModal').style.display = 'flex';
+                };
+
+                function closeExportModal() {
+                    document.getElementById('exportModal').style.display = 'none';
+                }
+
+                function closePreviewModal() {
+                    document.getElementById('previewModal').style.display = 'none';
+                }
+
+                function updateExportOptions() {
+                    const filterBy = document.getElementById('filterBy').value;
+                    document.getElementById('labOptions').style.display = filterBy === 'lab' ? 'block' : 'none';
+                    document.getElementById('purposeOptions').style.display = filterBy === 'purpose' ? 'block' : 'none';
+                }
+
+                function previewExport() {
+                    const exportType = document.getElementById('exportType').value;
+                    const filterBy = document.getElementById('filterBy').value;
+                    const filterValue = filterBy === 'lab' ? 
+                        document.getElementById('labRoom').value : 
+                        document.getElementById('purpose').value;
+                    const startDate = document.getElementById('startDate').value;
+                    const endDate = document.getElementById('endDate').value;
+
+                    // Show progress modal
+                    document.getElementById('progressModal').style.display = 'flex';
+                    document.getElementById('progressText').textContent = 'Generating preview...';
+
+                    // Fetch preview data
+                    fetch(`get_export_preview.php?type=${exportType}&filterBy=${filterBy}&filterValue=${encodeURIComponent(filterValue)}&startDate=${startDate}&endDate=${endDate}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            const previewContent = document.getElementById('previewContent');
+                            previewContent.innerHTML = data.preview;
+                            document.getElementById('progressModal').style.display = 'none';
+                            document.getElementById('previewModal').style.display = 'flex';
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            document.getElementById('progressModal').style.display = 'none';
+                            alert('Error generating preview. Please try again.');
+                        });
+                }
+
+                document.getElementById('exportForm').onsubmit = function(e) {
+                    e.preventDefault();
+                    
+                    const exportType = document.getElementById('exportType').value;
+                    const filterBy = document.getElementById('filterBy').value;
+                    const filterValue = filterBy === 'lab' ? 
+                        document.getElementById('labRoom').value : 
+                        document.getElementById('purpose').value;
+                    const startDate = document.getElementById('startDate').value;
+                    const endDate = document.getElementById('endDate').value;
+                    const fileName = document.getElementById('fileName').value;
+                    const exportScope = document.getElementById('exportScope').value;
+
+                    // Show progress modal
+                    document.getElementById('progressModal').style.display = 'flex';
+                    document.getElementById('progressText').textContent = 'Preparing export...';
+
+                    // Update progress
+                    setTimeout(() => {
+                        document.getElementById('progressText').textContent = 'Exporting data...';
+                        document.querySelector('.progress').style.width = '50%';
+                    }, 500);
+
+                    // Prepare export URL
+                    let exportUrl = `export_sitin_data.php?type=${exportType}&filterBy=${filterBy}&filterValue=${encodeURIComponent(filterValue)}`;
+                    exportUrl += `&startDate=${startDate}&endDate=${endDate}&fileName=${encodeURIComponent(fileName)}&scope=${exportScope}`;
+
+                    if (exportType === 'print') {
+                        window.open(exportUrl, '_blank');
+                    } else {
+                        window.location.href = exportUrl;
+                    }
+
+                    // Close modals
+                    setTimeout(() => {
+                        document.getElementById('progressModal').style.display = 'none';
+                        closeExportModal();
+                    }, 1000);
+                };
+
+                // Set default date range to last 30 days
+                const today = new Date();
+                const thirtyDaysAgo = new Date();
+                thirtyDaysAgo.setDate(today.getDate() - 30);
+                
+                document.getElementById('endDate').value = today.toISOString().split('T')[0];
+                document.getElementById('startDate').value = thirtyDaysAgo.toISOString().split('T')[0];
+                </script>
                 <div class="charts-row" style="display: flex; gap: 30px; margin-bottom: 30px; flex-wrap: wrap; justify-content: center;">
                     <div class="chart-box" style="flex: 1 1 350px; background: #23233a; border-radius: 18px; padding: 32px 20px 20px 20px; min-width: 320px; max-width: 500px; box-shadow: 0 8px 32px rgba(0,0,0,0.22); margin: 10px auto;">
                         <h3 style="text-align: center; color: #fff; margin-bottom: 18px; font-size: 1.3em; letter-spacing: 1px;">Purpose Distribution</h3>
