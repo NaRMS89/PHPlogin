@@ -13,6 +13,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['logout'])) {
     header("Location: ../user/index.php");
     exit();
 }
+
+
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['give_point_and_timeout'])) {
     $idNo = $_POST['id_number'];
     $success = false;
@@ -369,6 +371,21 @@ if (isset($_POST['export_sitindata_pdf'])) {
     exportSitInDataToPDF($sitInData);
     exit;
 }
+
+// Add this function before the HTML to get the top 3 students by total points
+function getTopStudents($conn, $limit = 3) {
+    $sql = "SELECT id_number, first_name, last_name, total_points FROM info ORDER BY total_points DESC LIMIT ?";
+    $stmt = mysqli_prepare($conn, $sql);
+    mysqli_stmt_bind_param($stmt, "i", $limit);
+    mysqli_stmt_execute($stmt);
+    $result = mysqli_stmt_get_result($stmt);
+    $students = [];
+    while ($row = mysqli_fetch_assoc($result)) {
+        $students[] = $row;
+    }
+    return $students;
+}
+$topStudents = getTopStudents($conn, 3);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -417,6 +434,31 @@ if (isset($_POST['export_sitindata_pdf'])) {
                 <!-- Language Chart -->
                 <div class="chart-container">
                     <canvas id="languageChart"></canvas>
+                </div>
+
+                <!-- Leaderboard Section: Top 3 Students by Total Points -->
+                <div class="leaderboard-container" style="margin-top: 30px;">
+                    <h3>Top 3 Students (Total Points)</h3>
+                    <table class="leaderboard-table" style="width: 100%; background: rgba(255,255,255,0.05); border-radius: 8px;">
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Name</th>
+                                <th>ID Number</th>
+                                <th>Total Points</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($topStudents as $index => $student): ?>
+                            <tr>
+                                <td><?php echo $index + 1; ?></td>
+                                <td><?php echo htmlspecialchars($student['last_name'] . ', ' . $student['first_name']); ?></td>
+                                <td><?php echo htmlspecialchars($student['id_number']); ?></td>
+                                <td><?php echo htmlspecialchars($student['total_points']); ?></td>
+                            </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
                 </div>
 
                 <!-- Announcement Section -->
