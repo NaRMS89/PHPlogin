@@ -425,6 +425,10 @@ function getTopStudents($conn, $limit = 3) {
     return $students;
 }
 $topStudents = getTopStudents($conn, 3);
+
+// Include the new sections
+include 'computer_control.php';
+include 'reservation_requests.php';
 ?>
 <!DOCTYPE html>
 <html lang="en">
