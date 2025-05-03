@@ -57,7 +57,8 @@ if (isset($_POST['give_point_and_timeout'])) {
     echo json_encode([
         'success' => $success, 
         'message' => $message,
-        'student' => $student ?? null
+        'student' => $student ?? null,
+        'triggerRefresh' => true
     ]);
     exit();
 }
@@ -107,7 +108,8 @@ if (isset($_POST['timeout_only'])) {
         'success' => $success, 
         'message' => $message,
         'additionalSession' => $additionalSession,
-        'student' => $student ?? null
+        'student' => $student ?? null,
+        'triggerRefresh' => true
     ]);
     exit();
 }

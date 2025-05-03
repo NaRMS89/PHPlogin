@@ -436,7 +436,8 @@ $topStudents = getTopStudents($conn, 3);
 
     <link rel="stylesheet" href="admin_dashboard.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="admin_dashboard.js"></script>
+
+
 </head>
 <body>
     <div class="sidebar">

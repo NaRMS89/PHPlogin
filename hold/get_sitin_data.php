@@ -1,90 +1,37 @@
 <?php
 session_start();
-require_once('../database.php');
+include("../includes/database.php");
 
 // Check if user is logged in as admin
-if (!isset($_SESSION['user_type']) || $_SESSION['user_type'] !== 'admin') {
-    echo json_encode(['error' => 'Unauthorized access']);
+if (!isset($_SESSION['admin_logged_in'])) {
+    header("Location: ../index.php");
     exit;
 }
 
-// Get filter parameters
-$fromDate = isset($_GET['from']) ? $_GET['from'] : '';
-$toDate = isset($_GET['to']) ? $_GET['to'] : '';
-$searchTerm = isset($_GET['search']) ? $_GET['search'] : '';
+// Fetch sit-in data with feedback
+$query = "SELECT sr.*, f.feedback_text, f.feedback_date 
+         FROM sitin_report sr 
+         LEFT JOIN feedback f ON sr.id = f.sitin_id 
+         ORDER BY sr.logout_time DESC";
+$result = mysqli_query($conn, $query);
 
-// Base query
-$query = "SELECT 
-    s.id_number,
-    CONCAT(i.first_name, ' ', i.last_name) as student_name,
-    s.purpose,
-    s.lab,
-    s.login_time,
-    s.logout_time,
-    DATE(s.login_time) as date,
-    CASE 
-        WHEN s.logout_time IS NULL THEN 'active'
-        ELSE 'completed'
-    END as status
-FROM sitin_report s
-JOIN info i ON s.id_number = i.id_number
-WHERE 1=1";
-
-// Add date filters if provided
-if ($fromDate) {
-    $query .= " AND DATE(s.login_time) >= ?";
-    $params[] = $fromDate;
-    $types .= "s";
-}
-
-if ($toDate) {
-    $query .= " AND DATE(s.login_time) <= ?";
-    $params[] = $toDate;
-    $types .= "s";
-}
-
-// Add search filter if provided
-if ($searchTerm) {
-    $query .= " AND (
-        s.id_number LIKE ? OR
-        i.first_name LIKE ? OR
-        i.last_name LIKE ? OR
-        s.purpose LIKE ? OR
-        s.lab LIKE ?
-    )";
-    $searchParam = "%$searchTerm%";
-    $params = array_merge($params ?? [], [$searchParam, $searchParam, $searchParam, $searchParam, $searchParam]);
-    $types .= "sssss";
-}
-
-// Order by login time descending (most recent first)
-$query .= " ORDER BY s.login_time DESC";
-
-// Prepare and execute the statement
-$stmt = $conn->prepare($query);
-if (!empty($params)) {
-    $stmt->bind_param($types, ...$params);
-}
-
-$stmt->execute();
-$result = $stmt->get_result();
-
-// Fetch all records
-$records = [];
-while ($row = $result->fetch_assoc()) {
-    // Format dates for display
-    $row['login_time'] = date('Y-m-d H:i:s', strtotime($row['login_time']));
-    if ($row['logout_time']) {
-        $row['logout_time'] = date('Y-m-d H:i:s', strtotime($row['logout_time']));
+while ($row = mysqli_fetch_assoc($result)) {
+    echo "<tr>";
+    echo "<td>" . htmlspecialchars($row['id_number']) . "</td>";
+    echo "<td>" . htmlspecialchars($row['purpose']) . "</td>";
+    echo "<td>" . htmlspecialchars($row['lab']) . "</td>";
+    echo "<td>" . htmlspecialchars($row['login_time']) . "</td>";
+    echo "<td>" . htmlspecialchars($row['logout_time']) . "</td>";
+    echo "<td>" . htmlspecialchars($row['duration']) . "</td>";
+    echo "<td>" . htmlspecialchars($row['status']) . "</td>";
+    echo "<td>";
+    if (!empty($row['feedback_text'])) {
+        echo "<button class='btn btn-info' onclick='viewFeedback(" . $row['id'] . ")'>View Feedback</button>";
+    } else {
+        echo "No Feedback";
     }
-    $records[] = $row;
+    echo "</td>";
+    echo "<td>" . htmlspecialchars($row['feedback_date']) . "</td>";
+    echo "</tr>";
 }
-
-// Close statement and connection
-$stmt->close();
-$conn->close();
-
-// Return JSON response
-header('Content-Type: application/json');
-echo json_encode($records);
 ?> 

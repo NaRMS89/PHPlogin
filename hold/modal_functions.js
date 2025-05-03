@@ -13,6 +13,15 @@ function closeModal(modalId) {
     }
 }
 
+// Initialize all modals to be hidden on page load
+document.addEventListener('DOMContentLoaded', function() {
+    // Close all modals
+    const modals = document.querySelectorAll('.modal-container');
+    modals.forEach(modal => {
+        modal.style.display = 'none';
+    });
+});
+
 function showStudentSitIn(studentId, studentName, remainingSessions) {
     // Update student info in the modal
     document.getElementById('studentIdNo').textContent = studentId;
