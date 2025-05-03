@@ -1224,40 +1224,53 @@ $topStudents = getTopStudents($conn, 3);
                     <div class="chart-box" style="flex: 1 1 350px; background: #23233a; border-radius: 18px; padding: 32px 20px 20px 20px; min-width: 320px; max-width: 500px; box-shadow: 0 8px 32px rgba(0,0,0,0.22); margin: 10px auto;">
                         <h3 style="text-align: center; color: #fff; margin-bottom: 18px; font-size: 1.3em; letter-spacing: 1px;">Lab Usage Distribution</h3>
                         <canvas id="labPieChart" style="max-width: 100%; height: 340px;"></canvas>
-                    </div>
                 </div>
+                        </div>
                 <div class="table-container mt-4" style="background: #23233a; border-radius: 12px; padding: 20px;">
                     <h4 class="mb-3">Sit-in Records</h4>
                     <div class="table-responsive">
                         <table class="table table-bordered table-hover" style="color: #fff;">
-                            <thead>
-                                <tr>
+                        <thead>
+                            <tr>
                                     <th>ID Number</th>
-                                    <th>Purpose</th>
+                                <th>Purpose</th>
                                     <th>Lab</th>
                                     <th>Login Time</th>
                                     <th>Logout Time</th>
                                     <th>Duration</th>
-                                    <th>Feedback</th>
-                                </tr>
-                            </thead>
+                                <th class="feedback-cell">Feedback</th>
+                            </tr>
+                        </thead>
                             <tbody>
                             <?php foreach ($sitinData as $row): ?>
+                                <?php
+                                $login = strtotime($row['login_time']);
+                                $logout = strtotime($row['logout_time']);
+                                $duration = ($logout && $login && $logout > $login) ? $logout - $login : null;
+                                if ($duration !== null) {
+                                    $hours = floor($duration / 3600);
+                                    $minutes = floor(($duration % 3600) / 60);
+                                    $duration_str = sprintf('%dh %02dm', $hours, $minutes);
+                                } else {
+                                    $duration_str = 'N/A';
+                                }
+                                $feedback = isset($row['feedback']) ? $row['feedback'] : '';
+                                ?>
                                 <tr>
                                     <td><?= htmlspecialchars($row['id_number']) ?></td>
                                     <td><?= htmlspecialchars($row['purpose']) ?></td>
                                     <td><?= htmlspecialchars($row['lab']) ?></td>
                                     <td><?= htmlspecialchars($row['login_time']) ?></td>
                                     <td><?= htmlspecialchars($row['logout_time']) ?></td>
-                                    <td><?= htmlspecialchars($row['duration']) ?></td>
-                                    <td style="max-width: 200px; white-space: pre-wrap; word-break: break-word;">
-                                        <?= $row['feedback'] ? htmlspecialchars($row['feedback']) : '<span class="text-muted">No Feedback</span>' ?>
+                                    <td><?= $duration_str ?></td>
+                                    <td class="feedback-cell" style="max-width: 200px; max-height: 80px; overflow-y: auto; word-break: break-word; vertical-align: middle; display: table-cell;">
+                                        <?= $feedback ? htmlspecialchars($feedback) : '<span class="text-muted">No Feedback</span>' ?>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
                             </tbody>
-                        </table>
-                    </div>
+                    </table>
+                </div>
                 </div>
                 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
                 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
@@ -3209,7 +3222,7 @@ document.getElementById('sitinBtn').addEventListener('click', function() {
     <div id="feedbackModal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="closeFeedbackModal()">&times;</span>
-            <h2>Student Feedback History</h2>
+            <h2 class="modal-title">Student Feedback History</h2>
             <div id="feedbackContent">
                 <div class="student-info">
                     <p><strong>ID Number:</strong> <span id="feedbackStudentId"></span></p>
