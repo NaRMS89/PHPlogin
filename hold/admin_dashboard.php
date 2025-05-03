@@ -410,7 +410,6 @@ $topStudents = getTopStudents($conn, 3);
         <button id="reservationBtn" class="sidebar-button">Reservation</button>
         <button id="labResourcesBtn" class="sidebar-button">Lab Resources</button>
         <button id="labSchedulesBtn" class="sidebar-button">Lab Schedules</button>
-        <button id="leaderboardBtn" class="sidebar-button">Leaderboard</button>
         <button id="logoutBtn" class="sidebar-button">Logout</button>
     </div>
 
@@ -450,11 +449,30 @@ $topStudents = getTopStudents($conn, 3);
                         </thead>
                         <tbody>
                             <?php foreach ($topStudents as $index => $student): ?>
-                            <tr>
-                                <td><?php echo $index + 1; ?></td>
+                            <?php
+                                $rank = $index + 1;
+                                $rankClass = '';
+                                if ($rank === 1) $rankClass = 'gold';
+                                elseif ($rank === 2) $rankClass = 'silver';
+                                elseif ($rank === 3) $rankClass = 'bronze';
+                            ?>
+                            <tr class="<?php echo $rankClass; ?>">
+                                <td style="font-weight:bold; font-size:1.2em;">
+                                    <?php if ($rank === 1): ?>
+                                        🥇
+                                    <?php elseif ($rank === 2): ?>
+                                        🥈
+                                    <?php elseif ($rank === 3): ?>
+                                        🥉
+                                    <?php else: ?>
+                                        <?php echo $rank; ?>
+                                    <?php endif; ?>
+                                </td>
                                 <td><?php echo htmlspecialchars($student['last_name'] . ', ' . $student['first_name']); ?></td>
                                 <td><?php echo htmlspecialchars($student['id_number']); ?></td>
-                                <td><?php echo htmlspecialchars($student['total_points']); ?></td>
+                                <td style="font-weight:bold; font-size:1.1em; color:#bfa100;">
+                                    <?php echo htmlspecialchars($student['total_points']); ?>
+                                </td>
                             </tr>
                             <?php endforeach; ?>
                         </tbody>
@@ -477,6 +495,31 @@ $topStudents = getTopStudents($conn, 3);
                         <div id="announcementList" class="announcement-scroll"></div>
                     </div>
                 </div>
+
+                <!-- Button to open leaderboard modal -->
+ 
+
+                <script>
+                // Leaderboard modal popup logic
+                const leaderboardBtn = document.getElementById('openLeaderboardModal');
+                const leaderboardModal = document.getElementById('leaderboardModal');
+                leaderboardBtn.addEventListener('click', function() {
+                    leaderboardModal.style.display = 'flex';
+                    leaderboardModal.classList.add('active');
+                });
+                function closeModal(modalId) {
+                    const modal = document.getElementById(modalId);
+                    if (modal) {
+                        modal.classList.remove('active');
+                        setTimeout(() => { modal.style.display = 'none'; }, 300);
+                    }
+                }
+                window.addEventListener('click', function(event) {
+                    if (event.target === leaderboardModal) {
+                        closeModal('leaderboardModal');
+                    }
+                });
+                </script>
             </div>
 
             <!-- Search Modal -->
@@ -1931,7 +1974,7 @@ function handleTimeoutOption(option) {
                             <td>${student.year_level}</td>
                             <td>${student.sessions}</td>
                             <td>${student.points || 0}</td>
-
+                            <td>${student.total_points}</td>
                         `;
                         studentList.appendChild(row);
                     });

@@ -9,10 +9,8 @@ if (!isset($_SESSION['admin_logged_in'])) {
     exit();
 }
 
-// Get all students with their points
-$query = "SELECT id_number, first_name, last_name, course, year_level, sessions, points 
-          FROM info 
-          ORDER BY last_name, first_name";
+// Get all students with their points and total_points
+$query = "SELECT id_number, first_name, last_name, course, year_level, sessions, points, total_points FROM info ORDER BY last_name, first_name";
 
 $result = mysqli_query($conn, $query);
 
