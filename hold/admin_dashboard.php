@@ -20,8 +20,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['give_point_and_timeout
     $success = false;
     $message = '';
     if ($conn instanceof mysqli) {
-        // Add 1 point
-        $update = mysqli_query($conn, "UPDATE info SET points = points + 1 WHERE id_number = '" . mysqli_real_escape_string($conn, $idNo) . "'");
+        // Get current points and sessions
+        $result = mysqli_query($conn, "SELECT points, sessions, total_points FROM info WHERE id_number = '" . mysqli_real_escape_string($conn, $idNo) . "'");
+        $row = mysqli_fetch_assoc($result);
+        $points = (int)$row['points'] + 1;
+        $sessions = (int)$row['sessions'] - 1;
+        $total_points = (int)$row['total_points'] + 1;
+        $add_session = 0;
+        if ($points >= 3) {
+            $points = 0;
+            $add_session = 1;
+        }
+        $sessions += $add_session;
+        // Update info table
+        $update = mysqli_query($conn, "UPDATE info SET points = $points, sessions = $sessions, total_points = $total_points WHERE id_number = '" . mysqli_real_escape_string($conn, $idNo) . "'");
         // Log the point award
         $log = mysqli_query($conn, "INSERT INTO points_log (id_number, points_added, awarded_at) VALUES ('" . mysqli_real_escape_string($conn, $idNo) . "', 1, NOW())");
         // Timeout (set sitin status to inactive)
@@ -40,6 +52,33 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['give_point_and_timeout
     exit();
 }
 
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['logout_sitin'])) {
+    $idNo = $_POST['id_number'];
+    $success = false;
+    $message = '';
+    if ($conn instanceof mysqli) {
+        // Get current sessions
+        $result = mysqli_query($conn, "SELECT sessions FROM info WHERE id_number = '" . mysqli_real_escape_string($conn, $idNo) . "'");
+        $row = mysqli_fetch_assoc($result);
+        $sessions = (int)$row['sessions'] - 1;
+        // Update sessions
+        $update = mysqli_query($conn, "UPDATE info SET sessions = $sessions WHERE id_number = '" . mysqli_real_escape_string($conn, $idNo) . "'");
+        // Timeout (set sitin status to inactive)
+        $timeout = mysqli_query($conn, "UPDATE sitin SET status = 'inactive' WHERE id_number = '" . mysqli_real_escape_string($conn, $idNo) . "' AND status = 'active'");
+        if ($update && $timeout) {
+            $success = true;
+            $message = 'Student successfully timed out.';
+        } else {
+            $message = 'Error updating records.';
+        }
+    } else {
+        $message = 'DB connection error.';
+    }
+    header('Content-Type: application/json');
+    echo json_encode(['success' => $success, 'message' => $message]);
+    exit();
+}
+
 function getStudentData($idNo, $conn) {
     $sql = "SELECT * FROM info WHERE id_number = '$idNo'";
     $result = mysqli_query($conn, $sql);
@@ -47,7 +86,7 @@ function getStudentData($idNo, $conn) {
 }
 
 function getAllStudents($conn) {
-    $sql = "SELECT id_number, first_name, last_name, course, year_level, sessions, points, total_points FROM info";
+    $sql = "SELECT id_number, first_name, last_name, course, year_level, sessions, points, total_points FROM info ORDER BY total_points DESC, last_name, first_name";
     $result = mysqli_query($conn, $sql);
     $students = [];
     while ($row = mysqli_fetch_assoc($result)) {
@@ -581,7 +620,7 @@ $topStudents = getTopStudents($conn, 3);
                                 <th onclick="sortTable('year_level', 'number')" style="cursor: pointer;">Year Level ↕</th>
                                 <th onclick="sortTable('sessions', 'number')" style="cursor: pointer;">Sessions ↕</th>
                                 <th onclick="sortTable('points', 'number')" style="cursor: pointer;">Points ↕</th>
-                                <th>Total Points</th>
+                                <th onclick="sortTable('total_points', 'number')" style="cursor: pointer;">Total Points ↕</th>
                             </tr>
                         </thead>
                         <tbody id="studentTableBody">
@@ -637,20 +676,20 @@ $topStudents = getTopStudents($conn, 3);
 
             <!-- Current Sit-in Content -->
             <div id="sitinContent" style="display: none;">
-                <h2>CURRENT SIT IN</h2>
-                <div class="sitin-header">
-                    <div class="entries-display">
-                        Displaying
-                        <select id="entriesPerPage" class="entries-select" onchange="loadSitInData()">
+                <h2 style="margin-bottom: 18px;">CURRENT SIT IN</h2>
+                <div class="sitin-header" style="display: flex; flex-wrap: wrap; align-items: center; gap: 18px; margin-bottom: 18px;">
+                    <div class="entries-display" style="display: flex; align-items: center; gap: 8px;">
+                        <label for="entriesPerPage" style="font-size: 1.1em;">Show</label>
+                        <select id="entriesPerPage" class="entries-select" style="min-width: 60px;" onchange="loadSitInData()">
                             <option value="5">5</option>
                             <option value="10">10</option>
                             <option value="15">15</option>
                         </select>
-                        entries
+                        <span>entries</span>
                     </div>
-                    <div class="sitin-search">
-    <input type="text" id="sitinSearch" placeholder="Search...">
-</div>
+                    <div class="sitin-search" style="flex: 1; min-width: 200px;">
+                        <input type="text" id="sitinSearch" placeholder="Search..." style="width: 100%; padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border-color); background: rgba(255,255,255,0.08); color: var(--light);">
+                    </div>
                 </div>
                 <div class="sitin-list">
                     <table id="sitinTable">
@@ -663,7 +702,6 @@ $topStudents = getTopStudents($conn, 3);
                                 <th>Sit-in Lab</th>
                                 <th>Session</th>
                                 <th>Status</th>
-                                
                                 <th>Action</th>
                             </tr>
                         </thead>
@@ -678,28 +716,87 @@ $topStudents = getTopStudents($conn, 3);
                                 <td><?php echo $student['sessions']; ?></td>
                                 <td><?php echo $student['status']; ?></td>
                                 <td>
-                                    <?php if (empty($student['feedback_text'])): ?>
-                                        <button onclick="openFeedbackModal(<?php echo $student['sitin_id']; ?>)">Give Feedback</button>
-                                    <?php else: ?>
-                                        <button onclick="viewFeedback(<?php echo $student['sitin_id']; ?>)">View Feedback</button>
-                                    <?php endif; ?>
-                                </td>
-                                <td>
-                                    <button onclick="logoutSitIn('<?php echo $student['id_number']; ?>')">Logout</button>
+                                    <button class="action-button" onclick="showTimeoutOptions('<?php echo $student['id_number']; ?>')">Action</button>
                                 </td>
                             </tr>
                             <?php endforeach; ?>
                         </tbody>
                     </table>
                 </div>
-                <div class="sitin-pagination" style="text-align: center;">
-                    <button onclick="goToFirstPage()"><<</button>
-                    <button onclick="goToPreviousPage()"><</button>
+                <div class="sitin-pagination" style="text-align: center; margin-top: 18px; display: flex; justify-content: center; gap: 8px;">
+                    <button onclick="goToFirstPage()">&lt;&lt;</button>
+                    <button onclick="goToPreviousPage()">&lt;</button>
                     <span id="currentPage">1</span>
-                    <button onclick="goToNextPage()">></button>
-                    <button onclick="goToLastPage()">>></button>
+                    <button onclick="goToNextPage()">&gt;</button>
+                    <button onclick="goToLastPage()">&gt;&gt;</button>
                 </div>
             </div>
+
+            <!-- Timeout Modal -->
+            <div id="timeoutModal" class="modal-container">
+                <div class="modal timeout-modal">
+                    <span class="close" onclick="closeTimeoutModal()">&times;</span>
+                    <h2 class="modal-title">Timeout Options</h2>
+                    <div class="modal-body">
+                        <p>Choose an action for this student:</p>
+                        <div class="timeout-options" style="display: flex; gap: 18px; justify-content: center; margin-top: 18px;">
+                            <button class="btn btn-success" onclick="handleTimeoutOption('point_and_timeout')">
+                                <i class="fas fa-plus"></i> Add Point and Timeout
+                            </button>
+                            <button class="btn btn-danger" onclick="handleTimeoutOption('normal_timeout')">
+                                <i class="fas fa-times"></i> Timeout Only
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <script>
+            let currentTimeoutId = null;
+            function showTimeoutOptions(idNumber) {
+                currentTimeoutId = idNumber;
+                const modal = document.getElementById('timeoutModal');
+                if (modal) {
+                    modal.style.display = 'flex';
+                    modal.classList.add('active');
+                }
+            }
+            function closeTimeoutModal() {
+                const modal = document.getElementById('timeoutModal');
+                if (modal) {
+                    modal.classList.remove('active');
+                    setTimeout(() => { modal.style.display = 'none'; }, 300);
+                }
+            }
+            function handleTimeoutOption(option) {
+                const formData = new FormData();
+                formData.append('id_number', currentTimeoutId);
+                if (option === 'point_and_timeout') {
+                    formData.append('give_point_and_timeout', true);
+                } else {
+                    formData.append('logout_sitin', true);
+                }
+                fetch('admin_dashboard.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    alert(data.message || 'Success');
+                    loadSitInData();
+                    closeTimeoutModal();
+                })
+                .catch(() => {
+                    alert('Error processing request');
+                    closeTimeoutModal();
+                });
+            }
+            window.addEventListener('click', function(event) {
+                const modal = document.getElementById('timeoutModal');
+                if (event.target === modal) {
+                    closeTimeoutModal();
+                }
+            });
+            </script>
 
             <!-- View Sit-in History Modal -->
             <div id="viewSitInModal" class="modal-container">
@@ -1136,12 +1233,12 @@ $topStudents = getTopStudents($conn, 3);
                     <table id="sitInDataTable" class="data-table">
                         <thead>
                             <tr>
-                                <th onclick="sortTable(0, 'number')">ID Number ↕</th>
-                                <th onclick="sortTable(1, 'text')">Purpose ↕</th>
-                                <th onclick="sortTable(2, 'text')">Lab ↕</th>
-                                <th onclick="sortTable(3, 'date')">Login Time ↕</th>
-                                <th onclick="sortTable(4, 'date')">Logout Time ↕</th>
-                                <th onclick="sortTable(5, 'number')">Duration ↕</th>
+                                <th onclick="sortSitInTable('id_number')" style="cursor:pointer;">ID Number ↕</th>
+                                <th>Purpose</th>
+                                <th onclick="sortSitInTable('lab')" style="cursor:pointer;">Lab ↕</th>
+                                <th onclick="sortSitInTable('login_time')" style="cursor:pointer;">Login Time ↕</th>
+                                <th onclick="sortSitInTable('logout_time')" style="cursor:pointer;">Logout Time ↕</th>
+                                <th onclick="sortSitInTable('duration')" style="cursor:pointer;">Duration ↕</th>
                                 <th>Feedback</th>
                             </tr>
                         </thead>
@@ -1150,11 +1247,11 @@ $topStudents = getTopStudents($conn, 3);
                 </div>
 
                 <div class="pagination" style="text-align: center; margin-top: 20px;">
-                    <button onclick="goToFirstPage()" id="firstPageBtn"><<</button>
-                    <button onclick="goToPreviousPage()" id="prevPageBtn"><</button>
-                    <span id="currentPage">1</span>
-                    <button onclick="goToNextPage()" id="nextPageBtn">></button>
-                    <button onclick="goToLastPage()" id="lastPageBtn">>></button>
+                    <button onclick="goToFirstPage()" id="firstPageBtn">&lt;&lt;</button>
+                    <button onclick="goToPreviousPage()" id="prevPageBtn">&lt;</button>
+                    <span id="currentPage">1</span> / <span id="totalPages">1</span>
+                    <button onclick="goToNextPage()" id="nextPageBtn">&gt;</button>
+                    <button onclick="goToLastPage()" id="lastPageBtn">&gt;&gt;</button>
                 </div>
 
                 <div id="feedbackModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); justify-content: center; align-items: center;">
@@ -1165,25 +1262,6 @@ $topStudents = getTopStudents($conn, 3);
                         <button onclick="closeFeedbackModal()" class="btn btn-secondary mt-3">Close</button>
                     </div>
                 </div>
-
-                <!-- Timeout Modal -->
-<div id="timeoutModal" class="modal-container">
-    <div class="modal timeout-modal">
-        <span class="close" onclick="closeTimeoutModal()">&times;</span>
-        <h2 class="modal-title">Timeout Options</h2>
-        <div class="modal-body">
-            <p>Choose an action for this student:</p>
-            <div class="timeout-options">
-                <button class="btn btn-success" onclick="handleTimeoutOption('point_and_timeout')">
-                    <i class="fas fa-plus"></i> Add Point and Timeout
-                </button>
-                <button class="btn btn-danger" onclick="handleTimeoutOption('normal_timeout')">
-                    <i class="fas fa-times"></i> Normal Timeout
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
 
                 <script>
                     function showFeedbackModal(idNumber) {
@@ -2819,7 +2897,8 @@ document.getElementById('sitinBtn').addEventListener('click', function() {
                 'id_number': 0,
                 'year_level': 3,
                 'sessions': 4,
-                'points': 5
+                'points': 5,
+                'total_points': 6
             };
             return columnMap[column];
         }
