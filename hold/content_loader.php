@@ -30,82 +30,6 @@ function loadContent(contentId) {
                     <div class="announcement-list" id="announcementList">
                         </div>
                 </div>
-                <div class="reservation-requests-table" style="margin-top: 40px;">
-                    <h2>Reservation Requests</h2>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>ID Number</th>
-                                <th>Name</th>
-                                <th>Date</th>
-                                <th>Time</th>
-                                <th>Lab</th>
-                                <th>Computer</th>
-                                <th>Purpose</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="reservationRequestsBody"><tr><td colspan="8">Loading...</td></tr></tbody>
-                    </table>
-                </div>
-                <script>
-                function loadReservationRequests() {
-                    fetch('get_reservation_requests.php')
-                        .then(response => response.json())
-                        .then(data => {
-                            const requestsBody = document.getElementById('reservationRequestsBody');
-                            requestsBody.innerHTML = '';
-                            if (data.length === 0) {
-                                requestsBody.innerHTML = '<tr><td colspan="8">No reservation requests found</td></tr>';
-                                return;
-                            }
-                            data.forEach(request => {
-                                const row = document.createElement('tr');
-                                row.innerHTML = `
-                                    <td>${request.id_number}</td>
-                                    <td>${request.name}</td>
-                                    <td>${request.date}</td>
-                                    <td>${request.start_time} - ${request.end_time}</td>
-                                    <td>Lab ${request.lab}</td>
-                                    <td>PC ${request.computer_number}</td>
-                                    <td>${request.purpose}</td>
-                                    <td class="action-buttons">
-                                        <button class="approve-btn" onclick="handleReservationAction(${request.id}, 'approve')">Approve</button>
-                                        <button class="deny-btn" onclick="handleReservationAction(${request.id}, 'deny')">Deny</button>
-                                    </td>
-                                `;
-                                requestsBody.appendChild(row);
-                            });
-                        })
-                        .catch(error => {
-                            const requestsBody = document.getElementById('reservationRequestsBody');
-                            requestsBody.innerHTML = '<tr><td colspan="8">Error loading reservation requests</td></tr>';
-                        });
-                }
-                function handleReservationAction(reservationId, action) {
-                    fetch('handle_reservation_request.php', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/x-www-form-urlencoded',
-                        },
-                        body: `reservation_id=${reservationId}&action=${action}`
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            loadReservationRequests();
-                        } else {
-                            alert('Error: ' + data.message);
-                        }
-                    })
-                    .catch(error => {
-                        alert('Error processing request');
-                    });
-                }
-                // Initial load and refresh every 30 seconds
-                loadReservationRequests();
-                setInterval(loadReservationRequests, 30000);
-                </script>
             `; break;
         case 'computersContent': content = `<?php include 'computer_content.php'; ?>`; break;
         case 'studentContent': content = `
@@ -177,6 +101,84 @@ function loadContent(contentId) {
         case 'viewSitInContent': content = '<p>View current sit-in goes here...</p>'; break;
         case 'sitInReportContent': content = '<p>Sit-in reports go here...</p>'; break;
         case 'feedbackReservationContent': content = '<p>View feedback/reports and reservations goes here...</p>'; break;
+        case 'requestsContent': content = `
+            <div class="reservation-requests-table">
+                <h2>Reservation Requests</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID Number</th>
+                            <th>Name</th>
+                            <th>Date</th>
+                            <th>Time</th>
+                            <th>Lab</th>
+                            <th>Computer</th>
+                            <th>Purpose</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="reservationRequestsBody"><tr><td colspan="8">Loading...</td></tr></tbody>
+                </table>
+            </div>
+            <script>
+            function loadReservationRequests() {
+                fetch('get_reservation_requests.php')
+                    .then(response => response.json())
+                    .then(data => {
+                        const requestsBody = document.getElementById('reservationRequestsBody');
+                        requestsBody.innerHTML = '';
+                        if (data.length === 0) {
+                            requestsBody.innerHTML = '<tr><td colspan="8">No reservation requests found</td></tr>';
+                            return;
+                        }
+                        data.forEach(request => {
+                            const row = document.createElement('tr');
+                            row.innerHTML = `
+                                <td>${request.id_number}</td>
+                                <td>${request.name}</td>
+                                <td>${request.date}</td>
+                                <td>${request.start_time} - ${request.end_time}</td>
+                                <td>Lab ${request.lab}</td>
+                                <td>PC ${request.computer_number}</td>
+                                <td>${request.purpose}</td>
+                                <td class="action-buttons">
+                                    <button class="approve-btn" onclick="handleReservationAction(${request.id}, 'approve')">Approve</button>
+                                    <button class="deny-btn" onclick="handleReservationAction(${request.id}, 'deny')">Deny</button>
+                                </td>
+                            `;
+                            requestsBody.appendChild(row);
+                        });
+                    })
+                    .catch(error => {
+                        const requestsBody = document.getElementById('reservationRequestsBody');
+                        requestsBody.innerHTML = '<tr><td colspan="8">Error loading reservation requests</td></tr>';
+                    });
+            }
+            function handleReservationAction(reservationId, action) {
+                fetch('handle_reservation_request.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `reservation_id=${reservationId}&action=${action}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        loadReservationRequests();
+                    } else {
+                        alert('Error: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    alert('Error processing request');
+                });
+            }
+            // Initial load and refresh every 30 seconds
+            loadReservationRequests();
+            setInterval(loadReservationRequests, 30000);
+            </script>
+        `; break;
         default: content = '<p>Content not found.</p>';
     }
     document.getElementById('dynamicContent').innerHTML = content;

@@ -496,6 +496,10 @@ include 'reservation_requests.php';
             <i class="fas fa-desktop"></i>
             <span>Computers</span>
         </button>
+        <button id="requestsBtn">
+            <i class="fas fa-clipboard-list"></i>
+            <span>Requests</span>
+        </button>
         <button id="sitinBtn">
             <i class="fas fa-chair"></i>
             <span>Sit-in</span>
