@@ -2202,3 +2202,54 @@ button::-moz-focus-inner {
     margin-bottom: 8px;
     text-shadow: 0 2px 8px rgba(255, 215, 0, 0.15);
 }
+
+.pagination-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 20px;
+    padding: 10px;
+    background-color: var(--card-bg);
+    border-radius: 8px;
+}
+
+.entries-per-page {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.entries-per-page select {
+    padding: 5px;
+    border-radius: 4px;
+    background-color: var(--input-bg);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+}
+
+.pagination-info {
+    color: var(--text-color);
+}
+
+.pagination-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.pagination-buttons button {
+    padding: 5px 15px;
+    border-radius: 4px;
+    background-color: var(--button-bg);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+    cursor: pointer;
+}
+
+.pagination-buttons button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.pagination-buttons button:hover:not(:disabled) {
+    background-color: var(--button-hover-bg);
+}

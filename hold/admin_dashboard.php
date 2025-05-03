@@ -432,13 +432,11 @@ $topStudents = getTopStudents($conn, 3);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.24/css/dataTables.bootstrap4.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
     <link rel="stylesheet" href="admin_dashboard.css">
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.datatables.net/1.10.24/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/1.10.24/js/dataTables.bootstrap4.min.js"></script>
+    <script src="admin_dashboard.js"></script>
 </head>
 <body>
     <div class="sidebar">
@@ -848,18 +846,37 @@ $topStudents = getTopStudents($conn, 3);
                         </select>
                     </div>
                     <div class="report-content">
-                        <table class="history-table">
+                        <table class="history-table" id="sitInReportTable">
                             <thead>
                                 <tr>
-                                    <th>Date</th>
-                                    <th>Total Sit-ins</th>
-                                    <th>Active Users</th>
-                                    <th>Most Used Lab</th>
-                                    <th>Most Used Purpose</th>
+                                    <th data-column="id_number" onclick="sortSitInTable('id_number')">ID Number</th>
+                                    <th data-column="purpose" onclick="sortSitInTable('purpose')">Purpose</th>
+                                    <th data-column="lab" onclick="sortSitInTable('lab')">Lab</th>
+                                    <th data-column="login_time" onclick="sortSitInTable('login_time')">Login Time</th>
+                                    <th data-column="logout_time" onclick="sortSitInTable('logout_time')">Logout Time</th>
+                                    <th data-column="duration" onclick="sortSitInTable('duration')">Duration</th>
+                                    <th>Actions</th>
                                 </tr>
                             </thead>
-                            <tbody id="sitInReportBody"></tbody>
+                            <tbody id="sitInDataBody"></tbody>
                         </table>
+                        <div class="pagination-controls">
+                            <div class="entries-per-page">
+                                <label>Show</label>
+                                <select id="entriesPerPage" onchange="changeEntriesPerPage(this.value)">
+                                    <option value="5">5</option>
+                                    <option value="10">10</option>
+                                </select>
+                                <label>entries</label>
+                            </div>
+                            <div class="pagination-info">
+                                Showing <span id="displayStart">0</span> to <span id="displayEnd">0</span> of <span id="displayTotal">0</span> entries
+                            </div>
+                            <div class="pagination-buttons">
+                                <button onclick="prevPage()" id="prevPage">Previous</button>
+                                <button onclick="nextPage()" id="nextPage">Next</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1230,15 +1247,13 @@ $topStudents = getTopStudents($conn, 3);
                     <table id="sitInDataTable" class="data-table">
                         <thead>
                             <tr>
-                                <th>ID Number</th>
+                                <th onclick="sortSitInTable('id_number')" style="cursor:pointer;">ID Number ↕</th>
                                 <th>Purpose</th>
-                                <th>Lab</th>
-                                <th>Login Time</th>
-                                <th>Logout Time</th>
-                                <th>Duration</th>
-                                <th>Status</th>
+                                <th onclick="sortSitInTable('lab')" style="cursor:pointer;">Lab ↕</th>
+                                <th onclick="sortSitInTable('login_time')" style="cursor:pointer;">Login Time ↕</th>
+                                <th onclick="sortSitInTable('logout_time')" style="cursor:pointer;">Logout Time ↕</th>
+                                <th onclick="sortSitInTable('duration')" style="cursor:pointer;">Duration ↕</th>
                                 <th>Feedback</th>
-                                <th>Feedback Date</th>
                             </tr>
                         </thead>
                         <tbody id="sitInDataBody"></tbody>
@@ -3408,20 +3423,3 @@ document.getElementById('sitinBtn').addEventListener('click', function() {
     </body>
 </html>
 <?php if ($conn instanceof mysqli) { mysqli_close($conn); } ?>
-
-<script>
-$(document).ready(function() {
-    $('#sitInDataTable').DataTable({
-        "order": [[3, "desc"]], // Default sort by login time
-        "pageLength": 10,
-        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
-        "language": {
-            "search": "Search:",
-            "lengthMenu": "Show _MENU_ entries",
-            "info": "Showing _START_ to _END_ of _TOTAL_ entries",
-            "infoEmpty": "Showing 0 to 0 of 0 entries",
-            "infoFiltered": "(filtered from _MAX_ total entries)"
-        }
-    });
-});
-</script>
