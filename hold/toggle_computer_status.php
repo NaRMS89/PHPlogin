@@ -1,55 +1,44 @@
 <?php
+require_once 'config.php';
 session_start();
-include("../includes/database.php");
 
-if (!isset($_SESSION['admin_logged_in'])) {
+// Check if user is logged in and is admin
+if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
     header('Content-Type: application/json');
-    echo json_encode(['success' => false, 'message' => 'Unauthorized']);
-    exit();
+    echo json_encode(['error' => 'Unauthorized']);
+    exit;
+}
+
+if (!isset($_POST['lab']) || !isset($_POST['pc_number']) || !isset($_POST['status'])) {
+    header('Content-Type: application/json');
+    echo json_encode(['error' => 'Missing required parameters']);
+    exit;
 }
 
 $lab = $_POST['lab'];
-$computer_number = $_POST['computer_number'];
+$pcNumber = $_POST['pc_number'];
+$status = $_POST['status'];
 
-// Get current status
-$sql = "SELECT status FROM computers WHERE lab = ? AND computer_number = ?";
-$stmt = $conn->prepare($sql);
-$stmt->bind_param("si", $lab, $computer_number);
-$stmt->execute();
-$result = $stmt->get_result();
-$row = $result->fetch_assoc();
+// Validate status
+$validStatuses = ['available', 'maintenance', 'occupied'];
+if (!in_array($status, $validStatuses)) {
+    header('Content-Type: application/json');
+    echo json_encode(['error' => 'Invalid status']);
+    exit;
+}
 
-if (!$row) {
-    // Computer doesn't exist, create it
-    $insert_sql = "INSERT INTO computers (lab, computer_number, status) VALUES (?, ?, 'disabled')";
-    $stmt = $conn->prepare($insert_sql);
-    $stmt->bind_param("si", $lab, $computer_number);
-    $new_status = 'disabled';
-} else {
-    // Toggle status
-    $current_status = $row['status'];
-    $new_status = $current_status === 'disabled' ? 'available' : 'disabled';
+try {
+    $query = "UPDATE computers SET status = ? WHERE lab_id = ? AND pc_number = ?";
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param("ssi", $status, $lab, $pcNumber);
+    $success = $stmt->execute();
     
-    $update_sql = "UPDATE computers SET status = ? WHERE lab = ? AND computer_number = ?";
-    $stmt = $conn->prepare($update_sql);
-    $stmt->bind_param("ssi", $new_status, $lab, $computer_number);
+    header('Content-Type: application/json');
+    echo json_encode(['success' => $success]);
+} catch (Exception $e) {
+    header('Content-Type: application/json');
+    echo json_encode(['error' => 'Database error']);
 }
 
-if ($stmt->execute()) {
-    header('Content-Type: application/json');
-    echo json_encode([
-        'success' => true,
-        'message' => 'Computer status updated successfully',
-        'new_status' => $new_status
-    ]);
-} else {
-    header('Content-Type: application/json');
-    echo json_encode([
-        'success' => false,
-        'message' => 'Error updating computer status: ' . $conn->error
-    ]);
-}
-
-$stmt->close();
 $conn->close();
 ?> 

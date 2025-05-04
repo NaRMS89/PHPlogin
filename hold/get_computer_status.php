@@ -1,47 +1,40 @@
 <?php
+require_once 'config.php';
 session_start();
-include("../includes/database.php");
 
-if (!isset($_SESSION['admin_logged_in'])) {
+// Check if user is logged in and is admin
+if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
     header('Content-Type: application/json');
     echo json_encode(['error' => 'Unauthorized']);
-    exit();
+    exit;
 }
 
-$lab = $_POST['lab'];
-$computers = [];
-
-// Get computer status from database
-$sql = "SELECT computer_number, status FROM computers WHERE lab = ?";
-$stmt = $conn->prepare($sql);
-$stmt->bind_param("s", $lab);
-$stmt->execute();
-$result = $stmt->get_result();
-
-while ($row = $result->fetch_assoc()) {
-    $computers[] = [
-        'number' => $row['computer_number'],
-        'status' => $row['status']
-    ];
+if (!isset($_GET['lab'])) {
+    header('Content-Type: application/json');
+    echo json_encode(['error' => 'Lab parameter is required']);
+    exit;
 }
 
-// If no computers exist for this lab, create them
-if (empty($computers)) {
-    for ($i = 1; $i <= 50; $i++) {
-        $insert_sql = "INSERT INTO computers (lab, computer_number, status) VALUES (?, ?, 'available')";
-        $stmt = $conn->prepare($insert_sql);
-        $stmt->bind_param("si", $lab, $i);
-        $stmt->execute();
-        
-        $computers[] = [
-            'number' => $i,
-            'status' => 'available'
-        ];
+$lab = $_GET['lab'];
+
+try {
+    $query = "SELECT * FROM computers WHERE lab_id = ?";
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param("s", $lab);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    
+    $computers = array();
+    while ($row = $result->fetch_assoc()) {
+        $computers[] = $row;
     }
+    
+    header('Content-Type: application/json');
+    echo json_encode($computers);
+} catch (Exception $e) {
+    header('Content-Type: application/json');
+    echo json_encode(['error' => 'Database error']);
 }
 
-header('Content-Type: application/json');
-echo json_encode($computers);
-$stmt->close();
 $conn->close();
 ?> 

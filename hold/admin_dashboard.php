@@ -425,6 +425,90 @@ function getTopStudents($conn, $limit = 3) {
     return $students;
 }
 $topStudents = getTopStudents($conn, 3);
+
+// Add computer status functions
+function getComputerStatus($lab, $conn) {
+    $query = "SELECT * FROM computers WHERE lab_id = ?";
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param("s", $lab);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $computers = array();
+    while ($row = $result->fetch_assoc()) {
+        $computers[] = $row;
+    }
+    return $computers;
+}
+
+function updateComputerStatus($lab, $pcNumber, $status, $conn) {
+    $query = "UPDATE computers SET status = ? WHERE lab_id = ? AND pc_number = ?";
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param("ssi", $status, $lab, $pcNumber);
+    return $stmt->execute();
+}
+
+function addReservation($lab, $pcNumber, $studentId, $conn) {
+    $query = "INSERT INTO reservations (lab_id, pc_number, student_id, status, created_at) VALUES (?, ?, ?, 'pending', NOW())";
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param("sis", $lab, $pcNumber, $studentId);
+    return $stmt->execute();
+}
+
+function updateReservation($reservationId, $status, $conn) {
+    $query = "UPDATE reservations SET status = ?, updated_at = NOW() WHERE id = ?";
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param("si", $status, $reservationId);
+    if ($stmt->execute()) {
+        if ($status === 'accepted') {
+            // Update computer status to occupied
+            $query = "SELECT lab_id, pc_number FROM reservations WHERE id = ?";
+            $stmt = $conn->prepare($query);
+            $stmt->bind_param("i", $reservationId);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            if ($row = $result->fetch_assoc()) {
+                updateComputerStatus($row['lab_id'], $row['pc_number'], 'occupied', $conn);
+            }
+        }
+        return true;
+    }
+    return false;
+}
+
+function getPendingReservations($conn) {
+    $query = "SELECT r.*, s.name as student_name FROM reservations r 
+              JOIN students s ON r.student_id = s.id_no 
+              WHERE r.status = 'pending' 
+              ORDER BY r.created_at DESC";
+    $result = $conn->query($query);
+    $reservations = array();
+    while ($row = $result->fetch_assoc()) {
+        $reservations[] = $row;
+    }
+    return $reservations;
+}
+
+// Handle AJAX requests for computer status
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action'])) {
+    header('Content-Type: application/json');
+    $response = array('success' => false, 'message' => '');
+    
+    switch ($_POST['action']) {
+        case 'get_status':
+            if (isset($_POST['lab'])) {
+                $computers = getComputerStatus($_POST['lab'], $conn);
+                echo json_encode(array('success' => true, 'computers' => $computers));
+            }
+            break;
+        case 'update_status':
+            if (isset($_POST['lab'], $_POST['computer'], $_POST['status'])) {
+                $success = updateComputerStatus($_POST['lab'], $_POST['computer'], $_POST['status'], $conn);
+                echo json_encode(array('success' => $success));
+            }
+            break;
+    }
+    exit();
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -481,14 +565,17 @@ $topStudents = getTopStudents($conn, 3);
 <body>
     <div class="sidebar">
         <button id="homeBtn" class="sidebar-button">Home</button>
-        <button id="searchBtn" class="sidebar-button">Search</button>
         <button id="studentBtn" class="sidebar-button">Students</button>
+        <button id="searchBtn" class="sidebar-button">Search</button>
         <button id="sitinBtn" class="sidebar-button">Current Sit-in</button>
         <button id="sitInDataBtn" class="sidebar-button">Sit-in Data</button>
+        <button id="requestBtn" class="sidebar-button">Request</button>
+        <button id="computerBtn" class="sidebar-button">Computer</button>
         <button id="reservationBtn" class="sidebar-button">Reservation</button>
         <button id="labResourcesBtn" class="sidebar-button">Lab Resources</button>
         <button id="labSchedulesBtn" class="sidebar-button">Lab Schedules</button>
         <button id="logoutBtn" class="sidebar-button">Logout</button>
+        
     </div>
 
     <main>
@@ -1416,6 +1503,266 @@ $topStudents = getTopStudents($conn, 3);
                 });
                 </script>
             </div>
+
+            <!-- Computer Content -->
+            <div id="computerContent" style="display: none;">
+                <div class="computer-control-container">
+                    <div class="lab-select-container">
+                        <h3>Select Laboratory</h3>
+                        <select id="labSelect" class="form-control">
+                            <option value="">Select a Laboratory</option>
+                            <option value="524">Lab 524</option>
+                            <option value="526">Lab 526</option>
+                            <option value="528">Lab 528</option>
+                            <option value="530">Lab 530</option>
+                            <option value="542">Lab 542</option>
+                            <option value="544">Lab 544</option>
+                            <option value="517">Lab 517</option>
+                        </select>
+                    </div>
+                    
+                    <div class="computer-grid">
+                        <!-- Computer status will be loaded dynamically -->
+                    </div>
+
+                    <div class="reservation-container" id="reservationContainer">
+                        <h3>Pending Reservations</h3>
+                        <div id="adminReservationList" class="reservation-list"></div>
+                    </div>
+                </div>
+            </div>
+
+            <style>
+                .computer-control-container {
+                    padding: 20px;
+                    max-width: 1200px;
+                    margin: 0 auto;
+                    background: #23233a;
+                    border-radius: 18px;
+                    box-shadow: 0 8px 32px rgba(0,0,0,0.22);
+                }
+
+                .lab-select-container {
+                    margin-bottom: 20px;
+                    text-align: center;
+                }
+
+                .lab-select-container h3 {
+                    margin-bottom: 10px;
+                    color: #fff;
+                }
+
+                .form-control {
+                    width: 200px;
+                    padding: 8px;
+                    border: 1px solid #ccc;
+                    border-radius: 4px;
+                    font-size: 14px;
+                    background: #fff;
+                }
+
+                .computer-grid {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+                    gap: 15px;
+                    padding: 10px;
+                }
+
+                .computer-status-item {
+                    padding: 10px;
+                    border-radius: 5px;
+                    text-align: center;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                    background: #2a2a42;
+                    color: #fff;
+                }
+
+                .computer-status-item.available {
+                    border: 1px solid #4caf50;
+                }
+
+                .computer-status-item.occupied {
+                    border: 1px solid #f44336;
+                }
+
+                .computer-status-item.maintenance {
+                    border: 1px solid #ff9800;
+                }
+
+                .status-badge {
+                    font-size: 12px;
+                    padding: 3px 8px;
+                    border-radius: 12px;
+                    margin-top: 5px;
+                    display: inline-block;
+                }
+
+                .computer-status-item.available .status-badge {
+                    background-color: #4caf50;
+                    color: #fff;
+                }
+
+                .computer-status-item.occupied .status-badge {
+                    background-color: #f44336;
+                    color: #fff;
+                }
+
+                .computer-status-item.maintenance .status-badge {
+                    background-color: #ff9800;
+                    color: #fff;
+                }
+
+                .computer-number {
+                    font-weight: bold;
+                    margin-bottom: 5px;
+                    color: #fff;
+                }
+
+                .reservation-container {
+                    margin-top: 30px;
+                    padding: 20px;
+                    background: #2a2a42;
+                    border-radius: 12px;
+                }
+
+                .reservation-container h3 {
+                    color: #fff;
+                    margin-bottom: 15px;
+                }
+
+                .reservation-list {
+                    max-height: 300px;
+                    overflow-y: auto;
+                }
+
+                .reservation-item {
+                    background: #23233a;
+                    padding: 15px;
+                    margin-bottom: 10px;
+                    border-radius: 8px;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    color: #fff;
+                }
+
+                .reservation-actions {
+                    display: flex;
+                    gap: 10px;
+                }
+
+                .btn-accept,
+                .btn-reject {
+                    padding: 5px 15px;
+                    border: none;
+                    border-radius: 4px;
+                    cursor: pointer;
+                    font-weight: bold;
+                }
+
+                .btn-accept {
+                    background: #4caf50;
+                    color: white;
+                }
+
+                .btn-reject {
+                    background: #f44336;
+                    color: white;
+                }
+
+                @media (max-width: 900px) {
+                    .computer-grid {
+                        grid-template-columns: repeat(3, 1fr);
+                    }
+                }
+
+                @media (max-width: 600px) {
+                    .computer-grid {
+                        grid-template-columns: repeat(2, 1fr);
+                    }
+                }
+            </style>
+
+            <script>
+            // Add event listener for computer button
+            document.getElementById('computerBtn').addEventListener('click', function() {
+                // Hide all content sections
+                document.querySelectorAll('#dynamicContent > div').forEach(section => {
+                    section.style.display = 'none';
+                });
+                
+                // Show computer content
+                document.getElementById('computerContent').style.display = 'block';
+                
+                // Initialize computer status if a lab is already selected
+                const labSelect = document.getElementById('labSelect');
+                if (labSelect.value) {
+                    fetchComputerStatus(labSelect.value);
+                }
+            });
+
+            // Add event listener for lab selection
+            document.getElementById('labSelect').addEventListener('change', function() {
+                const lab = this.value;
+                if (lab) {
+                    fetchComputerStatus(lab);
+                } else {
+                    document.querySelector('.computer-grid').innerHTML = '';
+                }
+            });
+
+            function fetchComputerStatus(lab) {
+                fetch('admin_dashboard.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: 'action=get_status&lab=' + lab
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        updateComputerGrid(data.computers);
+                    }
+                });
+            }
+
+            function updateComputerGrid(computers) {
+                const computerGrid = document.querySelector('.computer-grid');
+                computerGrid.innerHTML = '';
+                for (let i = 1; i <= 50; i++) {
+                    const status = computers[i] || 'available';
+                    const computerItem = document.createElement('div');
+                    computerItem.className = `computer-status-item ${status}`;
+                    computerItem.innerHTML = `
+                        <div class="computer-number">PC ${i}</div>
+                        <div class="status-badge">${status.charAt(0).toUpperCase() + status.slice(1)}</div>
+                    `;
+                    computerItem.addEventListener('click', function() {
+                        toggleComputerStatus(labSelect.value, i, status);
+                    });
+                    computerGrid.appendChild(computerItem);
+                }
+            }
+
+            function toggleComputerStatus(lab, computer, currentStatus) {
+                const newStatus = currentStatus === 'available' ? 'occupied' : 'available';
+                fetch('admin_dashboard.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `action=update_status&lab=${lab}&computer=${computer}&status=${newStatus}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        fetchComputerStatus(lab);
+                    }
+                });
+            }
+            </script>
 
         </div>
 

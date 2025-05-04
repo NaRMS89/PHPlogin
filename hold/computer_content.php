@@ -22,8 +22,92 @@ if (!isset($_SESSION['admin_logged_in'])) {
             <option value="517">Lab 517</option>
         </select>
     </div>
-    <div class="computer-grid"><p>Please select a laboratory</p></div>
+    
+    <div class="computer-grid" id="computerGrid">
+        <!-- Computer status will be loaded dynamically -->
+    </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const labSelect = document.getElementById('labSelect');
+    const computerGrid = document.getElementById('computerGrid');
+
+    function loadComputers(lab) {
+        // Clear existing computers
+        computerGrid.innerHTML = '';
+        
+        // Fetch current computer statuses
+        fetch('get_computer_status.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `lab=${lab}`
+        })
+        .then(response => response.json())
+        .then(computers => {
+            // Create computer grid
+            for (let i = 1; i <= 50; i++) {
+                const computer = computers.find(c => c.number === i);
+                const status = computer ? computer.status : 'available';
+                
+                const computerItem = document.createElement('div');
+                computerItem.className = `computer-status-item ${status}`;
+                computerItem.innerHTML = `
+                    <div class="computer-number">PC ${i}</div>
+                    <div class="status-badge">
+                        ${status.charAt(0).toUpperCase() + status.slice(1)}
+                    </div>
+                `;
+                
+                // Add click event to toggle status
+                computerItem.addEventListener('click', function() {
+                    toggleComputerStatus(lab, i, status);
+                });
+                
+                computerGrid.appendChild(computerItem);
+            }
+        })
+        .catch(error => {
+            console.error('Error loading computer status:', error);
+            alert('Error loading computer status. Please try again.');
+        });
+    }
+
+    function toggleComputerStatus(lab, computerNumber, currentStatus) {
+        fetch('toggle_computer_status.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `lab=${lab}&computer_number=${computerNumber}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Reload computers to reflect new status
+                loadComputers(lab);
+            } else {
+                alert('Error updating computer status: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error toggling computer status:', error);
+            alert('Error updating computer status. Please try again.');
+        });
+    }
+
+    // Load computers when lab is selected
+    labSelect.addEventListener('change', function() {
+        if (this.value) {
+            loadComputers(this.value);
+        } else {
+            computerGrid.innerHTML = '';
+        }
+    });
+});
+</script>
 
 <style>
 .computer-control-container {
@@ -31,14 +115,17 @@ if (!isset($_SESSION['admin_logged_in'])) {
     max-width: 1200px;
     margin: 0 auto;
 }
+
 .lab-select-container {
     margin-bottom: 20px;
     text-align: center;
 }
+
 .lab-select-container h3 {
     margin-bottom: 10px;
-    color: #fff;
+    color: #333;
 }
+
 .form-control {
     width: 200px;
     padding: 8px;
@@ -46,12 +133,14 @@ if (!isset($_SESSION['admin_logged_in'])) {
     border-radius: 4px;
     font-size: 14px;
 }
+
 .computer-grid {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
     gap: 10px;
     margin-top: 20px;
 }
+
 .computer-status-item {
     padding: 10px;
     border: 1px solid #ccc;
@@ -65,28 +154,33 @@ if (!isset($_SESSION['admin_logged_in'])) {
     flex-direction: column;
     justify-content: center;
 }
+
 .computer-status-item:hover {
     transform: translateY(-2px);
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
+
 .computer-status-item.available {
     background-color: #28a745;
     color: white;
 }
-.computer-status-item.in-use {
+
+.computer-status-item.disabled {
     background-color: #dc3545;
     color: white;
 }
-.computer-status-item.disabled {
-    background-color: #6c757d;
-    color: white;
-    opacity: 0.7;
+
+.computer-status-item.in-use {
+    background-color: #ffc107;
+    color: #000;
 }
+
 .computer-number {
     font-size: 14px;
     font-weight: bold;
     margin-bottom: 5px;
 }
+
 .status-badge {
     display: inline-block;
     padding: 2px 6px;
@@ -95,65 +189,4 @@ if (!isset($_SESSION['admin_logged_in'])) {
     font-weight: bold;
     background-color: rgba(255,255,255,0.2);
 }
-</style>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const labSelect = document.getElementById('labSelect');
-    const computerGrid = document.querySelector('.computer-grid');
-    function updateComputerStatus() {
-        const selectedLab = labSelect.value;
-        if (!selectedLab) {
-            computerGrid.innerHTML = '<p>Please select a laboratory</p>';
-            return;
-        }
-        fetch('get_computer_status.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded', },
-            body: 'lab=' + selectedLab
-        })
-        .then(response => response.json())
-        .then(data => {
-            computerGrid.innerHTML = '';
-            data.forEach(computer => {
-                const computerItem = document.createElement('div');
-                computerItem.className = `computer-status-item ${computer.status}`;
-                computerItem.innerHTML = `
-                    <div class="computer-number">PC ${computer.number}</div>
-                    <div class="status-badge">
-                        ${computer.status === 'in-use' ? 'In Use' : computer.status === 'available' ? 'Available' : 'Disabled'}
-                    </div>
-                `;
-                computerItem.addEventListener('click', function() {
-                    toggleComputerStatus(selectedLab, computer.number);
-                });
-                computerGrid.appendChild(computerItem);
-            });
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            computerGrid.innerHTML = '<p>Error loading computer status</p>';
-        });
-    }
-    function toggleComputerStatus(lab, computerNumber) {
-        fetch('toggle_computer_status.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded', },
-            body: `lab=${lab}&computer_number=${computerNumber}`
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                updateComputerStatus();
-            } else {
-                alert('Error: ' + data.message);
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Error toggling computer status');
-        });
-    }
-    labSelect.addEventListener('change', updateComputerStatus);
-});
-</script> 
+</style> 
