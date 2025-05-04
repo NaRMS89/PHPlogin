@@ -425,10 +425,6 @@ function getTopStudents($conn, $limit = 3) {
     return $students;
 }
 $topStudents = getTopStudents($conn, 3);
-
-// Include the new sections
-// include 'computer_content.php';
-include 'reservation_requests.php';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -484,42 +480,15 @@ include 'reservation_requests.php';
 </head>
 <body>
     <div class="sidebar">
-        <button id="homeBtn">
-            <i class="fas fa-home"></i>
-            <span>Home</span>
-        </button>
-        <button id="studentBtn">
-            <i class="fas fa-users"></i>
-            <span>Students</span>
-        </button>
-        <button id="computersBtn">
-            <i class="fas fa-desktop"></i>
-            <span>Computers</span>
-        </button>
-        <button id="requestsBtn">
-            <i class="fas fa-clipboard-list"></i>
-            <span>Requests</span>
-        </button>
-        <button id="sitinBtn">
-            <i class="fas fa-chair"></i>
-            <span>Sit-in</span>
-        </button>
-        <button id="historyBtn">
-            <i class="fas fa-history"></i>
-            <span>History</span>
-        </button>
-        <button id="leaderboardBtn">
-            <i class="fas fa-trophy"></i>
-            <span>Leaderboard</span>
-        </button>
-        <button id="searchBtn">
-            <i class="fas fa-search"></i>
-            <span>Search</span>
-        </button>
-        <button id="logoutBtn">
-            <i class="fas fa-sign-out-alt"></i>
-            <span>Logout</span>
-        </button>
+        <button id="homeBtn" class="sidebar-button">Home</button>
+        <button id="searchBtn" class="sidebar-button">Search</button>
+        <button id="studentBtn" class="sidebar-button">Students</button>
+        <button id="sitinBtn" class="sidebar-button">Current Sit-in</button>
+        <button id="sitInDataBtn" class="sidebar-button">Sit-in Data</button>
+        <button id="reservationBtn" class="sidebar-button">Reservation</button>
+        <button id="labResourcesBtn" class="sidebar-button">Lab Resources</button>
+        <button id="labSchedulesBtn" class="sidebar-button">Lab Schedules</button>
+        <button id="logoutBtn" class="sidebar-button">Logout</button>
     </div>
 
     <main>
@@ -1248,211 +1217,59 @@ include 'reservation_requests.php';
             <div id="sitInDataContent" style="margin: 30px 0;">
                 <!-- Export Button (inside sitInDataContent only) -->
                 <div style="display: flex; justify-content: flex-end; margin-bottom: 18px;">
-                    <button id="openExportModal" class="btn-primary">Export</button>
+                    <button id="openExportModal" class="btn-primary" onclick="openExportModal()" style="padding: 8px 16px; border-radius: 6px; background: var(--primary); color: white; border: none; cursor: pointer;">Export</button>
                 </div>
                 <!-- Export Modal (inside sitInDataContent only) -->
-                <div id="exportModal" class="modal-container" style="display:none; align-items:center; justify-content:center;">
-                    <div class="modal" style="max-width: 500px; margin:auto; display:flex; flex-direction:column; align-items:center;">
-                        <span class="close" onclick="closeExportModal()" style="align-self:flex-end; cursor:pointer;">&times;</span>
-                        <h2 style="text-align:center; width:100%;">Export Sit-in Data</h2>
+                <div id="exportModal" class="modal-container" style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); align-items:center; justify-content:center; z-index: 1000;">
+                    <div class="modal" style="max-width: 400px; width: 90%; margin:auto; background: var(--background); border-radius: 10px; padding: 25px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
+                        <span class="close" onclick="closeExportModal()" style="align-self:flex-end; cursor:pointer; font-size: 24px; color: var(--light);">&times;</span>
+                        <h2 style="text-align:center; width:100%; color: var(--light); margin-bottom: 20px;">Export Sit-in Data</h2>
                         <form id="exportForm" style="width:100%; display:flex; flex-direction:column; gap:16px;">
                             <div class="form-group">
-                                <label for="exportType">Export as:</label>
-                                <select id="exportType" name="exportType" required>
+                                <label for="exportType" style="color: var(--light); margin-bottom: 8px; display: block;">Export as:</label>
+                                <select id="exportType" name="exportType" required style="width: 100%; padding: 8px; border-radius: 6px; background: rgba(255,255,255,0.1); border: 1px solid var(--border-color); color: var(--light);">
                                     <option value="csv">CSV</option>
                                     <option value="excel">Excel</option>
                                     <option value="pdf">PDF</option>
                                     <option value="print">Print</option>
                                 </select>
                             </div>
-
                             <div class="form-group">
-                                <label for="dateRange">Date Range:</label>
-                                <div style="display: flex; gap: 10px;">
-                                    <input type="date" id="startDate" name="startDate" style="flex: 1;">
-                                    <input type="date" id="endDate" name="endDate" style="flex: 1;">
-                                </div>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="exportScope">Export Scope:</label>
-                                <select id="exportScope" name="exportScope" required>
-                                    <option value="all">All Records</option>
-                                    <option value="filtered">Filtered Records</option>
-                                    <option value="selected">Selected Records</option>
-                                </select>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="filterBy">Filter by:</label>
-                                <select id="filterBy" name="filterBy" required onchange="updateExportOptions()">
+                                <label for="filterBy" style="color: var(--light); margin-bottom: 8px; display: block;">Filter by:</label>
+                                <select id="filterBy" name="filterBy" required onchange="updateExportOptions()" style="width: 100%; padding: 8px; border-radius: 6px; background: rgba(255,255,255,0.1); border: 1px solid var(--border-color); color: var(--light);">
                                     <option value="lab">Lab</option>
                                     <option value="purpose">Purpose</option>
                                 </select>
                             </div>
-
                             <div id="labOptions" style="display:block;">
-                                <label for="labRoom">Lab Room:</label>
-                                <select id="labRoom" name="labRoom">
-                                    <option value="524">Lab 524</option>
-                                    <option value="526">Lab 526</option>
-                                    <option value="528">Lab 528</option>
-                                    <option value="530">Lab 530</option>
-                                    <option value="542">Lab 542</option>
-                                    <option value="544">Lab 544</option>
-                                    <option value="517">Lab 517</option>
-                                </select>
+                                <div class="form-group">
+                                    <label for="labRoom" style="color: var(--light); margin-bottom: 8px; display: block;">Lab Room:</label>
+                                    <select id="labRoom" name="labRoom" style="width: 100%; padding: 8px; border-radius: 6px; background: rgba(255,255,255,0.1); border: 1px solid var(--border-color); color: var(--light);">
+                                        <option value="524">Lab 524</option>
+                                        <option value="526">Lab 526</option>
+                                        <option value="528">Lab 528</option>
+                                        <option value="530">Lab 530</option>
+                                        <option value="542">Lab 542</option>
+                                        <option value="544">Lab 544</option>
+                                        <option value="517">Lab 517</option>
+                                    </select>
+                                </div>
                             </div>
-
                             <div id="purposeOptions" style="display:none;">
-                                <label for="purpose">Purpose:</label>
-                                <select id="purpose" name="purpose">
-                                    <option value="C Programming">C Programming</option>
-                                    <option value="Java Programming">Java Programming</option>
-                                    <option value="Python">Python</option>
-                                    <option value="C#">C#</option>
-                                    <option value="Database">Database</option>
-                                    <option value="Digital Logic &amp; Design">Digital Logic &amp; Design</option>
-                                    <option value="Embedded Systems and IoT">Embedded Systems and IoT</option>
-                                    <option value="System Integration and Architecture">System Integration and Architecture</option>
-                                    <option value="Computer Application">Computer Application</option>
-                                    <option value="Project Management">Project Management</option>
-                                    <option value="IT Trend">IT Trend</option>
-                                    <option value="Technopreneurship">Technopreneurship</option>
-                                    <option value="Capstone">Capstone</option>
-                                </select>
+                                <div class="form-group">
+                                    <label for="purpose" style="color: var(--light); margin-bottom: 8px; display: block;">Purpose:</label>
+                                    <select id="purpose" name="purpose" style="width: 100%; padding: 8px; border-radius: 6px; background: rgba(255,255,255,0.1); border: 1px solid var(--border-color); color: var(--light);">
+                                        <option value="C Programming">C Programming</option>
+                                        <option value="Java Programming">Java Programming</option>
+                                    </select>
+                                </div>
                             </div>
-
-                            <div class="form-group">
-                                <label for="fileName">File Name:</label>
-                                <input type="text" id="fileName" name="fileName" value="sit_in_data" required>
-                            </div>
-
-                            <div class="button-group" style="display: flex; gap: 10px;">
-                                <button type="button" class="btn-secondary" onclick="previewExport()">Preview</button>
-                                <button type="submit" class="btn-primary">Export</button>
+                            <div class="form-group" style="margin-top: 20px;">
+                                <button type="submit" class="btn btn-primary" style="width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 500;">Export Data</button>
                             </div>
                         </form>
-
-                        <!-- Preview Modal -->
-                        <div id="previewModal" class="modal-container" style="display: none;">
-                            <div class="modal" style="max-width: 800px; max-height: 80vh; overflow-y: auto;">
-                                <span class="close" onclick="closePreviewModal()">&times;</span>
-                                <h2>Export Preview</h2>
-                                <div id="previewContent"></div>
-                            </div>
-                        </div>
-
-                        <!-- Progress Modal -->
-                        <div id="progressModal" class="modal-container" style="display: none;">
-                            <div class="modal" style="max-width: 400px;">
-                                <h2>Exporting Data</h2>
-                                <div class="progress-bar">
-                                    <div class="progress" style="width: 0%"></div>
-                                </div>
-                                <p id="progressText">Preparing export...</p>
-                            </div>
-                        </div>
                     </div>
                 </div>
-
-                <script>
-                // Export modal logic
-                document.getElementById('openExportModal').onclick = function() {
-                    document.getElementById('exportModal').style.display = 'flex';
-                };
-
-                function closeExportModal() {
-                    document.getElementById('exportModal').style.display = 'none';
-                }
-
-                function closePreviewModal() {
-                    document.getElementById('previewModal').style.display = 'none';
-                }
-
-                function updateExportOptions() {
-                    const filterBy = document.getElementById('filterBy').value;
-                    document.getElementById('labOptions').style.display = filterBy === 'lab' ? 'block' : 'none';
-                    document.getElementById('purposeOptions').style.display = filterBy === 'purpose' ? 'block' : 'none';
-                }
-
-                function previewExport() {
-                    const exportType = document.getElementById('exportType').value;
-                    const filterBy = document.getElementById('filterBy').value;
-                    const filterValue = filterBy === 'lab' ? 
-                        document.getElementById('labRoom').value : 
-                        document.getElementById('purpose').value;
-                    const startDate = document.getElementById('startDate').value;
-                    const endDate = document.getElementById('endDate').value;
-
-                    // Show progress modal
-                    document.getElementById('progressModal').style.display = 'flex';
-                    document.getElementById('progressText').textContent = 'Generating preview...';
-
-                    // Fetch preview data
-                    fetch(`get_export_preview.php?type=${exportType}&filterBy=${filterBy}&filterValue=${encodeURIComponent(filterValue)}&startDate=${startDate}&endDate=${endDate}`)
-                        .then(response => response.json())
-                        .then(data => {
-                            const previewContent = document.getElementById('previewContent');
-                            previewContent.innerHTML = data.preview;
-                            document.getElementById('progressModal').style.display = 'none';
-                            document.getElementById('previewModal').style.display = 'flex';
-                        })
-                        .catch(error => {
-                            console.error('Error:', error);
-                            document.getElementById('progressModal').style.display = 'none';
-                            alert('Error generating preview. Please try again.');
-                        });
-                }
-
-                document.getElementById('exportForm').onsubmit = function(e) {
-                    e.preventDefault();
-                    
-                    const exportType = document.getElementById('exportType').value;
-                    const filterBy = document.getElementById('filterBy').value;
-                    const filterValue = filterBy === 'lab' ? 
-                        document.getElementById('labRoom').value : 
-                        document.getElementById('purpose').value;
-                    const startDate = document.getElementById('startDate').value;
-                    const endDate = document.getElementById('endDate').value;
-                    const fileName = document.getElementById('fileName').value;
-                    const exportScope = document.getElementById('exportScope').value;
-
-                    // Show progress modal
-                    document.getElementById('progressModal').style.display = 'flex';
-                    document.getElementById('progressText').textContent = 'Preparing export...';
-
-                    // Update progress
-                    setTimeout(() => {
-                        document.getElementById('progressText').textContent = 'Exporting data...';
-                        document.querySelector('.progress').style.width = '50%';
-                    }, 500);
-
-                    // Prepare export URL
-                    let exportUrl = `export_sitin_data.php?type=${exportType}&filterBy=${filterBy}&filterValue=${encodeURIComponent(filterValue)}`;
-                    exportUrl += `&startDate=${startDate}&endDate=${endDate}&fileName=${encodeURIComponent(fileName)}&scope=${exportScope}`;
-
-                    if (exportType === 'print') {
-                        window.open(exportUrl, '_blank');
-                    } else {
-                        window.location.href = exportUrl;
-                    }
-
-                    // Close modals
-                    setTimeout(() => {
-                        document.getElementById('progressModal').style.display = 'none';
-                        closeExportModal();
-                    }, 1000);
-                };
-
-                // Set default date range to last 30 days
-                const today = new Date();
-                const thirtyDaysAgo = new Date();
-                thirtyDaysAgo.setDate(today.getDate() - 30);
-                
-                document.getElementById('endDate').value = today.toISOString().split('T')[0];
-                document.getElementById('startDate').value = thirtyDaysAgo.toISOString().split('T')[0];
-                </script>
                 <div class="charts-row" style="display: flex; gap: 30px; margin-bottom: 30px; flex-wrap: wrap; justify-content: center;">
                     <div class="chart-box" style="flex: 1 1 350px; background: #23233a; border-radius: 18px; padding: 32px 20px 20px 20px; min-width: 320px; max-width: 500px; box-shadow: 0 8px 32px rgba(0,0,0,0.22); margin: 10px auto;">
                         <h3 style="text-align: center; color: #fff; margin-bottom: 18px; font-size: 1.3em; letter-spacing: 1px;">Purpose Distribution</h3>
@@ -3389,6 +3206,96 @@ document.getElementById('sitinBtn').addEventListener('click', function() {
                 displaySitInData();
             }
         }
+
+        // Export modal functions
+        function openExportModal() {
+            const modal = document.getElementById('exportModal');
+            modal.style.display = 'flex';
+            // Reset form when opening
+            document.getElementById('exportForm').reset();
+            // Reset options visibility
+            document.getElementById('labOptions').style.display = 'block';
+            document.getElementById('purposeOptions').style.display = 'none';
+        }
+
+        function closeExportModal() {
+            document.getElementById('exportModal').style.display = 'none';
+        }
+
+        function updateExportOptions() {
+            const filterBy = document.getElementById('filterBy').value;
+            const labOptions = document.getElementById('labOptions');
+            const purposeOptions = document.getElementById('purposeOptions');
+            
+            if (filterBy === 'lab') {
+                labOptions.style.display = 'block';
+                purposeOptions.style.display = 'none';
+            } else {
+                labOptions.style.display = 'none';
+                purposeOptions.style.display = 'block';
+            }
+        }
+
+        // Handle export form submission
+        document.getElementById('exportForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const exportType = document.getElementById('exportType').value;
+            const filterBy = document.getElementById('filterBy').value;
+            let filterValue = '';
+            
+            if (filterBy === 'lab') {
+                filterValue = document.getElementById('labRoom').value;
+            } else {
+                filterValue = document.getElementById('purpose').value;
+            }
+
+            // Show loading state
+            const submitButton = this.querySelector('button[type="submit"]');
+            const originalText = submitButton.textContent;
+            submitButton.textContent = 'Exporting...';
+            submitButton.disabled = true;
+
+            // Prepare the export URL
+            const exportUrl = `export_sitin_data.php?type=${exportType}&filterBy=${filterBy}&filterValue=${encodeURIComponent(filterValue)}`;
+
+            if (exportType === 'print') {
+                // For print, open in new window
+                const printWindow = window.open(exportUrl, '_blank');
+                if (!printWindow) {
+                    alert('Please allow popups for this site to print.');
+                }
+            } else {
+                // For other formats, trigger download
+                const link = document.createElement('a');
+                link.href = exportUrl;
+                link.download = `sit-in-data-${filterBy}-${filterValue}.${exportType}`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+
+            // Reset button state
+            submitButton.textContent = originalText;
+            submitButton.disabled = false;
+            
+            // Close modal after a short delay
+            setTimeout(closeExportModal, 500);
+        });
+
+        // Close modal when clicking outside
+        document.getElementById('exportModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeExportModal();
+            }
+        });
+
+        // Close modal with Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && document.getElementById('exportModal').style.display === 'flex') {
+                closeExportModal();
+            }
+        });
     </script>
 
     <script>

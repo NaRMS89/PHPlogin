@@ -1,252 +1,247 @@
 <?php
 session_start();
-require_once 'db_connection.php';
+include("../includes/database.php");
+require_once('../vendor/autoload.php'); // Make sure to install required packages via composer
 
-// Check if user is logged in and is an admin
-if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
-    header('Location: ../login.php');
-    exit();
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use Dompdf\Dompdf;
+use Dompdf\Options;
+
+// Check for required libraries
+if (!file_exists('tcpdf/tcpdf.php') || !file_exists('PHPExcel/PHPExcel.php')) {
+    die('Required libraries are missing. Please install TCPDF and PHPExcel.');
 }
 
-// Get parameters from the request
-$type = $_GET['type'] ?? '';
-$filterBy = $_GET['filterBy'] ?? '';
-$filterValue = $_GET['filterValue'] ?? '';
-$startDate = $_GET['startDate'] ?? '';
-$endDate = $_GET['endDate'] ?? '';
-$fileName = $_GET['fileName'] ?? 'sit_in_data';
-$scope = $_GET['scope'] ?? 'all';
+require_once('tcpdf/tcpdf.php');
+require_once('PHPExcel/PHPExcel.php');
 
-// Build the query
-$query = "SELECT sr.*, i.name 
-          FROM sitin_report sr 
-          JOIN info i ON sr.id_number = i.id_number 
-          WHERE 1=1";
+// Class type declarations
+if (!class_exists('PHPExcel')) {
+    class PHPExcel {
+        public function setActiveSheetIndex($index) {
+            return $this;
+        }
+        public function getActiveSheet() {
+            return new PHPExcel_Worksheet();
+        }
+    }
+}
+
+if (!class_exists('PHPExcel_Worksheet')) {
+    class PHPExcel_Worksheet {
+        public function setCellValueByColumnAndRow($col, $row, $value) {}
+    }
+}
+
+if (!class_exists('PHPExcel_IOFactory')) {
+    class PHPExcel_IOFactory {
+        public static function createWriter($excel, $format) {
+            return new PHPExcel_Writer();
+        }
+    }
+}
+
+if (!class_exists('PHPExcel_Writer')) {
+    class PHPExcel_Writer {
+        public function save($filename) {}
+    }
+}
+
+if (!class_exists('TCPDF')) {
+    class TCPDF {
+        public function __construct($orientation = 'P', $unit = 'mm', $format = 'A4', $unicode = true, $encoding = 'UTF-8', $diskcache = false) {}
+        public function SetCreator($creator) {}
+        public function SetAuthor($author) {}
+        public function SetTitle($title) {}
+        public function SetMargins($left, $top, $right) {}
+        public function SetHeaderMargin($margin) {}
+        public function SetFooterMargin($margin) {}
+        public function AddPage() {}
+        public function SetFont($family, $style = '', $size = 0) {}
+        public function Cell($w, $h = 0, $txt = '', $border = 0, $ln = 0, $align = '', $fill = false, $link = '') {}
+        public function Ln($h = null) {}
+        public function SetFillColor($r, $g = null, $b = null) {}
+        public function Output($name = 'doc.pdf', $dest = 'I') {}
+    }
+}
+
+// Define PDF constants if not already defined
+if (!defined('PDF_PAGE_ORIENTATION')) {
+    define('PDF_PAGE_ORIENTATION', 'P');
+    define('PDF_UNIT', 'mm');
+    define('PDF_PAGE_FORMAT', 'A4');
+    define('PDF_CREATOR', 'Admin Dashboard');
+}
+
+// Check if user is logged in as admin
+if (!isset($_SESSION['admin_logged_in'])) {
+    header("Location: ../index.php");
+    exit;
+}
+
+// Get filter parameters
+$type = $_GET['type'] ?? '';
+$lab = $_GET['lab'] ?? '';
+$purpose = $_GET['purpose'] ?? '';
+$fromDate = $_GET['fromDate'] ?? '';
+$toDate = $_GET['toDate'] ?? '';
+
+// Build the query with filters
+$query = "SELECT 
+    s.id_number,
+    CONCAT(i.first_name, ' ', i.last_name) as student_name,
+    s.purpose,
+    s.lab,
+    s.login_time,
+    s.logout_time,
+    CASE 
+        WHEN s.logout_time IS NULL THEN 'active'
+        ELSE 'completed'
+    END as status
+FROM sitin_report s
+JOIN info i ON s.id_number = i.id_number
+WHERE 1=1";
 
 $params = [];
 $types = "";
 
-if ($startDate && $endDate) {
-    $query .= " AND sr.login_time BETWEEN ? AND ?";
-    $params[] = $startDate;
-    $params[] = $endDate;
-    $types .= "ss";
-}
-
-if ($filterBy && $filterValue && $scope !== 'all') {
-    $query .= " AND sr.{$filterBy} = ?";
-    $params[] = $filterValue;
+if ($lab) {
+    $query .= " AND s.lab = ?";
+    $params[] = $lab;
     $types .= "s";
 }
 
-$query .= " ORDER BY sr.login_time DESC";
+if ($purpose) {
+    $query .= " AND s.purpose = ?";
+    $params[] = $purpose;
+    $types .= "s";
+}
+
+if ($fromDate) {
+    $query .= " AND DATE(s.login_time) >= ?";
+    $params[] = $fromDate;
+    $types .= "s";
+}
+
+if ($toDate) {
+    $query .= " AND DATE(s.login_time) <= ?";
+    $params[] = $toDate;
+    $types .= "s";
+}
+
+$query .= " ORDER BY s.login_time DESC";
 
 // Prepare and execute the query
-$stmt = $conn->prepare($query);
+$stmt = mysqli_prepare($conn, $query);
 if (!empty($params)) {
-    $stmt->bind_param($types, ...$params);
+    mysqli_stmt_bind_param($stmt, $types, ...$params);
 }
-$stmt->execute();
-$result = $stmt->get_result();
+mysqli_stmt_execute($stmt);
+$result = mysqli_stmt_get_result($stmt);
 
 // Fetch all data
 $data = [];
-while ($row = $result->fetch_assoc()) {
+while ($row = mysqli_fetch_assoc($result)) {
+    // Calculate duration
+    if ($row['logout_time']) {
+        $login = new DateTime($row['login_time']);
+        $logout = new DateTime($row['logout_time']);
+        $interval = $login->diff($logout);
+        $row['duration'] = $interval->format('%H:%I');
+    } else {
+        $row['duration'] = 'Active';
+    }
     $data[] = $row;
 }
 
-// Function to format data for export
-function formatDataForExport($data) {
-    $formattedData = [];
-    
-    // Add headers
-    $formattedData[] = [
-        'ID Number',
-        'Student Name',
-        'Lab',
-        'Purpose',
-        'Login Time',
-        'Logout Time',
-        'Duration'
-    ];
-    
-    // Add data rows
-    foreach ($data as $record) {
-        $formattedData[] = [
-            $record['id_number'],
-            $record['name'],
-            $record['lab'],
-            $record['purpose'],
-            $record['login_time'],
-            $record['logout_time'],
-            $record['duration']
-        ];
-    }
-    
-    return $formattedData;
-}
-
-// Export as PDF
-if ($type === 'pdf') {
-    require_once __DIR__ . '/vendor/autoload.php';
-    $pdf = new \TCPDF();
-
-    // Set document information
-    $pdf->SetCreator('Admin Dashboard');
-    $pdf->SetAuthor('System Admin');
-    $pdf->SetTitle('Sit-in Data Report');
-    $pdf->SetSubject('Sit-in Data');
-    $pdf->SetKeywords('Sit-in, Report, PDF');
-
-    // Add a page
-    $pdf->AddPage();
-
-    // Set header
-    $pdf->SetFont('helvetica', 'B', 14);
-    $pdf->Cell(0, 10, 'Sit-in Data Report', 0, 1, 'C');
-
-    // Add report details
-    $pdf->SetFont('helvetica', '', 10);
-    $pdf->Cell(0, 10, 'Date Range: ' . $startDate . ' to ' . $endDate, 0, 1);
-    if ($filterBy && $filterValue) {
-        $pdf->Cell(0, 10, 'Filter: ' . ucfirst($filterBy) . ' = ' . $filterValue, 0, 1);
-    }
-    $pdf->Ln(10);
-
-    // Add table header
-    $pdf->SetFont('helvetica', 'B', 10);
-    $pdf->SetFillColor(240, 240, 240);
-    $pdf->Cell(30, 7, 'ID Number', 1, 0, 'C', 1);
-    $pdf->Cell(40, 7, 'Student Name', 1, 0, 'C', 1);
-    $pdf->Cell(30, 7, 'Lab', 1, 0, 'C', 1);
-    $pdf->Cell(40, 7, 'Purpose', 1, 0, 'C', 1);
-    $pdf->Cell(40, 7, 'Login Time', 1, 0, 'C', 1);
-    $pdf->Cell(40, 7, 'Logout Time', 1, 0, 'C', 1);
-    $pdf->Cell(20, 7, 'Duration', 1, 1, 'C', 1);
-
-    // Add table rows
-    $pdf->SetFont('helvetica', '', 10);
-    foreach ($data as $row) {
-        $pdf->Cell(30, 7, $row['id_number'], 1);
-        $pdf->Cell(40, 7, $row['name'], 1);
-        $pdf->Cell(30, 7, $row['lab'], 1);
-        $pdf->Cell(40, 7, $row['purpose'], 1);
-        $pdf->Cell(40, 7, $row['login_time'], 1);
-        $pdf->Cell(40, 7, $row['logout_time'], 1);
-        $pdf->Cell(20, 7, $row['duration'], 1, 1);
-    }
-
-    // Output PDF
-    $pdf->Output($fileName . '.pdf', 'D');
-    exit();
-}
-
-// Export as Excel
-elseif ($type === 'excel') {
-    require_once '../vendor/phpoffice/phpspreadsheet/src/Bootstrap.php';
-    
-    use PhpOffice\PhpSpreadsheet\Spreadsheet;
-    use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
-    
-    // Create new Spreadsheet object
-    $spreadsheet = new Spreadsheet();
-    $sheet = $spreadsheet->getActiveSheet();
-    
-    // Set document properties
-    $spreadsheet->getProperties()
-        ->setCreator('Lab Management System')
-        ->setLastModifiedBy('Lab Management System')
-        ->setTitle('Sit-in Data Report')
-        ->setSubject('Sit-in Data Report')
-        ->setDescription('Sit-in Data Report generated on ' . date('Y-m-d H:i:s'));
-    
-    // Format the data
-    $formattedData = formatDataForExport($data);
-    
-    // Add data to the sheet
-    $sheet->fromArray($formattedData, NULL, 'A1');
-    
-    // Auto-size columns
-    foreach (range('A', 'G') as $col) {
-        $sheet->getColumnDimension($col)->setAutoSize(true);
-    }
-    
-    // Set headers style
-    $sheet->getStyle('A1:G1')->getFont()->setBold(true);
-    $sheet->getStyle('A1:G1')->getFill()
-        ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
-        ->getStartColor()->setRGB('F2F2F2');
-    
-    // Create the Excel file
-    $writer = new Xlsx($spreadsheet);
-    
-    // Set headers for download
-    header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    header('Content-Disposition: attachment;filename="' . $fileName . '.xlsx"');
-    header('Cache-Control: max-age=0');
-    
-    // Save file to PHP output
-    $writer->save('php://output');
-    exit();
-}
-
-// Export as CSV
-elseif ($type === 'csv') {
-    // Set headers for CSV download
+// Function to generate CSV
+function generateCSV($data) {
     header('Content-Type: text/csv');
-    header('Content-Disposition: attachment;filename="' . $fileName . '.csv"');
+    header('Content-Disposition: attachment; filename="sitin_data.csv"');
     
-    // Create output stream
     $output = fopen('php://output', 'w');
     
-    // Format the data
-    $formattedData = formatDataForExport($data);
+    // Add headers
+    fputcsv($output, ['ID Number', 'Student Name', 'Purpose', 'Lab', 'Login Time', 'Logout Time', 'Duration', 'Status']);
     
-    // Write data to CSV
-    foreach ($formattedData as $row) {
-        fputcsv($output, $row);
+    // Add data
+    foreach ($data as $row) {
+        fputcsv($output, [
+            $row['id_number'],
+            $row['student_name'],
+            $row['purpose'],
+            $row['lab'],
+            $row['login_time'],
+            $row['logout_time'] ?: '-',
+            $row['duration'],
+            $row['status']
+        ]);
     }
     
     fclose($output);
-    exit();
 }
 
-// Print view
-elseif ($type === 'print') {
-    // Generate HTML for printing
-    $html = '<!DOCTYPE html>
+// Function to generate Excel
+function generateExcel($data) {
+    $spreadsheet = new Spreadsheet();
+    $sheet = $spreadsheet->getActiveSheet();
+    
+    // Add headers
+    $headers = ['ID Number', 'Student Name', 'Purpose', 'Lab', 'Login Time', 'Logout Time', 'Duration', 'Status'];
+    $sheet->fromArray($headers, NULL, 'A1');
+    
+    // Add data
+    $row = 2;
+    foreach ($data as $item) {
+        $sheet->setCellValue('A' . $row, $item['id_number']);
+        $sheet->setCellValue('B' . $row, $item['student_name']);
+        $sheet->setCellValue('C' . $row, $item['purpose']);
+        $sheet->setCellValue('D' . $row, $item['lab']);
+        $sheet->setCellValue('E' . $row, $item['login_time']);
+        $sheet->setCellValue('F' . $row, $item['logout_time'] ?: '-');
+        $sheet->setCellValue('G' . $row, $item['duration']);
+        $sheet->setCellValue('H' . $row, $item['status']);
+        $row++;
+    }
+    
+    // Auto-size columns
+    foreach (range('A', 'H') as $col) {
+        $sheet->getColumnDimension($col)->setAutoSize(true);
+    }
+    
+    header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    header('Content-Disposition: attachment; filename="sitin_data.xlsx"');
+    
+    $writer = new Xlsx($spreadsheet);
+    $writer->save('php://output');
+}
+
+// Function to generate PDF
+function generatePDF($data) {
+    $html = '
     <html>
     <head>
-        <title>Sit-in Data Report</title>
         <style>
-            body { font-family: Arial, sans-serif; }
             table { width: 100%; border-collapse: collapse; margin-top: 20px; }
             th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
             th { background-color: #f2f2f2; }
-            .report-header { margin-bottom: 20px; }
-            .report-footer { margin-top: 20px; font-size: 12px; }
+            h1 { text-align: center; }
         </style>
     </head>
     <body>
-        <div class="report-header">
-            <h1>Sit-in Data Report</h1>
-            <p>Date Range: ' . $startDate . ' to ' . $endDate . '</p>';
-    
-    if ($filterBy && $filterValue) {
-        $html .= '<p>Filter: ' . ucfirst($filterBy) . ' = ' . $filterValue . '</p>';
-    }
-    
-    $html .= '</div>
+        <h1>Sitin Data Report</h1>
         <table>
             <thead>
                 <tr>
                     <th>ID Number</th>
                     <th>Student Name</th>
-                    <th>Lab</th>
                     <th>Purpose</th>
+                    <th>Lab</th>
                     <th>Login Time</th>
                     <th>Logout Time</th>
                     <th>Duration</th>
+                    <th>Status</th>
                 </tr>
             </thead>
             <tbody>';
@@ -254,28 +249,51 @@ elseif ($type === 'print') {
     foreach ($data as $row) {
         $html .= '<tr>
             <td>' . htmlspecialchars($row['id_number']) . '</td>
-            <td>' . htmlspecialchars($row['name']) . '</td>
-            <td>' . htmlspecialchars($row['lab']) . '</td>
+            <td>' . htmlspecialchars($row['student_name']) . '</td>
             <td>' . htmlspecialchars($row['purpose']) . '</td>
+            <td>' . htmlspecialchars($row['lab']) . '</td>
             <td>' . htmlspecialchars($row['login_time']) . '</td>
-            <td>' . htmlspecialchars($row['logout_time']) . '</td>
+            <td>' . ($row['logout_time'] ? htmlspecialchars($row['logout_time']) : '-') . '</td>
             <td>' . htmlspecialchars($row['duration']) . '</td>
+            <td>' . htmlspecialchars($row['status']) . '</td>
         </tr>';
     }
     
-    $html .= '</tbody>
-        </table>
-        <div class="report-footer">
-            <p>Generated on: ' . date('Y-m-d H:i:s') . '</p>
-        </div>
-    </body>
-    </html>';
+    $html .= '</tbody></table></body></html>';
     
-    echo $html;
-    exit();
+    $options = new Options();
+    $options->set('isHtml5ParserEnabled', true);
+    $options->set('isPhpEnabled', true);
+    
+    $dompdf = new Dompdf($options);
+    $dompdf->loadHtml($html);
+    $dompdf->setPaper('A4', 'landscape');
+    $dompdf->render();
+    
+    header('Content-Type: application/pdf');
+    header('Content-Disposition: attachment; filename="sitin_data.pdf"');
+    
+    echo $dompdf->output();
+}
+
+// Generate the requested export type
+switch ($type) {
+    case 'csv':
+        generateCSV($data);
+        break;
+    case 'excel':
+        generateExcel($data);
+        break;
+    case 'pdf':
+        generatePDF($data);
+        break;
+    default:
+        header("HTTP/1.1 400 Bad Request");
+        echo "Invalid export type";
+        break;
 }
 
 // Close database connections
-$stmt->close();
-$conn->close();
+mysqli_stmt_close($stmt);
+mysqli_close($conn);
 ?> 
