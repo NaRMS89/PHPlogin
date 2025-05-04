@@ -118,6 +118,11 @@ $profile_picture = !empty($user_data['profile_picture']) ? $user_data['profile_p
 
 // Lab rooms
 $lab_rooms = ['524', '526', '528', '530', '542', 'Mac Lab'];
+
+// Fetch resources from database
+$resources_sql = "SELECT * FROM lab_resources ORDER BY date_added DESC";
+$resources_result = mysqli_query($conn, $resources_sql);
+$resources = mysqli_fetch_all($resources_result, MYSQLI_ASSOC);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -886,6 +891,34 @@ $lab_rooms = ['524', '526', '528', '530', '542', 'Mac Lab'];
                         </tbody>
                     </table>
                 </div>
+            </div>
+        </div>
+
+        <!-- Resources Section -->
+        <div class="resources-section">
+            <h2>Lab Resources</h2>
+            <div class="resources-container">
+                <?php foreach ($resources as $resource): ?>
+                    <div class="resource-card">
+                        <div class="resource-card-header">
+                            <h3><?php echo htmlspecialchars($resource['title']); ?></h3>
+                            <span class="resource-type"><?php echo htmlspecialchars($resource['type']); ?></span>
+                        </div>
+                        <div class="resource-card-body">
+                            <p><?php echo htmlspecialchars($resource['description']); ?></p>
+                            <div class="resource-actions">
+                                <?php if ($resource['type'] == 'link'): ?>
+                                    <a href="<?php echo htmlspecialchars($resource['file_path']); ?>" target="_blank" class="btn btn-primary">Open Link</a>
+                                <?php else: ?>
+                                    <a href="<?php echo htmlspecialchars($resource['file_path']); ?>" class="btn btn-primary" download>Download</a>
+                                <?php endif; ?>
+                            </div>
+                            <div class="resource-meta">
+                                <small>Added: <?php echo date('M d, Y', strtotime($resource['date_added'])); ?></small>
+                            </div>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
             </div>
         </div>
     </div>
