@@ -26,87 +26,157 @@ if (!isset($_SESSION['admin_logged_in'])) {
     <div class="computer-grid" id="computerGrid">
         <!-- Computer status will be loaded dynamically -->
     </div>
+
+    <div class="reservation-controls">
+        <input type="text" id="studentName" class="form-control" placeholder="Enter student name">
+        <button id="reserveBtn" class="btn btn-primary" disabled>Reserve PC</button>
+        <div id="message" class="message"></div>
+    </div>
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const labSelect = document.getElementById('labSelect');
-    const computerGrid = document.getElementById('computerGrid');
+const labSelect = document.getElementById('labSelect');
+const computerGrid = document.getElementById('computerGrid');
+let selectedPcNumber = null;
+let labsData = {};
 
-    function loadComputers(lab) {
-        // Clear existing computers
-        computerGrid.innerHTML = '';
-        
-        // Fetch current computer statuses
-        fetch('get_computer_status.php', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: `lab=${lab}`
-        })
-        .then(response => response.json())
-        .then(computers => {
-            // Create computer grid
-            for (let i = 1; i <= 50; i++) {
-                const computer = computers.find(c => c.number === i);
-                const status = computer ? computer.status : 'available';
-                
-                const computerItem = document.createElement('div');
-                computerItem.className = `computer-status-item ${status}`;
-                computerItem.innerHTML = `
-                    <div class="computer-number">PC ${i}</div>
-                    <div class="status-badge">
-                        ${status.charAt(0).toUpperCase() + status.slice(1)}
-                    </div>
-                `;
-                
-                // Add click event to toggle status
-                computerItem.addEventListener('click', function() {
-                    toggleComputerStatus(lab, i, status);
-                });
-                
-                computerGrid.appendChild(computerItem);
-            }
-        })
-        .catch(error => {
-            console.error('Error loading computer status:', error);
-            alert('Error loading computer status. Please try again.');
-        });
-    }
+function initializeLabsData() {
+    // Initialize empty data structure for each lab
+    const labs = ['524', '526', '528', '530', '542', '544', '517'];
+    labs.forEach(lab => {
+        labsData[lab] = Array(50).fill().map((_, i) => ({
+            pcNumber: i + 1,
+            status: 'available',
+            reservation: null
+        }));
+    });
+}
 
-    function toggleComputerStatus(lab, computerNumber, currentStatus) {
-        fetch('toggle_computer_status.php', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: `lab=${lab}&computer_number=${computerNumber}`
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                // Reload computers to reflect new status
-                loadComputers(lab);
-            } else {
-                alert('Error updating computer status: ' + data.message);
-            }
-        })
-        .catch(error => {
-            console.error('Error toggling computer status:', error);
-            alert('Error updating computer status. Please try again.');
-        });
-    }
+function getLabsData() {
+    return labsData;
+}
 
-    // Load computers when lab is selected
-    labSelect.addEventListener('change', function() {
-        if (this.value) {
-            loadComputers(this.value);
-        } else {
+function setLabsData(data) {
+    labsData = data;
+}
+
+function loadComputersForLab(labID) {
+    fetch(`get_computer_status.php?lab=${labID}`)
+        .then(res => res.json())
+        .then(pcs => {
             computerGrid.innerHTML = '';
+            for (let i = 1; i <= 50; i++) {
+                const pc = pcs.find(p => parseInt(p.computer_number) === i);
+                let status = pc ? pc.status : 'available';
+                const card = document.createElement('div');
+                card.className = `computer-card ${status}`;
+                card.innerHTML = `
+                    <div>PC ${i}</div>
+                    <button class="btn-toggle ${status === 'available' ? 'activate' : 'deactivate'}"
+                        ${status === 'reserved' ? 'disabled' : ''}
+                        onclick="togglePCStatus('${labID}', ${i}, '${status === 'available' ? 'maintenance' : 'available'}')">
+                        ${status === 'available' ? 'Deactivate' : 'Activate'}
+                    </button>
+                `;
+                if (status === 'available') {
+                    card.onclick = () => selectPC(i);
+                } else {
+                    card.onclick = null;
+                }
+                if (selectedPcNumber === i) card.classList.add('selected');
+                computerGrid.appendChild(card);
+            }
+        });
+}
+
+function togglePCStatus(labID, pcNumber, newStatus) {
+    fetch('toggle_computer_status.php', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: `lab=${labID}&pc_number=${pcNumber}&status=${newStatus}`
+    })
+    .then(res => res.json())
+    .then(() => loadComputersForLab(labID));
+}
+
+function selectPC(pcNumber) {
+    selectedPcNumber = pcNumber;
+    Array.from(computerGrid.children).forEach((div, idx) => {
+        if (idx === pcNumber - 1) div.classList.add('selected');
+        else div.classList.remove('selected');
+    });
+    toggleReserveButton();
+}
+
+function toggleReserveButton() {
+    const nameField = document.getElementById('studentName');
+    const reserveBtn = document.getElementById('reserveBtn');
+    reserveBtn.disabled = !(labSelect.value && selectedPcNumber && nameField.value.trim().length > 0);
+}
+
+function acceptReservation(labID, pcNumber) {
+    const data = getLabsData();
+    const pc = data[labID].find(pc => pc.pcNumber === pcNumber);
+    if(!pc || !pc.reservation) return;
+    pc.reservation.status = 'accepted';
+    pc.status = 'occupied';
+    setLabsData(data);
+    updateReservationAdminList();
+    if(selectedLab === labID) {
+        loadComputersForLab(labID);
+    }
+}
+
+function rejectReservation(labID, pcNumber) {
+    const data = getLabsData();
+    const pc = data[labID].find(pc => pc.pcNumber === pcNumber);
+    if(!pc || !pc.reservation) return;
+    pc.reservation = null;
+    setLabsData(data);
+    updateReservationAdminList();
+    if(selectedLab === labID) {
+        loadComputersForLab(labID);
+    }
+}
+
+// Event Listeners
+labSelect.addEventListener('change', function() {
+    const lab = this.value;
+    if (!lab) {
+        computerGrid.innerHTML = '';
+        return;
+    }
+    loadComputersForLab(lab);
+});
+
+document.getElementById('studentName').addEventListener('input', () => {
+    toggleReserveButton();
+    document.getElementById('message').textContent = '';
+});
+
+document.getElementById('reserveBtn').addEventListener('click', function() {
+    const labID = labSelect.value;
+    const pcNumber = selectedPcNumber;
+    const studentName = document.getElementById('studentName').value.trim();
+    if (!labID || !pcNumber || !studentName) return;
+    fetch('reserve_pc.php', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: `lab=${labID}&pc_number=${pcNumber}&student_name=${encodeURIComponent(studentName)}`
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            document.getElementById('message').textContent = 'Reservation request sent!';
+            loadComputersForLab(labID);
+        } else {
+            document.getElementById('message').textContent = data.error || 'Reservation failed.';
         }
     });
 });
+
+// Initialize on load
+initializeLabsData();
 </script>
 
 <style>
@@ -188,5 +258,35 @@ document.addEventListener('DOMContentLoaded', function() {
     font-size: 11px;
     font-weight: bold;
     background-color: rgba(255,255,255,0.2);
+}
+
+.reservation-controls {
+    margin-top: 20px;
+    text-align: center;
+}
+
+.reservation-controls .form-control {
+    width: 300px;
+    margin-right: 10px;
+}
+
+.message {
+    margin-top: 10px;
+    color: #28a745;
+    font-weight: bold;
+}
+
+.btn-primary {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.btn-primary:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
 }
 </style> 

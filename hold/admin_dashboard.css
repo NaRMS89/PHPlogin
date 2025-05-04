@@ -1839,3 +1839,169 @@ canvas {
 .pagination-buttons button:hover:not(:disabled) {
     background-color: var(--button-hover-bg);
 }
+
+/* Lab Resources Modern Styles */
+#labResourcesContent {
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 0 20px;
+}
+
+.resources-container {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 24px;
+}
+
+.resource-card {
+    background: #23263a;
+    border-radius: 16px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.18);
+    border: none;
+    overflow: hidden;
+}
+
+.resource-card-header {
+    background: linear-gradient(90deg, #298cff 60%, #4f8cff 100%);
+    color: #fff;
+    font-weight: 600;
+    font-size: 1.1rem;
+    padding: 16px 24px;
+    letter-spacing: 0.5px;
+}
+
+.resource-card-body {
+    padding: 24px;
+}
+
+.resource-form {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+}
+
+.form-group {
+    margin-bottom: 0;
+}
+
+.form-label {
+    color: #bfc9da;
+    font-weight: 500;
+    margin-bottom: 8px;
+    display: block;
+}
+
+.form-control, .form-select {
+    background: #2d3250;
+    color: #e0e6ed;
+    border: 1.5px solid #353a50;
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 1rem;
+    transition: all 0.2s ease;
+    width: 100%;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #298cff;
+    box-shadow: 0 0 0 2px rgba(41,140,255,0.2);
+    outline: none;
+}
+
+.resource-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 16px;
+}
+
+.btn {
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 1rem;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    border: none;
+}
+
+.btn-primary {
+    background: linear-gradient(90deg, #298cff 60%, #4f8cff 100%);
+    color: #fff;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(90deg, #4f8cff 60%, #298cff 100%);
+    box-shadow: 0 4px 16px rgba(41,140,255,0.18);
+}
+
+.btn-danger {
+    background: linear-gradient(90deg, #ff4757 60%, #ff6b81 100%);
+    color: #fff;
+}
+
+.btn-danger:hover {
+    background: linear-gradient(90deg, #ff6b81 60%, #ff4757 100%);
+    box-shadow: 0 4px 16px rgba(255,71,87,0.18);
+}
+
+.resource-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin-top: 16px;
+}
+
+.resource-table th {
+    background: #2d3250;
+    color: #bfc9da;
+    font-weight: 600;
+    padding: 16px;
+    text-align: left;
+    border-bottom: 2px solid #353a50;
+}
+
+.resource-table td {
+    padding: 16px;
+    border-bottom: 1px solid #353a50;
+    color: #e0e6ed;
+}
+
+.resource-table tr:hover {
+    background: #2a2e44;
+}
+
+.resource-actions-cell {
+    display: flex;
+    gap: 8px;
+}
+
+.no-resources {
+    text-align: center;
+    padding: 32px;
+    color: #bfc9da;
+    font-style: italic;
+    font-size: 1.1rem;
+}
+
+@media (max-width: 768px) {
+    #labResourcesContent {
+        padding: 0 16px;
+    }
+    
+    .resource-card-body {
+        padding: 16px;
+    }
+    
+    .resource-actions {
+        flex-direction: column;
+    }
+    
+    .btn {
+        width: 100%;
+    }
+    
+    .resource-table {
+        display: block;
+        overflow-x: auto;
+    }
+}

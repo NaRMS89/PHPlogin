@@ -1058,91 +1058,104 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action'])) {
 
             <!-- Lab Resources Content -->
             <div id="labResourcesContent" style="display: none;">
-                <h2>Lab Resources/Materials</h2>
-                <div class="card">
-                    <div class="card-header">
-                        <h5>Upload Resources</h5>
+                <div class="resources-container">
+                    <!-- Upload Resources Card -->
+                    <div class="resource-card">
+                        <div class="resource-card-header">
+                            <h3 class="mb-0">Upload Resources</h3>
+                        </div>
+                        <div class="resource-card-body">
+                            <form action="upload_resource.php" method="POST" enctype="multipart/form-data" class="resource-form">
+                                <div class="form-group">
+                                    <label for="title" class="form-label">Title</label>
+                                    <input type="text" name="title" id="title" class="form-control" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="description" class="form-label">Description</label>
+                                    <textarea name="description" id="description" class="form-control" rows="3" required></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label for="resourceType" class="form-label">Resource Type</label>
+                                    <select name="type" id="resourceType" class="form-select" onchange="toggleInputFields()" required>
+                                        <option value="">Select Type</option>
+                                        <option value="file">File Upload</option>
+                                        <option value="link">External Link</option>
+                                    </select>
+                                </div>
+                                <div id="fileUploadDiv" class="form-group">
+                                    <label for="file" class="form-label">File</label>
+                                    <input type="file" name="file" id="file" class="form-control">
+                                </div>
+                                <div id="linkInputDiv" class="form-group" style="display: none;">
+                                    <label for="link" class="form-label">Link URL</label>
+                                    <input type="url" name="link" id="link" class="form-control" placeholder="https://">
+                                </div>
+                                <div class="resource-actions">
+                                    <button type="submit" class="btn btn-primary">Upload Resource</button>
+                                </div>
+                            </form>
+                        </div>
                     </div>
-                    <div class="card-body">
-                        <form id="resourceUploadForm" action="upload_resource.php" method="post" enctype="multipart/form-data">
-                            <div class="mb-3">
-                                <label for="resourceTitle" class="form-label">Resource Title</label>
-                                <input type="text" class="form-control" id="resourceTitle" name="title" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="resourceDescription" class="form-label">Description</label>
-                                <textarea class="form-control" id="resourceDescription" name="description" rows="3"></textarea>
-                            </div>
-                            <div class="mb-3">
-                                <label for="resourceType" class="form-label">Resource Type</label>
-                                <select class="form-select" id="resourceType" name="type">
-                                    <option value="pdf">PDF</option>
-                                    <option value="link">Link</option>
-                                    <option value="document">Document</option>
-                                </select>
-                            </div>
-                            <div class="mb-3" id="fileUploadDiv">
-                                <label for="resourceFile" class="form-label">File</label>
-                                <input type="file" class="form-control" id="resourceFile" name="file">
-                            </div>
-                            <div class="mb-3" id="linkInputDiv" style="display: none;">
-                                <label for="resourceLink" class="form-label">Link URL</label>
-                                <input type="url" class="form-control" id="resourceLink" name="link">
-                            </div>
-                            <button type="submit" class="btn btn-primary">Upload Resource</button>
-                        </form>
-                    </div>
-                </div>
-                
-                <div class="card mt-4">
-                    <div class="card-header">
-                        <h5>Available Resources</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table id="resourcesTable" class="table table-striped">
-                                <thead>
-                                    <tr>
-                                        <th>Title</th>
-                                        <th>Description</th>
-                                        <th>Type</th>
-                                        <th>Date Added</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <?php
-                                    // Query to get resources
-                                    $resources_sql = "SELECT * FROM lab_resources ORDER BY date_added DESC";
-                                    $resources_result = mysqli_query($conn, $resources_sql);
-                                    
-                                    if ($resources_result && mysqli_num_rows($resources_result) > 0) {
-                                        while ($resource_row = mysqli_fetch_assoc($resources_result)) {
-                                            echo "<tr>";
-                                            echo "<td>" . htmlspecialchars($resource_row['title']) . "</td>";
-                                            echo "<td>" . htmlspecialchars($resource_row['description']) . "</td>";
-                                            echo "<td>" . htmlspecialchars($resource_row['type']) . "</td>";
-                                            echo "<td>" . htmlspecialchars($resource_row['date_added']) . "</td>";
-                                            echo "<td>";
-                                            if ($resource_row['type'] == 'link') {
-                                                echo "<a href='" . htmlspecialchars($resource_row['file_path']) . "' target='_blank' class='btn btn-sm btn-info'>View</a> ";
-                                            } else {
-                                                echo "<a href='download_resource.php?id=" . $resource_row['id'] . "' class='btn btn-sm btn-info'>Download</a> ";
+
+                    <!-- Resources List Card -->
+                    <div class="resource-card">
+                        <div class="resource-card-header">
+                            <h3 class="mb-0">Available Resources</h3>
+                        </div>
+                        <div class="resource-card-body">
+                            <div class="table-responsive">
+                                <table class="resource-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Title</th>
+                                            <th>Description</th>
+                                            <th>Type</th>
+                                            <th>Date Added</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php
+                                        // Query to get resources
+                                        $resources_sql = "SELECT * FROM lab_resources ORDER BY date_added DESC";
+                                        $resources_result = mysqli_query($conn, $resources_sql);
+
+                                        if ($resources_result && mysqli_num_rows($resources_result) > 0) {
+                                            while ($resource_row = mysqli_fetch_assoc($resources_result)) {
+                                                echo "<tr>";
+                                                echo "<td>" . htmlspecialchars($resource_row['title']) . "</td>";
+                                                echo "<td>" . htmlspecialchars($resource_row['description']) . "</td>";
+                                                echo "<td>" . htmlspecialchars(ucfirst($resource_row['type'])) . "</td>";
+                                                echo "<td>" . htmlspecialchars($resource_row['date_added']) . "</td>";
+                                                echo "<td class='resource-actions-cell'>";
+                                                if ($resource_row['type'] == 'link') {
+                                                    echo "<a href='" . htmlspecialchars($resource_row['file_path']) . "' target='_blank' class='btn btn-primary'>View</a>";
+                                                } else {
+                                                    echo "<a href='download_resource.php?id=" . $resource_row['id'] . "' class='btn btn-primary'>Download</a>";
+                                                }
+                                                echo "<button class='btn btn-danger' onclick='deleteResource(" . $resource_row['id'] . ")'>Delete</button>";
+                                                echo "</td>";
+                                                echo "</tr>";
                                             }
-                                            echo "<button class='btn btn-sm btn-danger' onclick='deleteResource(" . $resource_row['id'] . ")'>Delete</button>";
-                                            echo "</td>";
-                                            echo "</tr>";
+                                        } else {
+                                            echo "<tr><td colspan='5' class='no-resources'>No resources found</td></tr>";
                                         }
-                                    } else {
-                                        echo "<tr><td colspan='5' class='text-center'>No resources found</td></tr>";
-                                    }
-                                    ?>
-                                </tbody>
-                            </table>
+                                        ?>
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
+
+            <script>
+            function toggleInputFields() {
+                var type = document.getElementById('resourceType').value;
+                document.getElementById('fileUploadDiv').style.display = (type === 'link') ? 'none' : 'block';
+                document.getElementById('linkInputDiv').style.display = (type === 'link') ? 'block' : 'none';
+            }
+            </script>
 
             <!-- Lab Schedules Content -->
             <div id="labSchedulesContent" style="display: none;">
