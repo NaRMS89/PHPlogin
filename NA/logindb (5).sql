@@ -84,6 +84,8 @@ CREATE TABLE `feedback` (
   `status` enum('pending','resolved','closed') NOT NULL DEFAULT 'pending'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+ALTER TABLE feedback ADD COLUMN feedback_text TEXT;
+
 -- --------------------------------------------------------
 
 --
@@ -491,6 +493,20 @@ INSERT INTO `lab_computers` (`id`, `lab_id`, `computer_number`, `status`) VALUES
 (348, '517', 48, 'available'),
 (349, '517', 49, 'available'),
 (350, '517', 50, 'available');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `lab_resources`
+--
+
+CREATE TABLE lab_resources (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    resource_name VARCHAR(255) NOT NULL,
+    resource_type VARCHAR(50),
+    resource_link TEXT,
+    uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 
 -- --------------------------------------------------------
 
