@@ -878,6 +878,26 @@ INSERT INTO `lab_computers` (`id`, `lab_id`, `computer_number`, `status`) VALUES
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `lab_resources`
+--
+
+CREATE TABLE IF NOT EXISTS `lab_resources` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `title` varchar(255) NOT NULL,
+  `type` varchar(50) NOT NULL DEFAULT 'file',
+  `description` text,
+  `quantity` int(11) NOT NULL DEFAULT 1,
+  `lab_room` varchar(50) NOT NULL,
+  `file_path` varchar(255),
+  `status` enum('available','in_use','maintenance') NOT NULL DEFAULT 'available',
+  `date_added` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `last_updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `points_log`
 --
 
@@ -1217,6 +1237,12 @@ ALTER TABLE `info`
 --
 ALTER TABLE `lab_computers`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=351;
+
+--
+-- AUTO_INCREMENT for table `lab_resources`
+--
+ALTER TABLE `lab_resources`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `points_log`

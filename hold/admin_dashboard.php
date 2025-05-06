@@ -2,6 +2,11 @@
 session_start();
 include("../includes/database.php");
 
+// Ensure the database connection is properly initialized
+if (!$conn) {
+    die("Database connection failed: " . mysqli_connect_error());
+}
+
 if (!isset($_SESSION['admin_logged_in'])) {
     header("Location: ../user/index.php");
     exit();
@@ -97,7 +102,7 @@ function getAllStudents($conn) {
 
 function getCurrentSitInStudents($conn) {
     $sql = "SELECT s.id as sitin_id, s.id_number, s.purpose, s.lab, s.status, 
-            i.first_name, i.last_name, i.sessions, f.feedback_text, f.created_at as feedback_date
+            i.first_name, i.last_name, i.sessions, f.feedback_text
             FROM sitin s 
             JOIN info i ON s.id_number = i.id_number 
             LEFT JOIN feedback f ON s.id = f.sit_in_id
