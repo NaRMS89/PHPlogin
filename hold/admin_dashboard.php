@@ -185,13 +185,12 @@ function removeStudentFromSitIn($idNo, $conn) {
         $success = mysqli_stmt_execute($stmt);
 
         if (!$success) {
-            throw new Exception("Failed to update sessions");
+            throw new Exception("Failed to update sessions count");
         }
 
         // Add to sit-in report
         $sql = "INSERT INTO sitin_report (id_number, purpose, lab, logout_time) 
-                SELECT id_number, purpose, lab, NOW() 
-                FROM sitin 
+                SELECT id_number, purpose, lab, NOW() FROM sitin 
                 WHERE id_number = ? AND status = 'inactive'";
         $stmt = mysqli_prepare($conn, $sql);
         mysqli_stmt_bind_param($stmt, "s", $idNo);
@@ -242,12 +241,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['reset_sessions'])) {
                 END";
         
         if (!mysqli_query($conn, $sql)) {
-            error_log("Failed to reset sessions: " . mysqli_error($conn));
-            header('Content-Type: application/json');
             echo json_encode(['success' => false, 'message' => 'Failed to reset sessions. Please try again later.']);
         } else {
-            header('Content-Type: application/json');
-            echo json_encode(['success' => true, 'message' => 'Successfully reset sessions (30 for BSIT/BSCS, 15 for others).']);
+            echo json_encode(['success' => true, 'message' => 'Sessions have been reset successfully.']);
         }
         exit();
     } else {
