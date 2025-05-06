@@ -84,6 +84,8 @@ CREATE TABLE IF NOT EXISTS `feedback` (
   CONSTRAINT `feedback_ibfk_1` FOREIGN KEY (`sit_in_id`) REFERENCES `sitin` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+ALTER TABLE feedback ADD COLUMN feedback_text TEXT;
+
 -- --------------------------------------------------------
 
 --
@@ -498,6 +500,7 @@ INSERT INTO `lab_computers` (`id`, `lab_id`, `computer_number`, `status`) VALUES
 -- Table structure for table `lab_resources`
 --
 
+<<<<<<< HEAD:NA/logindb.sql
 CREATE TABLE IF NOT EXISTS `lab_resources` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `title` varchar(255) NOT NULL,
@@ -511,6 +514,15 @@ CREATE TABLE IF NOT EXISTS `lab_resources` (
   `last_updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+=======
+CREATE TABLE lab_resources (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    resource_name VARCHAR(255) NOT NULL,
+    resource_type VARCHAR(50),
+    resource_link TEXT,
+    uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+>>>>>>> b4ec9aa6f542e812c28b22aea93620b9e1428aa8:NA/logindb (5).sql
 
 -- --------------------------------------------------------
 
