@@ -120,7 +120,7 @@ $profile_picture = !empty($user_data['profile_picture']) ? $user_data['profile_p
 $lab_rooms = ['524', '526', '528', '530', '542', 'Mac Lab'];
 
 // Fetch resources from database
-$resources_sql = "SELECT * FROM lab_resources ORDER BY uploaded_at DESC";
+$resources_sql = "SELECT * FROM lab_resources ORDER BY date_added DESC";
 $resources_result = mysqli_query($conn, $resources_sql);
 $resources = mysqli_fetch_all($resources_result, MYSQLI_ASSOC);
 ?>
@@ -909,7 +909,7 @@ $resources = mysqli_fetch_all($resources_result, MYSQLI_ASSOC);
                             <div class="resource-card-body">
                                 <p><?php echo htmlspecialchars($resource['resource_link']); ?></p>
                                 <div class="resource-meta">
-                                    <small>Uploaded: <?php echo date('M d, Y', strtotime($resource['uploaded_at'])); ?></small>
+                                    <small>Uploaded: <?php echo date('M d, Y', strtotime($resource['date_added'])); ?></small>
                                 </div>
                             </div>
                         </div>
