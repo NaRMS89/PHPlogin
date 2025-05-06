@@ -1,7 +1,9 @@
 // Reservation Management for Admin Dashboard
 
-// Load reservation data when the reservation button is clicked
+// Debug log to confirm event listener attachment
+console.log('Attaching event listener to reservationBtn');
 document.getElementById('reservationBtn').addEventListener('click', function() {
+    console.log('reservationBtn clicked');
     loadReservations();
 });
 

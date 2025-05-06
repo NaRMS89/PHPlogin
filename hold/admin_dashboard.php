@@ -97,7 +97,7 @@ function getAllStudents($conn) {
 
 function getCurrentSitInStudents($conn) {
     $sql = "SELECT s.id as sitin_id, s.id_number, s.purpose, s.lab, s.status, 
-            i.first_name, i.last_name, i.sessions, f.feedback_text, f.feedback_date
+            i.first_name, i.last_name, i.sessions, f.feedback_text, f.created_at as feedback_date
             FROM sitin s 
             JOIN info i ON s.id_number = i.id_number 
             LEFT JOIN feedback f ON s.id = f.sit_in_id
