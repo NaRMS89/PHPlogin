@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Apr 27, 2025 at 05:28 PM
+-- Generation Time: Apr 27, 2025 at 08:41 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.0.30
 
@@ -74,15 +74,15 @@ INSERT INTO `announcements` (`announcement_id`, `announcement_text`, `date_poste
 -- Table structure for table `feedback`
 --
 
-CREATE TABLE `feedback` (
-  `id` int(11) NOT NULL,
+CREATE TABLE IF NOT EXISTS `feedback` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
   `sit_in_id` int(11) NOT NULL,
-  `student_id` varchar(255) NOT NULL,
-  `admin_id` varchar(255) DEFAULT NULL,
-  `message` text NOT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `status` enum('pending','resolved','closed') NOT NULL DEFAULT 'pending'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+  `feedback_text` text,
+  `feedback_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `sit_in_id` (`sit_in_id`),
+  CONSTRAINT `feedback_ibfk_1` FOREIGN KEY (`sit_in_id`) REFERENCES `sitin` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------
 
@@ -495,6 +495,26 @@ INSERT INTO `lab_computers` (`id`, `lab_id`, `computer_number`, `status`) VALUES
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `lab_resources`
+--
+
+CREATE TABLE IF NOT EXISTS `lab_resources` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `title` varchar(255) NOT NULL,
+  `type` varchar(50) NOT NULL DEFAULT 'file',
+  `description` text,
+  `quantity` int(11) NOT NULL DEFAULT 1,
+  `lab_room` varchar(50) NOT NULL,
+  `file_path` varchar(255),
+  `status` enum('available','in_use','maintenance') NOT NULL DEFAULT 'available',
+  `date_added` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `last_updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `points_log`
 --
 
@@ -510,20 +530,63 @@ CREATE TABLE `points_log` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `computers`
+--
+
+CREATE TABLE IF NOT EXISTS computers (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    lab_id VARCHAR(10) NOT NULL,
+    pc_number INT NOT NULL,
+    status ENUM('available', 'maintenance', 'occupied') DEFAULT 'available',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY lab_pc_unique (lab_id, pc_number)
+);
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `reservations`
 --
 
-CREATE TABLE `reservations` (
-  `id` int(11) NOT NULL,
-  `student_id` varchar(255) NOT NULL,
-  `lab` varchar(255) NOT NULL,
-  `purpose` varchar(255) NOT NULL,
-  `reservation_date` date NOT NULL,
-  `start_time` time NOT NULL,
-  `end_time` time NOT NULL,
-  `status` enum('pending','approved','rejected','completed','cancelled') NOT NULL DEFAULT 'pending',
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE IF NOT EXISTS reservations (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    lab_id VARCHAR(10) NOT NULL,
+    pc_number INT NOT NULL,
+    student_id VARCHAR(50) NOT NULL,
+    status ENUM('pending', 'accepted', 'rejected') DEFAULT 'pending',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (lab_id, pc_number) REFERENCES computers(lab_id, pc_number)
+);
+
+--
+-- Insert initial computer records for each lab
+--
+
+INSERT IGNORE INTO computers (lab_id, pc_number, status)
+SELECT lab.id, pc.number, 'available'
+FROM (
+    SELECT '524' as id UNION ALL
+    SELECT '526' UNION ALL
+    SELECT '528' UNION ALL
+    SELECT '530' UNION ALL
+    SELECT '542' UNION ALL
+    SELECT '544' UNION ALL
+    SELECT '517'
+) lab
+CROSS JOIN (
+    SELECT 1 as number UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4 UNION ALL SELECT 5 UNION ALL
+    SELECT 6 UNION ALL SELECT 7 UNION ALL SELECT 8 UNION ALL SELECT 9 UNION ALL SELECT 10 UNION ALL
+    SELECT 11 UNION ALL SELECT 12 UNION ALL SELECT 13 UNION ALL SELECT 14 UNION ALL SELECT 15 UNION ALL
+    SELECT 16 UNION ALL SELECT 17 UNION ALL SELECT 18 UNION ALL SELECT 19 UNION ALL SELECT 20 UNION ALL
+    SELECT 21 UNION ALL SELECT 22 UNION ALL SELECT 23 UNION ALL SELECT 24 UNION ALL SELECT 25 UNION ALL
+    SELECT 26 UNION ALL SELECT 27 UNION ALL SELECT 28 UNION ALL SELECT 29 UNION ALL SELECT 30 UNION ALL
+    SELECT 31 UNION ALL SELECT 32 UNION ALL SELECT 33 UNION ALL SELECT 34 UNION ALL SELECT 35 UNION ALL
+    SELECT 36 UNION ALL SELECT 37 UNION ALL SELECT 38 UNION ALL SELECT 39 UNION ALL SELECT 40 UNION ALL
+    SELECT 41 UNION ALL SELECT 42 UNION ALL SELECT 43 UNION ALL SELECT 44 UNION ALL SELECT 45 UNION ALL
+    SELECT 46 UNION ALL SELECT 47 UNION ALL SELECT 48 UNION ALL SELECT 49 UNION ALL SELECT 50
+) pc;
 
 -- --------------------------------------------------------
 
@@ -531,34 +594,18 @@ CREATE TABLE `reservations` (
 -- Table structure for table `sitin`
 --
 
-CREATE TABLE `sitin` (
-  `id` int(11) NOT NULL,
-  `id_number` varchar(255) NOT NULL,
-  `purpose` varchar(255) NOT NULL,
-  `lab` varchar(255) NOT NULL,
+CREATE TABLE IF NOT EXISTS `sitin` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `id_number` varchar(50) NOT NULL,
+  `purpose` text NOT NULL,
+  `lab` varchar(50) NOT NULL,
   `status` enum('active','inactive') NOT NULL DEFAULT 'active',
-  `login_time` timestamp NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `sitin`
---
-
-INSERT INTO `sitin` (`id`, `id_number`, `purpose`, `lab`, `status`, `login_time`) VALUES
-(30, '1000', 'C Programming', '524', 'inactive', '2025-04-01 09:45:29'),
-(31, '2000', 'C Programming', '524', 'inactive', '2025-04-01 10:03:22'),
-(32, '1000', 'C Programming', '524', 'inactive', '2025-04-01 11:40:20'),
-(33, '3000', 'Java Programming', '526', 'inactive', '2025-04-01 12:20:16'),
-(34, '10000', 'Digital Logic & Design', '542', 'inactive', '2025-04-15 13:47:33'),
-(35, '11000', 'System Integration and Architecture', '526', 'inactive', '2025-04-15 13:47:52'),
-(36, '2000', 'Project Management', '524', 'inactive', '2025-04-15 13:48:10'),
-(37, '6000', 'Technopreneurship', '544', 'inactive', '2025-04-15 13:48:20'),
-(38, '4000', 'Python', '528', 'inactive', '2025-04-15 13:48:44'),
-(39, '6000', 'Capstone', '517', 'inactive', '2025-04-15 17:02:20'),
-(40, '1000', 'C Programming', '524', 'inactive', '2025-04-26 18:13:31'),
-(41, '2000', 'Java Programming', '526', 'active', '2025-04-26 18:13:42'),
-(42, '3000', 'Python', '528', 'active', '2025-04-26 18:13:51'),
-(43, '1000', 'Python', '528', 'inactive', '2025-04-26 18:14:24');
+  `login_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `logout_time` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `id_number` (`id_number`),
+  CONSTRAINT `sitin_ibfk_1` FOREIGN KEY (`id_number`) REFERENCES `info` (`id_number`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------
 
@@ -706,9 +753,7 @@ ALTER TABLE `announcements`
 --
 ALTER TABLE `feedback`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `sit_in_id` (`sit_in_id`),
-  ADD KEY `student_id` (`student_id`),
-  ADD KEY `admin_id` (`admin_id`);
+  ADD KEY `sit_in_id` (`sit_in_id`);
 
 --
 -- Indexes for table `info`
